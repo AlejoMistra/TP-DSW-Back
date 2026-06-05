@@ -1,5 +1,5 @@
 import { SocioRepository } from '../socio/socio.repository';
-import { PropiedadesSocio } from '../types';
+import { PropiedadesSocio } from './socio.entity';
 
 export class SocioService {
   
