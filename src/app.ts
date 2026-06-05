@@ -8,6 +8,7 @@ app.use(express.json());
 app.get('/', (_req, res) => {
   res.json({ message: 'Bienvenido a la API de gestión de socios de gimnasio.',
     endpoints: {
+      '/health': 'GET: Verificar el estado del servidor',
       '/api/socios': 'GET: Obtener todos los socios',
       '/api/socios/:id': 'GET: Obtener un socio por ID',
     }
