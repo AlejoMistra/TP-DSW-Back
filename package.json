@@ -1,22 +1,28 @@
 {
   "name": "back-tp-dsw",
   "version": "1.0.0",
-  "description": "",
+  "description": "API REST desarrollada con **Node.js**, **Express** y **TypeScript**.",
+  "homepage": "https://github.com/AlejoMistra/Back-TP-DSW#readme",
+  "bugs": {
+    "url": "https://github.com/AlejoMistra/Back-TP-DSW/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlejoMistra/Back-TP-DSW.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "^11.1.2",
-      "onFail": "download"
-    }
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
   },
-  "type": "module"
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.9.1"
+  }
 }

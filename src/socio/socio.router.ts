@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { SocioRepository } from '../repository/socio.repository';
-import { SocioService } from '../service/socio.service';
+import { SocioRepository } from '../socio/socio.repository';
+import { SocioService } from './socio.service';
 
 export const socioRouter = Router();
 

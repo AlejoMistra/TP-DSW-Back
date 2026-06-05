@@ -1,4 +1,3 @@
-
 export interface PropiedadesSocio {
   id: number;
   nombre: string;
