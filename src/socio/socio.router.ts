@@ -20,6 +20,7 @@ socioRouter.get('/', async (req: Request, res: Response) => {
 });
 
 //GET /api/socios/:id
+
 socioRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string, 10);
@@ -29,11 +30,13 @@ socioRouter.get('/:id', async (req: Request, res: Response) => {
     }
 
     const socio = await service.getById(id);
-
     return res.status(200).json(socio);
   }
   catch (error) {
-    return res.status(500).json({ error: 'Error interno al buscar el socio.' });
-  }
+    if(error instanceof Error && error.message === 'Socio no encontrado'){
+      return res.status(404).json({error: error.message});
+    }
+    return res.status(500).json({error: 'Error interno al buscar el socio'})
+    }
 });
 
