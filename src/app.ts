@@ -6,12 +6,14 @@ const app = express();
 app.use(express.json());
 
 app.get('/', (_req, res) => {
-  res.json({ message: 'Bienvenido a la API de gestión de socios de gimnasio.',
+  res.json({
+    message: 'Bienvenido a la API de gestión de socios de gimnasio.',
     endpoints: {
       '/health': 'GET: Verificar el estado del servidor',
-      '/api/socios': 'GET: Obtener todos los socios',
-      '/api/socios/:id': 'GET: Obtener un socio por ID',
-    }
+      '/api/socios': 'GET: Obtener todos los socios | POST: Crear nuevo socio',
+      '/api/socios/:id':
+        'GET: Obtener un socio | PUT: Actualizar socio | DELETE: Eliminar socio',
+    },
   });
 });
 

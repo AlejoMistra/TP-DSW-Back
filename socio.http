@@ -1,0 +1,47 @@
+@baseUrl = http://localhost:3000/api/socios
+
+### 1. Obtener todos los socios
+GET {{baseUrl}}
+
+### 2. Obtener un socio por ID
+GET {{baseUrl}}/1
+
+### 3. Crear un socio válido
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "nombre": "Juan",
+  "apellido": "Pérez",
+  "email": "juan.perez@ejemplo.com",
+  "telefono": "12345678",
+  "estado": "activo"
+}
+
+### 4. Crear un socio INVÁLIDO (Para probar las validaciones de Zod)
+# Debería devolver un error 400 por nombre corto, email inválido y teléfono corto
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "nombre": "A",
+  "apellido": "B",
+  "email": "correo-sin-arroba.com",
+  "telefono": "123",
+  "estado": "inactivo"
+}
+
+### 5. Actualizar un socio existente
+PUT {{baseUrl}}/1
+Content-Type: application/json
+
+{
+  "nombre": "Juan Carlos",
+  "apellido": "Pérez",
+  "email": "juan.perez@ejemplo.com",
+  "telefono": "1122334455",
+  "estado": "activo"
+}
+
+### 6. Eliminar un socio
+DELETE {{baseUrl}}/1

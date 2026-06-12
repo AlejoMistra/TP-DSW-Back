@@ -1,6 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { SocioRepository } from '../socio/socio.repository';
 import { SocioService } from './socio.service';
+import {
+  SocioIdSchema,
+  CreateSocioSchema,
+  UpdateSocioSchema,
+} from './socio.schemas';
+import { z } from 'zod';
 
 export const socioRouter = Router();
 
@@ -23,20 +29,87 @@ socioRouter.get('/', async (req: Request, res: Response) => {
 
 socioRouter.get('/:id', async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params.id as string, 10);
+    // Validar el parámetro ID con Zod
+    const validatedId = SocioIdSchema.parse({ id: req.params.id });
 
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'El parámetro ID debe ser un número válido.' });
-    }
+    const socio = await service.getById(validatedId.id);
 
     const socio = await service.getById(id);
     return res.status(200).json(socio);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        error: 'Validación fallida',
+        details: error.issues,
+      });
+    }
+    res.status(500).json({ message: 'Error al obtener el socio' });
   }
-  catch (error) {
-    if(error instanceof Error && error.message === 'Socio no encontrado'){
-      return res.status(404).json({error: error.message});
-    }
-    return res.status(500).json({error: 'Error interno al buscar el socio'})
-    }
 });
 
+//POST /api/socios - Crear nuevo socio
+socioRouter.post('/', async (req: Request, res: Response) => {
+  try {
+    const validatedData = CreateSocioSchema.parse(req.body);
+    const nuevoSocio = await service.create(validatedData);
+    res.status(201).json(nuevoSocio);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        error: 'Validación fallida',
+        details: error.issues,
+      });
+    }
+    res.status(500).json({ message: 'Error al crear el socio' });
+  }
+});
+
+//PUT /api/socios/:id - Actualizar socio
+socioRouter.put('/:id', async (req: Request, res: Response) => {
+  try {
+    const validatedId = SocioIdSchema.parse({ id: req.params.id });
+    const validatedData = UpdateSocioSchema.parse(req.body);
+
+    const socioActualizado = await service.update(
+      validatedId.id,
+      validatedData,
+    );
+
+    if (!socioActualizado) {
+      return res.status(404).json({ error: 'Socio no encontrado' });
+    }
+
+    res.status(200).json(socioActualizado);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        error: 'Validación fallida',
+        details: error.issues,
+      });
+    }
+    res.status(500).json({ message: 'Error al actualizar el socio' });
+  }
+});
+
+//DELETE /api/socios/:id - Eliminar socio
+socioRouter.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    const validatedId = SocioIdSchema.parse({ id: req.params.id });
+
+    const eliminado = await service.delete(validatedId.id);
+
+    if (!eliminado) {
+      return res.status(404).json({ error: 'Socio no encontrado' });
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        error: 'Validación fallida',
+        details: error.issues,
+      });
+    }
+    res.status(500).json({ message: 'Error al eliminar el socio' });
+  }
+});
