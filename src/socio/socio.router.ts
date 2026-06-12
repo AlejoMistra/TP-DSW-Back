@@ -34,7 +34,6 @@ socioRouter.get('/:id', async (req: Request, res: Response) => {
 
     const socio = await service.getById(validatedId.id);
 
-    const socio = await service.getById(id);
     return res.status(200).json(socio);
   } catch (error) {
     if (error instanceof z.ZodError) {

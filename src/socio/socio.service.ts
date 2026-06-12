@@ -14,11 +14,11 @@ export class SocioService {
   async getById(id: number): Promise<PropiedadesSocio> {
     //Aca va la logica de negocio, validaciones, etc. Por ejemplo ocultar algun dato o agregar algun campo calculado.
     const socio = await this.socioRepository.getSocioById(id);
-    if(!socio){
-      throw new Error ('Socio no encontrado');
+    if (!socio) {
+      throw new Error('Socio no encontrado');
     }
 
-    return await this.socioRepository.getSocioById(id);
+    return socio;
   }
 
   async create(propiedades: CreateSocioInput): Promise<PropiedadesSocio> {
