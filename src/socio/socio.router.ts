@@ -26,6 +26,7 @@ socioRouter.get('/', async (req: Request, res: Response) => {
 });
 
 //GET /api/socios/:id
+
 socioRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     // Validar el parámetro ID con Zod
@@ -33,10 +34,7 @@ socioRouter.get('/:id', async (req: Request, res: Response) => {
 
     const socio = await service.getById(validatedId.id);
 
-    if (!socio) {
-      return res.status(404).json({ error: 'Socio no encontrado' });
-    }
-
+    const socio = await service.getById(id);
     return res.status(200).json(socio);
   } catch (error) {
     if (error instanceof z.ZodError) {
