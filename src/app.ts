@@ -4,7 +4,6 @@ import apiRouter from './routes';
 const app = express();
 
 app.use(express.json());
-
 app.get('/', (_req, res) => {
   res.json({
     message: 'Bienvenido a la API de gestión de socios de gimnasio.',
