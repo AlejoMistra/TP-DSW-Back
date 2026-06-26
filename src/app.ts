@@ -1,5 +1,5 @@
 import express from 'express';
-import { socioRouter } from './socio/socio.router';
+import { socioRouter } from './socio/socio.router.js';
 
 const app = express();
 

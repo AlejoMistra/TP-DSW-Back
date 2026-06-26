@@ -1,5 +1,5 @@
-import SociosMock from './socios.json'; //por ahora es un json con socios, depues una bd
-import { PropiedadesSocio, EstadosSocio } from './socio.entity';
+import SociosMock from './socios.json' with { type: 'json' }; //por ahora es un json con socios, depues una bd
+import { PropiedadesSocio, EstadosSocio } from './socio.entity.js';
 
 export class SocioRepository {
   private socios: PropiedadesSocio[];

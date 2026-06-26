@@ -1,17 +1,14 @@
 {
   "compilerOptions": {
-    "incremental": true,
-    "sourceMap": true,
-    "target": "ES2020",
-    "module": "commonjs",
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "rootDir": "./src",
     "outDir": "./dist",
-    "strict": true,
-    "alwaysStrict": true,
+    "resolveJsonModule": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
+    "strict": true,
+    "skipLibCheck": true
   },
   "include": [
     "src/**/*",

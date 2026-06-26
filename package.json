@@ -15,10 +15,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js"
+    "dev": "tsc-watch --noClear -p ./tsconfig.json --onSuccess \"node ./dist/server.js\"",
+    "build": "tsc"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
@@ -27,7 +25,8 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
-    "@types/node": "^25.9.1",
-    "ts-node-dev": "^2.0.0"
+    "@types/node": "^25.9.3",
+    "tsc-watch": "^7.2.0",
+    "typescript": "^6.0.3"
   }
 }
