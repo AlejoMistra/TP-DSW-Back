@@ -1,9 +1,20 @@
 import express from 'express';
 import { socioRouter } from './socio/socio.router.js';
+import cors from 'cors';
 
 const app = express();
 
+const corsOptions = {
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
+
 app.use(express.json());
+
 app.get('/', (_req, res) => {
   res.json({
     message: 'Bienvenido a la API de gestión de socios de gimnasio.',
