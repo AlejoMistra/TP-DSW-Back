@@ -1,6 +1,6 @@
-import { SocioRepository } from '../socio/socio.repository';
-import { PropiedadesSocio } from './socio.entity';
-import { CreateSocioInput, UpdateSocioInput } from './socio.schemas';
+import { SocioRepository } from '../socio/socio.repository.js';
+import { PropiedadesSocio } from './socio.entity.js';
+import { CreateSocioInput, UpdateSocioInput } from './socio.schemas.js';
 
 export class SocioService {
   constructor(private socioRepository: SocioRepository) {}

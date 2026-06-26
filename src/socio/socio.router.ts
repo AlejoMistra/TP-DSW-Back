@@ -1,11 +1,11 @@
 import { Router, Request, Response } from 'express';
-import { SocioRepository } from '../socio/socio.repository';
-import { SocioService } from './socio.service';
+import { SocioRepository } from '../socio/socio.repository.js';
+import { SocioService } from './socio.service.js';
 import {
   SocioIdSchema,
   CreateSocioSchema,
   UpdateSocioSchema,
-} from './socio.schemas';
+} from './socio.schemas.js';
 import { z } from 'zod';
 
 export const socioRouter = Router();

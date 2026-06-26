@@ -1,5 +1,5 @@
-import InstructoresMock from './instructores.json'; //por ahora es un json con socios, depues una bd
-import { PropiedadesInstructor } from './instructor.entity';
+import InstructoresMock from './instructores.json' with { type: 'json' }; //por ahora es un json con socios, depues una bd
+import { PropiedadesInstructor } from './instructor.entity.js';
 
 export class InstructorRepository {
   private instructores: PropiedadesInstructor[];
