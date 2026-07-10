@@ -1,4 +1,4 @@
-export interface PropiedadesInstructor {
+export interface InstructorProps {
   id: number;
   nombre: string;
   apellido: string;
@@ -14,7 +14,7 @@ export class Instructor {
   //especialidad: string;
   email: string;
 
-  constructor(props: PropiedadesInstructor) {
+  constructor(props: InstructorProps) {
     this.id = props.id;
     this.nombre = props.nombre;
     this.apellido = props.apellido;
