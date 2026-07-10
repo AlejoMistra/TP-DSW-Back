@@ -2,7 +2,7 @@ export interface PropiedadesInstructor {
   id: number;
   nombre: string;
   apellido: string;
-  especialidad: string;
+  //especialidad: string;
   email: string;
 }
 
@@ -11,7 +11,7 @@ export class Instructor {
   id: number;
   nombre: string;
   apellido: string;
-  especialidad: string;
+  //especialidad: string;
   email: string;
 
   constructor(props: PropiedadesInstructor) {
@@ -19,6 +19,6 @@ export class Instructor {
     this.nombre = props.nombre;
     this.apellido = props.apellido;
     this.email = props.email;
-    this.especialidad = props.especialidad;
+    //this.especialidad = props.especialidad;
   }
 }
