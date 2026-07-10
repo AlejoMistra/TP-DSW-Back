@@ -1,23 +1,22 @@
 export interface InstructorProps {
   id: number;
-  nombre: string;
-  apellido: string;
+  name: string;
+  surname: string;
   //especialidad: string;
   email: string;
 }
 
-
 export class Instructor {
   id: number;
-  nombre: string;
-  apellido: string;
+  name: string;
+  surname: string;
   //especialidad: string;
   email: string;
 
   constructor(props: InstructorProps) {
     this.id = props.id;
-    this.nombre = props.nombre;
-    this.apellido = props.apellido;
+    this.name = props.name;
+    this.surname = props.surname;
     this.email = props.email;
     //this.especialidad = props.especialidad;
   }

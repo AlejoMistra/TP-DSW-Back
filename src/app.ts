@@ -1,5 +1,6 @@
 import express from 'express';
 import { socioRouter } from './socio/socio.router.js';
+import { instructorRouter } from './instructor/instructor.router.js';
 import cors from 'cors';
 
 const app = express();
@@ -23,6 +24,10 @@ app.get('/', (_req, res) => {
       '/api/socios': 'GET: Obtener todos los socios | POST: Crear nuevo socio',
       '/api/socios/:id':
         'GET: Obtener un socio | PUT: Actualizar socio | DELETE: Eliminar socio',
+      '/api/instructors':
+        'GET: Obtener todos los instructores | POST: Crear nuevo instructor',
+      '/api/instructors/:id':
+        'GET: Obtener un instructor | PUT: Actualizar instructor | DELETE: Eliminar instructor',
     },
   });
 });
@@ -32,5 +37,5 @@ app.get('/health', (_req, res) => {
 });
 
 app.use('/api/socios', socioRouter);
-
+app.use('/api/instructors', instructorRouter);
 export { app };
