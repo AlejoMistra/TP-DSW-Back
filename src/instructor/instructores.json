@@ -1,38 +1,21 @@
 [
   {
     "id": 1,
-    "nombre": "Gabriel",
-    "apellido": "Martinez",
-    "especialidad": "Funcional",
+    "name": "Gabriel",
+    "surname": "Martinez",
     "email": "gabrielmartinez@gmail.com"
   },
   {
     "id": 2,
-    "nombre": "Martin",
-    "apellido": "Gonzalez",
-    "especialidad": "Crossfit",
+    "name": "Martin",
+    "surname": "Gonzalez",
     "email": "martingonzales2004@gmail.com"
   },
 
   {
     "id": 3,
-    "nombre": "Milton",
-    "apellido": "Ramirez",
-    "especialidad": "Fuerza",
+    "name": "Milton",
+    "surname": "Ramirez",
     "email": "mramirez@hotmail.com"
   }
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
 ]
