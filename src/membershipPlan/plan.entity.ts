@@ -1,4 +1,4 @@
-export interface PlanProperties {
+export interface PlanProps {
   id: number;
   name: string;
   description: string;
@@ -13,7 +13,7 @@ export class MembershipPlan {
   price: number;
   durationDays: number;
 
-  constructor(props: PlanProperties) {
+  constructor(props: PlanProps) {
     this.id = props.id;
     this.description = props.description;
     this.name = props.name;

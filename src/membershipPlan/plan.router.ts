@@ -1,0 +1,99 @@
+import { Router, Request, Response } from 'express';
+import { PlanRepository } from './plan.repository.js';
+import { PlanService } from './plan.service.js';
+import {
+  CreatePlanSchema,
+  UpdatePlanSchema,
+  PlanIdSchema,
+} from './plan.schemas.js';
+import { z } from 'zod';
+
+export const planRouter = Router();
+
+const repository = new PlanRepository();
+const service = new PlanService(repository);
+
+// GET /api/membership-plans
+planRouter.get('/', async (req: Request, res: Response) => {
+  try {
+    const plans = await service.getAllPlans();
+    res.status(200).json(plans);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener los planes de membresía' });
+  }
+});
+
+// GET /api/membership-plans/:id
+planRouter.get('/:id', async (req: Request, res: Response) => {
+  try {
+    const validatedId = PlanIdSchema.parse({ id: req.params.id });
+    const plan = await service.getPlanById(validatedId.id);
+    return res.status(200).json(plan);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        error: 'Validación fallida',
+        details: error.issues,
+      });
+    }
+    res.status(500).json({ message: 'Error al obtener el plan de membresía' });
+  }
+});
+
+// POST /api/membership-plans - Crear nuevo plan de membresía
+planRouter.post('/', async (req: Request, res: Response) => {
+  try {
+    const validatedData = CreatePlanSchema.parse(req.body);
+    const newPlan = await service.createPlan(validatedData);
+    res.status(201).json(newPlan);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        error: 'Validación fallida',
+        details: error.issues,
+      });
+    }
+    res.status(500).json({ message: 'Error al crear el plan de membresía' });
+  }
+});
+
+// PUT /api/membership-plans/:id - Actualizar plan de membresía existente
+planRouter.put('/:id', async (req: Request, res: Response) => {
+  try {
+    const validatedId = PlanIdSchema.parse({ id: req.params.id });
+    const validatedData = UpdatePlanSchema.parse(req.body);
+    const updatedPlan = await service.updatePlan(validatedId.id, validatedData);
+    if (!updatedPlan) {
+      return res.status(404).json({ message: 'Plan de membresía no encontrado' });
+    }
+    res.status(200).json(updatedPlan);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        error: 'Validación fallida',
+        details: error.issues,
+      });
+    }
+    res.status(500).json({ message: 'Error al actualizar el plan de membresía' });
+  }
+});
+
+// DELETE /api/membership-plans/:id - Eliminar plan de membresía existente
+planRouter.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    const validatedId = PlanIdSchema.parse({ id: req.params.id });
+    const deleted = await service.deletePlan(validatedId.id);
+    if (!deleted) {
+      return res.status(404).json({ message: 'Plan de membresía no encontrado' });
+    }
+    res.status(200).json({ message: 'Plan de membresía eliminado exitosamente' });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        error: 'Validación fallida',
+        details: error.issues,
+      });
+    }
+    res.status(500).json({ message: 'Error al eliminar el plan de membresía' });
+  }
+});
