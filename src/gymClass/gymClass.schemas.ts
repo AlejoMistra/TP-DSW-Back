@@ -2,11 +2,11 @@ import { z } from 'zod';
 
 const categories = ['yoga', 'spinning', 'crossfit', 'pilates'] as const;
 
-export const ClassIdSchema = z.object({
+export const GymClassIdSchema = z.object({
   id: z.coerce.number().int().positive('ID debe ser un numero mayor que 0'),
 });
 
-export const CreateClassSchema = z.object({
+export const CreateGymClassSchema = z.object({
   name: z
     .string()
     .min(1, 'La clase debe tener un nombre')
@@ -37,11 +37,11 @@ export const CreateClassSchema = z.object({
     .max(180, 'La duracion de la clase no puede superar los 180 minutos'),
 });
 
-export const UpdateClassSchema = CreateClassSchema.partial();
-export const ClassResponseSchema = CreateClassSchema.extend({
+export const UpdateGymClassSchema = CreateGymClassSchema.partial();
+export const GymClassResponseSchema = CreateGymClassSchema.extend({
   id: z.number(),
 });
 
-export type CreateClassInput = z.infer<typeof CreateClassSchema>;
-export type UpdateClassInput = z.infer<typeof UpdateClassSchema>;
-export type ClassResponse = z.infer<typeof ClassResponseSchema>;
+export type CreateGymClassInput = z.infer<typeof CreateGymClassSchema>;
+export type UpdateGymClassInput = z.infer<typeof UpdateGymClassSchema>;
+export type GymClassResponse = z.infer<typeof GymClassResponseSchema>;

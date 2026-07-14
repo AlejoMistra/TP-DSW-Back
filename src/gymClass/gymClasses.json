@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "name": "Yoga Matutino",
+    "description": "Clase de yoga para flexibilidad y relajación",
+    "category": "yoga",
+    "maxNumber": 15,
+    "instructorId": 1
+  },
+  {
+    "id": 2,
+    "name": "Boxeo Intenso",
+    "description": "Entrenamiento de boxeo de alta intensidad",
+    "category": "boxeo",
+    "maxNumber": 20,
+    "instructorId": 2
+  },
+  {
+    "id": 3,
+    "name": "Spinning Nocturno",
+    "description": "Clase de spinning con música energética",
+    "category": "spinning",
+    "MaxNumber": 25,
+    "instructorId": 1
+  }
+]
