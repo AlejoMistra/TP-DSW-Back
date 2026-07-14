@@ -1,22 +1,22 @@
-import PlanesMock from './planes.json' with { type: 'json' };
+import PlansMock from './plans.json' with { type: 'json' };
 import { PlanProps, MembershipPlan } from './plan.entity.js';
 
 export class PlanRepository {
   private plans: PlanProps[];
 
   constructor() {
-    this.plans = PlanesMock.map((plan) => ({
+    this.plans = PlansMock.map((plan) => ({
       ...plan,
     }));
   }
 
   async getAllPlans(): Promise<PlanProps[]> {
-    return Promise.resolve(this.plans);
+    return this.plans;
   }
 
   async getPlanById(id: number): Promise<PlanProps | null> {
     const plan = this.plans.find((p) => p.id === id);
-    return Promise.resolve(plan || null);
+    return plan || null;
   }
 
   async create(props: Omit<PlanProps, 'id'>): Promise<PlanProps> {
@@ -26,7 +26,7 @@ export class PlanRepository {
       ...props,
     };
     this.plans.push(newPlan);
-    return Promise.resolve(newPlan);
+    return newPlan;
   }
 
   async save(
@@ -34,17 +34,17 @@ export class PlanRepository {
     props: Partial<PlanProps>,
   ): Promise<PlanProps | null> {
     const plan = this.plans.find((p) => p.id === id);
-    if (!plan) return Promise.resolve(null);
+    if (!plan) return null;
     const updated = { ...plan, ...props };
     const index = this.plans.findIndex((p) => p.id === id);
     this.plans[index] = updated;
-    return Promise.resolve(updated);
+    return updated;
   }
 
   async delete(id: number): Promise<boolean> {
     const index = this.plans.findIndex((p) => p.id === id);
-    if (index === -1) return Promise.resolve(false);
+    if (index === -1) return false;
     this.plans.splice(index, 1);
-    return Promise.resolve(true);
+    return true;
   }
 }

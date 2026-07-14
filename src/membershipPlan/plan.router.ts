@@ -15,6 +15,8 @@ const service = new PlanService(repository);
 
 // GET /api/membership-plans
 planRouter.get('/', async (req: Request, res: Response) => {
+  // FIXME: Cuando el plan no existe, service.getPlanById lanza un Error(\"Plan no encontrado\") y este handler lo convierte en 500. Eso hace que un caso esperado (no encontrado) se reporte como error interno. Solución: detectar explícitamente el caso 'not found' (por error tipado o por retorno null) y responder con 404.
+  
   try {
     const plans = await service.getAllPlans();
     res.status(200).json(plans);
@@ -42,6 +44,9 @@ planRouter.get('/:id', async (req: Request, res: Response) => {
 
 // POST /api/membership-plans - Crear nuevo plan de membresía
 planRouter.post('/', async (req: Request, res: Response) => {
+
+  // FIXME: Se agregan nuevos endpoints y ramas de validación/errores (400 por Zod, 404 por no encontrado, 201/200/500) pero falta cobertura de tests para: validación de :id, create/update con body inválido, get/update/delete de id inexistente (especialmente el bug de 404 vs 500), y flujo feliz.
+
   try {
     const validatedData = CreatePlanSchema.parse(req.body);
     const newPlan = await service.createPlan(validatedData);
