@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "name": "Básico",
+    "description": "Acceso a sala de musculación",
+    "price": 28000,
+    "durationDays": 30
+  },
+  {
+    "id": 2,
+    "name": "Plus",
+    "description": "Acceso a sala de musculación y clases grupales",
+    "price": 36000,
+    "durationDays": 30
+  },
+  {
+    "id": 3,
+    "name": "Premium",
+    "description": "Todos los beneficios más seguimiento personalizado",
+    "price": 49000,
+    "durationDays": 30
+  }
+]
