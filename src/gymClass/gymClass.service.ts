@@ -1,5 +1,5 @@
 import { GymClassRepository } from '../gymClass/gymClass.repository.js';
-import { GymClassProps } from './gymClass.entity.js';
+import { GymClassProps, GymClassCategory } from './gymClass.entity.js';
 import {
   CreateGymClassInput,
   UpdateGymClassInput,
@@ -26,6 +26,15 @@ export class GymClassService {
       throw new Error('Instructor sin clases asignadas');
     }
     return classesByInstructor;
+  }
+
+  async getByCategory(category: GymClassCategory): Promise<GymClassProps[]> {
+    const gymClassesByCategory =
+      await this.gymClassRepository.getGymClassesByCategory(category);
+    if (!gymClassesByCategory) {
+      throw new Error('No hay clases disponibles para esta categoria');
+    }
+    return gymClassesByCategory;
   }
 
   async create(props: CreateGymClassInput): Promise<GymClassProps> {

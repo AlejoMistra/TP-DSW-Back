@@ -35,6 +35,8 @@ app.get('/', (_req, res) => {
         'GET: Obtener una clase de gimnasio | PUT: Actualizar clase de gimnasio | DELETE: Eliminar clase de gimnasio',
       '/api/gymClasses/instructor/:instructorId':
         'GET: Obtener todas las clases de gimnasio de un instructor',
+      '/api/gymClasses/category/:category':
+        'GET: Obtener todas las clases de gimnasio de una categoria',
     },
   });
 });

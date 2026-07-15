@@ -2,6 +2,10 @@ import { z } from 'zod';
 
 const categories = ['yoga', 'spinning', 'crossfit', 'pilates'] as const;
 
+export const GymClassCategorySchema = z.enum(categories, {
+  message: `La Categoria debe pertenecer a algunas de las siguientes: ${categories.join(', ')}`,
+});
+
 export const GymClassIdSchema = z.object({
   id: z.coerce.number().int().positive('ID debe ser un numero mayor que 0'),
 });

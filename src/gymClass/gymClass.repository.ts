@@ -29,6 +29,13 @@ export class GymClassRepository {
     return Promise.resolve(gymClasses || null);
   }
 
+  async getGymClassesByCategory(
+    category: GymClassCategory,
+  ): Promise<GymClassProps[] | null> {
+    const gymClasses = this.gymClasses.filter((g) => g.category === category);
+    return Promise.resolve(gymClasses || null);
+  }
+
   async create(props: Omit<GymClassProps, 'id'>): Promise<GymClassProps> {
     const newId = Math.max(...this.gymClasses.map((g) => g.id), 0) + 1;
     const newGymClass: GymClassProps = {

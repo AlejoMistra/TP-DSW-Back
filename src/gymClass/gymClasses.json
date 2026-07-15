@@ -10,9 +10,9 @@
     },
   {
     "id": 2,
-    "name": "Boxeo Intenso",
-    "description": "Entrenamiento de boxeo de alta intensidad",
-    "category": "boxeo",
+    "name": "Crossfit Intenso",
+    "description": "Entrenamiento de crossfit de alta intensidad",
+    "category": "crossfit",
     "maxNumber": 20,
     "instructorId": 2,
     "durationMinutes": 120

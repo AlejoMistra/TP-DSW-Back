@@ -3,6 +3,7 @@ import { GymClassRepository } from './gymClass.repository.js';
 import { GymClassService } from './gymClass.service.js';
 import {
   GymClassIdSchema,
+  GymClassCategorySchema,
   CreateGymClassSchema,
   UpdateGymClassSchema,
 } from './gymClass.schemas.js';
@@ -62,6 +63,29 @@ gymClassRouter.get(
       return res
         .status(500)
         .json({ message: 'Error al obtener las clases del instructor' });
+    }
+  },
+);
+
+gymClassRouter.get(
+  '/category/:category',
+  async (req: Request, res: Response) => {
+    try {
+      const validatedCategory = GymClassCategorySchema.parse(
+        req.params.category,
+      );
+      const gymClasses = await service.getByCategory(validatedCategory);
+      return res.status(200).json(gymClasses);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: 'Categoria invalida',
+          details: error.issues,
+        });
+      }
+      return res
+        .status(500)
+        .json({ message: 'Error al obtener las clases de la categoria' });
     }
   },
 );
