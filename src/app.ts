@@ -1,5 +1,6 @@
 import express from 'express';
 import { socioRouter } from './socio/socio.router.js';
+import { exerciseRouter } from './exercise/exercise.router.js';
 import cors from 'cors';
 
 const app = express();
@@ -32,5 +33,6 @@ app.get('/health', (_req, res) => {
 });
 
 app.use('/api/socios', socioRouter);
+app.use('/api/exercises', exerciseRouter);
 
 export { app };
