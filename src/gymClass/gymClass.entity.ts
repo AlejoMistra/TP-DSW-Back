@@ -8,7 +8,7 @@ export interface GymClassProps {
   durationMinutes: number;
 }
 
-export type GymClassCategory = 'Yoga' | 'Spinning' | 'Crossfit' | 'Pilates';
+export type GymClassCategory = 'yoga' | 'spinning' | 'crossfit' | 'pilates';
 
 export class GymClass {
   id: number;

@@ -1,6 +1,7 @@
 import express from 'express';
 import { socioRouter } from './socio/socio.router.js';
 import { instructorRouter } from './instructor/instructor.router.js';
+import { gymClassRouter } from './gymClass/gymClass.router.js';
 import cors from 'cors';
 
 const app = express();
@@ -28,6 +29,12 @@ app.get('/', (_req, res) => {
         'GET: Obtener todos los instructores | POST: Crear nuevo instructor',
       '/api/instructors/:id':
         'GET: Obtener un instructor | PUT: Actualizar instructor | DELETE: Eliminar instructor',
+      '/api/gymClasses':
+        'GET: Obtener todas las clases de gimnasio | POST: Crear nueva clase de gimnasio',
+      '/api/gymClasses/:id':
+        'GET: Obtener una clase de gimnasio | PUT: Actualizar clase de gimnasio | DELETE: Eliminar clase de gimnasio',
+      '/api/gymClasses/instructor/:instructorId':
+        'GET: Obtener todas las clases de gimnasio de un instructor',
     },
   });
 });
@@ -38,4 +45,5 @@ app.get('/health', (_req, res) => {
 
 app.use('/api/socios', socioRouter);
 app.use('/api/instructors', instructorRouter);
+app.use('/api/gymClasses', gymClassRouter);
 export { app };
