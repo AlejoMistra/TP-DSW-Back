@@ -14,7 +14,7 @@ export class GymClassService {
   async getById(id: number): Promise<GymClassProps> {
     const classById = await this.gymClassRepository.getGymClassById(id);
     if (!classById) {
-      throw new Error('Clas no encontrada');
+      throw new Error('Clase no encontrada');
     }
     return classById;
   }
