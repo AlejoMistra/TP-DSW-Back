@@ -1,34 +1,34 @@
 import { z } from 'zod';
 
 // Schema para obtener un socio por ID (parámetro de ruta)
-export const SocioIdSchema = z.object({
+export const MemberIdSchema = z.object({
   id: z.string().regex(/^\d+$/, 'ID debe ser un número').transform(Number),
 });
 
 // Schema para crear un socio (POST - sin ID ni fechaIngreso)
-export const CreateSocioSchema = z.object({
-  nombre: z.string().min(2, 'Nombre debe tener al menos 2 caracteres').max(100),
-  apellido: z
+export const CreateMemberSchema = z.object({
+  name: z.string().min(2, 'Nombre debe tener al menos 2 caracteres').max(100),
+  surname: z
     .string()
     .min(2, 'Apellido debe tener al menos 2 caracteres')
     .max(100),
   email: z.string().email('Email inválido'),
-  telefono: z
+  phoneNumber: z
     .string()
     .regex(/^\d{7,15}$/, 'Teléfono debe tener entre 7 y 15 dígitos'),
-  estado: z.enum(['activo', 'inactivo']).default('activo'),
+  status: z.enum(['active', 'inactive']).default('active'),
 });
 
 // Schema para actualizar un socio (PUT/PATCH - todos campos opcionales)
-export const UpdateSocioSchema = CreateSocioSchema.partial();
+export const UpdateMemberSchema = CreateMemberSchema.partial();
 
 // Schema de respuesta (con ID y fechaIngreso)
-export const SocioResponseSchema = CreateSocioSchema.extend({
+export const MemberResponseSchema = CreateMemberSchema.extend({
   id: z.number(),
-  fechaIngreso: z.date(),
+  joinDate: z.date(),
 });
 
 // Tipos inferidos automáticamente de TypeScript
-export type CreateSocioInput = z.infer<typeof CreateSocioSchema>;
-export type UpdateSocioInput = z.infer<typeof UpdateSocioSchema>;
-export type SocioResponse = z.infer<typeof SocioResponseSchema>;
+export type CreateMemberInput = z.infer<typeof CreateMemberSchema>;
+export type UpdateMemberInput = z.infer<typeof UpdateMemberSchema>;
+export type MemberResponse = z.infer<typeof MemberResponseSchema>;

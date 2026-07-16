@@ -1,5 +1,5 @@
 import express from 'express';
-import { socioRouter } from './socio/socio.router.js';
+import { memberRouter } from './member/member.router.js';
 import { instructorRouter } from './instructor/instructor.router.js';
 import { gymClassRouter } from './gymClass/gymClass.router.js';
 import { planRouter } from './membershipPlan/plan.router.js';
@@ -23,8 +23,8 @@ app.get('/', (_req, res) => {
     message: 'Bienvenido a la API de gestión de socios de gimnasio.',
     endpoints: {
       '/health': 'GET: Verificar el estado del servidor',
-      '/api/socios': 'GET: Obtener todos los socios | POST: Crear nuevo socio',
-      '/api/socios/:id':
+      '/api/members': 'GET: Obtener todos los socios | POST: Crear nuevo socio',
+      '/api/members/:id':
         'GET: Obtener un socio | PUT: Actualizar socio | DELETE: Eliminar socio',
       '/api/instructors':
         'GET: Obtener todos los instructores | POST: Crear nuevo instructor',
@@ -50,7 +50,7 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
 });
 
-app.use('/api/socios', socioRouter);
+app.use('/api/members', memberRouter);
 app.use('/api/instructors', instructorRouter);
 app.use('/api/gymClasses', gymClassRouter);
 app.use('/api/membership-plans', planRouter);
