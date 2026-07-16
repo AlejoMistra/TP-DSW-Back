@@ -1,0 +1,43 @@
+[
+
+ {
+    "id": 1,
+    "name": "Push-up",
+    "description": "A basic upper body exercise that targets the chest, shoulders, and triceps.",
+    "muscleGroup": "Chest",
+    "difficultyLevel": "beginner"
+ },
+
+ {
+    "id": 2,
+    "name": "Squat",
+    "description": "A lower body exercise that targets the quadriceps, hamstrings, and glutes.",
+    "muscleGroup": "Legs",
+    "difficultyLevel": "intermediate"
+ },
+
+ {
+    "id": 3,
+    "name": "Plank",
+    "description": "An isometric core exercise that strengthens the abdominal muscles and lower back.",
+    "muscleGroup": "Core",
+    "difficultyLevel": "intermediate"
+ },
+
+ {
+    "id": 4,
+    "name": "Deadlift",
+    "description": "A compound exercise that targets multiple muscle groups, including the back, glutes, and hamstrings.",
+    "muscleGroup": "Back",
+    "difficultyLevel": "advanced"
+ },
+
+   {
+      "id": 5,
+      "name": "Bicep Curl",
+      "description": "An isolation exercise that targets the biceps muscles in the upper arm.",
+      "muscleGroup": "Arms",
+      "difficultyLevel": "beginner"
+   }
+
+]

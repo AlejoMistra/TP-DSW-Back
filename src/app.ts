@@ -1,4 +1,6 @@
 import express from 'express';
+import { socioRouter } from './socio/socio.router.js';
+import { exerciseRouter } from './exercise/exercise.router.js';
 import { memberRouter } from './member/member.router.js';
 import { instructorRouter } from './instructor/instructor.router.js';
 import { gymClassRouter } from './gymClass/gymClass.router.js';
@@ -50,6 +52,8 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
 });
 
+app.use('/api/socios', socioRouter);
+app.use('/api/exercises', exerciseRouter);
 app.use('/api/members', memberRouter);
 app.use('/api/instructors', instructorRouter);
 app.use('/api/gymClasses', gymClassRouter);
