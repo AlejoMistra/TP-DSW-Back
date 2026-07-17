@@ -1,0 +1,88 @@
+import ClassSchedulesMock from './classSchedules.json' with { type: 'json' };
+import {
+  ClassScheduleProps,
+  GymClassCategory,
+  DayOfWeek,
+} from './classSchedule.entity.js';
+
+export class ClassScheduleRepository {
+  private classSchedules: ClassScheduleProps[];
+
+  constructor() {
+    this.classSchedules = ClassSchedulesMock.map((schedule) => ({
+      ...schedule,
+      category: schedule.category as GymClassCategory,
+      dayOfWeek: schedule.dayOfWeek as DayOfWeek,
+    }));
+  }
+
+  async getAllClassSchedules(): Promise<ClassScheduleProps[]> {
+    return Promise.resolve(this.classSchedules);
+  }
+
+  async getClassScheduleById(id: number): Promise<ClassScheduleProps | null> {
+    const schedule = this.classSchedules.find((s) => s.id === id);
+    return Promise.resolve(schedule || null);
+  }
+
+  async getClassSchedulesByInstructorId(
+    instructorId: number,
+  ): Promise<ClassScheduleProps[] | null> {
+    const schedules = this.classSchedules.filter(
+      (s) => s.instructorId === instructorId,
+    );
+    return Promise.resolve(schedules || null);
+  }
+
+  async getClassSchedulesByCategory(
+    category: GymClassCategory,
+  ): Promise<ClassScheduleProps[] | null> {
+    const schedules = this.classSchedules.filter(
+      (s) => s.category === category,
+    );
+    return Promise.resolve(schedules || null);
+  }
+
+  async getClassSchedulesByDayOfWeek(
+    dayOfWeek: string,
+  ): Promise<ClassScheduleProps[] | null> {
+    const schedules = this.classSchedules.filter(
+      (s) => s.dayOfWeek === dayOfWeek,
+    );
+    return Promise.resolve(schedules || null);
+  }
+
+  async create(
+    props: Omit<ClassScheduleProps, 'id'>,
+  ): Promise<ClassScheduleProps> {
+    const newId = Math.max(...this.classSchedules.map((s) => s.id), 0) + 1;
+    const newSchedule: ClassScheduleProps = {
+      id: newId,
+      ...props,
+    };
+    this.classSchedules.push(newSchedule);
+    return Promise.resolve(newSchedule);
+  }
+
+  async save(
+    id: number,
+    props: Partial<ClassScheduleProps>,
+  ): Promise<ClassScheduleProps | null> {
+    const schedule = this.classSchedules.find((s) => s.id === id);
+    if (!schedule) {
+      return Promise.resolve(null);
+    }
+
+    const updated = { ...schedule, ...props };
+    const index = this.classSchedules.findIndex((s) => s.id === id);
+    this.classSchedules[index] = updated;
+    return Promise.resolve(updated);
+  }
+
+  async delete(id: number): Promise<boolean> {
+    const index = this.classSchedules.findIndex((s) => s.id === id);
+    if (index === -1) return Promise.resolve(false);
+    this.classSchedules.splice(index, 1);
+    return Promise.resolve(true);
+  }
+}
