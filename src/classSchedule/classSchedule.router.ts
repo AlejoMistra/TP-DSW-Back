@@ -8,11 +8,17 @@ import {
   UpdateClassScheduleSchema,
   DayOfWeekSchema,
 } from './classSchedule.schemas.js';
+import { InstructorRepository } from '../instructor/instructor.repository.js'; // ← Importar
+
 import { z } from 'zod';
 
 export const classScheduleRouter = Router();
-const repository = new ClassScheduleRepository();
-const service = new ClassScheduleService(repository);
+const classScheduleRepository = new ClassScheduleRepository();
+const instructorRepository = new InstructorRepository();
+const service = new ClassScheduleService(
+  classScheduleRepository,
+  instructorRepository,
+);
 
 //GET /api/classSchedules
 classScheduleRouter.get('/', async (req: Request, res: Response) => {
@@ -124,6 +130,9 @@ classScheduleRouter.post('/', async (req: Request, res: Response) => {
         details: error.issues,
       });
     }
+    if (error instanceof Error && error.message.includes('instructor')) {
+      return res.status(404).json({ message: error.message });
+    }
     return res
       .status(500)
       .json({ message: 'Error al crear el horario de clase' });
@@ -147,6 +156,9 @@ classScheduleRouter.put('/:id', async (req: Request, res: Response) => {
         message: 'Validacion fallida',
         details: error.issues,
       });
+    }
+    if (error instanceof Error && error.message.includes('instructor')) {
+      return res.status(404).json({ message: error.message });
     }
     return res
       .status(500)

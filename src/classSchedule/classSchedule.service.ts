@@ -1,4 +1,5 @@
 import { ClassScheduleRepository } from '../classSchedule/classSchedule.repository.js';
+import { InstructorRepository } from '../instructor/instructor.repository.js';
 import {
   ClassScheduleProps,
   GymClassCategory,
@@ -10,7 +11,10 @@ import {
 } from './classSchedule.schemas.js';
 
 export class ClassScheduleService {
-  constructor(private classScheduleRepository: ClassScheduleRepository) {}
+  constructor(
+    private classScheduleRepository: ClassScheduleRepository,
+    private instructorRepository: InstructorRepository,
+  ) {}
   async getAll() {
     return await this.classScheduleRepository.getAllClassSchedules();
   }
@@ -58,6 +62,12 @@ export class ClassScheduleService {
   }
 
   async create(props: CreateClassScheduleInput): Promise<ClassScheduleProps> {
+    const instructor = await this.instructorRepository.getInstructorById(
+      props.instructorId,
+    );
+    if (!instructor) {
+      throw new Error('Instructor no encontrado');
+    }
     const newClass = await this.classScheduleRepository.create(props);
     return newClass;
   }
@@ -66,6 +76,14 @@ export class ClassScheduleService {
     id: number,
     props: UpdateClassScheduleInput,
   ): Promise<ClassScheduleProps> {
+    if (props.instructorId) {
+      const instructor = await this.instructorRepository.getInstructorById(
+        props.instructorId,
+      );
+      if (!instructor) {
+        throw new Error('Instructor no encontrado');
+      }
+    }
     const updatedClass = await this.classScheduleRepository.save(id, props);
     if (!updatedClass) {
       throw new Error('Clase no encontrada');
