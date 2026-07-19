@@ -34,37 +34,23 @@ export class ClassScheduleService {
     if (!instructor) {
       throw new Error('Instructor no encontrado');
     }
-
-    const classesByInstructor =
-      await this.classScheduleRepository.getClassSchedulesByInstructorId(
-        instructorId,
-      );
-    if (!classesByInstructor) {
-      throw new Error('Instructor sin clases asignadas');
-    }
-    return classesByInstructor;
+    return await this.classScheduleRepository.getClassSchedulesByInstructorId(
+      instructorId,
+    );
   }
 
   async getByCategory(
     category: GymClassCategory,
   ): Promise<ClassScheduleProps[]> {
-    const gymClassesByCategory =
-      await this.classScheduleRepository.getClassSchedulesByCategory(category);
-    if (!gymClassesByCategory) {
-      throw new Error('No hay clases disponibles para esta categoria');
-    }
-    return gymClassesByCategory;
+    return await this.classScheduleRepository.getClassSchedulesByCategory(
+      category,
+    );
   }
 
   async getByDayOfWeek(dayOfWeek: DayOfWeek): Promise<ClassScheduleProps[]> {
-    const gymClassesByDay =
-      await this.classScheduleRepository.getClassSchedulesByDayOfWeek(
-        dayOfWeek,
-      );
-    if (!gymClassesByDay) {
-      throw new Error('No hay clases disponibles para este dia');
-    }
-    return gymClassesByDay;
+    return await this.classScheduleRepository.getClassSchedulesByDayOfWeek(
+      dayOfWeek,
+    );
   }
 
   async create(props: CreateClassScheduleInput): Promise<ClassScheduleProps> {
