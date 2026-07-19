@@ -29,6 +29,12 @@ export class ClassScheduleService {
   }
 
   async getByInstructor(instructorId: number): Promise<ClassScheduleProps[]> {
+    const instructor =
+      await this.instructorRepository.getInstructorById(instructorId);
+    if (!instructor) {
+      throw new Error('Instructor no encontrado');
+    }
+
     const classesByInstructor =
       await this.classScheduleRepository.getClassSchedulesByInstructorId(
         instructorId,

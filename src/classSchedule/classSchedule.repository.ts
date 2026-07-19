@@ -27,29 +27,29 @@ export class ClassScheduleRepository {
 
   async getClassSchedulesByInstructorId(
     instructorId: number,
-  ): Promise<ClassScheduleProps[] | null> {
+  ): Promise<ClassScheduleProps[]> {
     const schedules = this.classSchedules.filter(
       (s) => s.instructorId === instructorId,
     );
-    return Promise.resolve(schedules || null);
+    return Promise.resolve(schedules);
   }
 
   async getClassSchedulesByCategory(
     category: GymClassCategory,
-  ): Promise<ClassScheduleProps[] | null> {
+  ): Promise<ClassScheduleProps[]> {
     const schedules = this.classSchedules.filter(
       (s) => s.category === category,
     );
-    return Promise.resolve(schedules || null);
+    return Promise.resolve(schedules);
   }
 
   async getClassSchedulesByDayOfWeek(
-    dayOfWeek: string,
-  ): Promise<ClassScheduleProps[] | null> {
+    dayOfWeek: DayOfWeek,
+  ): Promise<ClassScheduleProps[]> {
     const schedules = this.classSchedules.filter(
       (s) => s.dayOfWeek === dayOfWeek,
     );
-    return Promise.resolve(schedules || null);
+    return Promise.resolve(schedules);
   }
 
   async create(
