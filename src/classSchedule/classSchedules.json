@@ -1,0 +1,68 @@
+[
+  {
+    "id": 1,
+    "name": "Yoga Mañana",
+    "description": "Clase de yoga para flexibilidad y relajación",
+    "category": "Yoga",
+    "maxNumber": 15,
+    "durationMinutes": 60,
+    "instructorId": 1,
+    "dayOfWeek": "Monday",
+    "startTime": "08:00"
+  },
+  {
+    "id": 2,
+    "name": "Pilates Mediodía",
+    "description": "Entrenamiento de pilates con banda elástica",
+    "category": "Pilates",
+    "maxNumber": 12,
+    "durationMinutes": 50,
+    "instructorId": 2,
+    "dayOfWeek": "Monday",
+    "startTime": "12:00"
+  },
+  {
+    "id": 3,
+    "name": "Yoga Tarde",
+    "description": "Relajación y estiramientos",
+    "category": "Yoga",
+    "maxNumber": 15,
+    "durationMinutes": 60,
+    "instructorId": 1,
+    "dayOfWeek": "Monday",
+    "startTime": "14:00"
+  },
+  {
+    "id": 4,
+    "name": "Yoga Noche",
+    "description": "Clase de yoga relajante",
+    "category": "Yoga",
+    "maxNumber": 15,
+    "durationMinutes": 60,
+    "instructorId": 1,
+    "dayOfWeek": "Tuesday",
+    "startTime": "18:00"
+  },
+  {
+    "id": 5,
+    "name": "Crossfit Intenso",
+    "description": "Entrenamiento de alta intensidad",
+    "category": "Crossfit",
+    "maxNumber": 20,
+    "durationMinutes": 60,
+    "instructorId": 3,
+    "dayOfWeek": "Tuesday",
+    "startTime": "19:00"
+  },
+  {
+    "id": 6,
+    "name": "Spinning Noche",
+    "description": "Clase de spinning con música energética",
+    "category": "Spinning",
+    "maxNumber": 25,
+    "durationMinutes": 50,
+    "instructorId": 2,
+    "dayOfWeek": "Wednesday",
+    "startTime": "18:00"
+  }
+]
