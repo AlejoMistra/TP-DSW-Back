@@ -7,6 +7,7 @@ import {
   UpdateInstructorSchema,
 } from './instructor.schemas.js';
 import { z } from 'zod';
+import { getErrorMessage } from '../utils/errorHandler.js';
 
 export const instructorRouter = Router();
 
@@ -37,7 +38,7 @@ instructorRouter.get('/:id', async (req: Request, res: Response) => {
         details: error.issues,
       });
     }
-    res.status(500).json({ message: 'Error al obtener el instructor' });
+    res.status(404).json({ message: getErrorMessage(error) });
   }
 });
 
@@ -68,11 +69,6 @@ instructorRouter.put('/:id', async (req: Request, res: Response) => {
       validatedId.id,
       validatedData,
     );
-
-    if (!updatedInstructor) {
-      return res.status(404).json({ error: 'Instructor no encontrado' });
-    }
-
     res.status(200).json(updatedInstructor);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -81,7 +77,7 @@ instructorRouter.put('/:id', async (req: Request, res: Response) => {
         details: error.issues,
       });
     }
-    res.status(500).json({ message: 'Error al actualizar el instructor' });
+    res.status(404).json({ error: getErrorMessage(error) });
   }
 });
 

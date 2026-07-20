@@ -32,8 +32,11 @@ export class InstructorService {
   async updateInstructor(
     id: number,
     props: UpdateInstructorInput,
-  ): Promise<InstructorProps | null> {
+  ): Promise<InstructorProps> {
     const updatedInstructor = await this.instructorRepository.save(id, props);
+    if (!updatedInstructor) {
+      throw new Error('Instructor no encontrado');
+    }
     return updatedInstructor;
   }
 
