@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { InstructorRepository } from '../instructor/instructor.repository.js';
+import { instructorRepository } from '../shared/instances.js';
 import { InstructorService } from './instructor.service.js';
 import {
   InstructorIdSchema,
@@ -11,8 +11,7 @@ import { getErrorMessage } from '../utils/errorHandler.js';
 
 export const instructorRouter = Router();
 
-const repository = new InstructorRepository();
-const service = new InstructorService(repository);
+const service = new InstructorService(instructorRepository);
 
 // GET /api/instructors
 instructorRouter.get('/', async (req: Request, res: Response) => {

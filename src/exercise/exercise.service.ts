@@ -41,7 +41,7 @@ export class ExerciseService {
   async update(
     id: number,
     props: UpdateExerciseInput,
-  ): Promise<PropiedadesExercise | null> {
+  ): Promise<PropiedadesExercise> {
     const updatedExercise = await this.exerciseRepository.save(id, props);
     if (!updatedExercise) {
       throw new Error('Ejercicio no encontrado');

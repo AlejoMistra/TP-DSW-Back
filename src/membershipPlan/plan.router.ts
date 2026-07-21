@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { PlanRepository } from './plan.repository.js';
+import { planRepository } from '../shared/instances.js';
 import { PlanService } from './plan.service.js';
 import {
   CreatePlanSchema,
@@ -11,8 +11,7 @@ import { z } from 'zod';
 
 export const planRouter = Router();
 
-const repository = new PlanRepository();
-const service = new PlanService(repository);
+const service = new PlanService(planRepository);
 
 // GET /api/membership-plans
 planRouter.get('/', async (req: Request, res: Response) => {

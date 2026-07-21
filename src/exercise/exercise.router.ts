@@ -1,18 +1,18 @@
 import { Router, Request, Response } from 'express';
-import { ExerciseRepository } from '../exercise/exercise.repository.js';
+import { exerciseRepository } from '../shared/instances.js';
 import { ExerciseService } from './exercise.service.js';
 import {
   CreateExerciseSchema,
   UpdateExerciseSchema,
   ExerciseIdSchema,
 } from './exercise.schemas.js';
+import { getErrorMessage } from '../utils/errorHandler.js';
 import { z } from 'zod';
 
 export const exerciseRouter = Router();
 
 // Instanciación (En proyectos grandes esto se maneja con Inyección de Dependencias, ej: TSyringe)
-const repository = new ExerciseRepository();
-const service = new ExerciseService(repository);
+const service = new ExerciseService(exerciseRepository);
 
 exerciseRouter.get('/', async (req: Request, res: Response) => {
   try {
@@ -34,7 +34,7 @@ exerciseRouter.get('/:id', async (req: Request, res: Response) => {
         .status(400)
         .json({ message: 'Parámetros inválidos', errors: error.issues });
     }
-    if (error instanceof Error) res.status(404).json({ error: error.message });
+    res.status(404).json({ message: getErrorMessage(error) });
   }
 });
 
@@ -58,10 +58,6 @@ exerciseRouter.put('/:id', async (req: Request, res: Response) => {
     const validatedId = ExerciseIdSchema.parse({ id: req.params.id });
     const validatedData = UpdateExerciseSchema.parse(req.body);
     const updatedExercise = await service.update(validatedId.id, validatedData);
-
-    if (!updatedExercise) {
-      return res.status(404).json({ error: 'Ejercicio no encontrado' });
-    }
     res.status(200).json(updatedExercise);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -69,7 +65,7 @@ exerciseRouter.put('/:id', async (req: Request, res: Response) => {
         .status(400)
         .json({ error: 'Validación fallida', details: error.issues });
     }
-    res.status(500).json({ message: 'Error al actualizar el ejercicio' });
+    res.status(404).json({ error: getErrorMessage(error) });
   }
 });
 
@@ -80,7 +76,7 @@ exerciseRouter.delete('/:id', async (req: Request, res: Response) => {
     if (!deleted) {
       return res.status(404).json({ error: 'Ejercicio no encontrado' });
     }
-    res.status(200).json({ message: 'Ejercicio eliminado correctamente' });
+    res.status(204).send();
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res

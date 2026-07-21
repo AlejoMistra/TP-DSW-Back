@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { MemberRepository } from '../member/member.repository.js';
+import { memberRepository } from '../shared/instances.js';
 import { MemberService } from './member.service.js';
 import {
   MemberIdSchema,
@@ -12,8 +12,7 @@ import { z } from 'zod';
 export const memberRouter = Router();
 
 // Instanciación (En proyectos grandes esto se maneja con Inyección de Dependencias, ej: TSyringe)
-const repository = new MemberRepository();
-const service = new MemberService(repository);
+const service = new MemberService(memberRepository);
 
 //GET /api/members
 memberRouter.get('/', async (req: Request, res: Response) => {

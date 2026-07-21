@@ -1,5 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { ClassScheduleRepository } from './classSchedule.repository.js';
+import {
+  classScheduleRepository,
+  instructorRepository,
+} from '../shared/instances.js';
 import { ClassScheduleService } from './classSchedule.service.js';
 import {
   ClassScheduleIdSchema,
@@ -8,13 +11,10 @@ import {
   UpdateClassScheduleSchema,
   DayOfWeekSchema,
 } from './classSchedule.schemas.js';
-import { InstructorRepository } from '../instructor/instructor.repository.js';
 import { getErrorMessage } from '../utils/errorHandler.js';
 import { z } from 'zod';
 
 export const classScheduleRouter = Router();
-const classScheduleRepository = new ClassScheduleRepository();
-const instructorRepository = new InstructorRepository();
 const service = new ClassScheduleService(
   classScheduleRepository,
   instructorRepository,
