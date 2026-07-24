@@ -117,7 +117,7 @@ classScheduleRouter.get(
 classScheduleRouter.post('/', async (req: Request, res: Response) => {
   try {
     const validatedData = CreateClassScheduleSchema.parse(req.body);
-    const newSchedule = await service.create(validatedData);
+    const newSchedule = await service.add(validatedData);
     return res.status(201).json(newSchedule);
   } catch (error) {
     if (error instanceof z.ZodError) {

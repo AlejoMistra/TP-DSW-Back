@@ -1,64 +1,67 @@
+import { Repository } from '../shared/base.repository.js';
 import ExercisesMock from './exercises.json' with { type: 'json' };
-import { PropiedadesExercise, DifficultyLevelExercise } from './exercise.entity.js';
+import {
+  PropiedadesExercise,
+  DifficultyLevelExercise,
+} from './exercise.entity.js';
 
-export class ExerciseRepository {
-    private exercises: PropiedadesExercise[];
+export class ExerciseRepository implements Repository<PropiedadesExercise> {
+  private exercises: PropiedadesExercise[];
 
-    constructor() {
+  constructor() {
+    this.exercises = ExercisesMock.map((exercise) => ({
+      ...exercise,
+      difficultyLevel: exercise.difficultyLevel as DifficultyLevelExercise,
+    }));
+  }
 
-        this.exercises = ExercisesMock.map((exercise) => ({
-            ...exercise,
-            difficultyLevel: exercise.difficultyLevel as DifficultyLevelExercise,
-        }));
-    }
+  async getAll(): Promise<PropiedadesExercise[]> {
+    return Promise.resolve(this.exercises);
+  }
 
-    async getAllExercises(): Promise<PropiedadesExercise[]> {
-        return Promise.resolve(this.exercises);
-    }
+  //FILTRADO DE EJERCICIOS POR GRUPO MUSCULAR
+  //  async find(filter?: {muscleGroup?: string}): Promise<PropiedadesExercise[]> {
+  //      if (!filter?.muscleGroup) return this.getAllExercises();
 
-    //FILTRADO DE EJERCICIOS POR GRUPO MUSCULAR
-    //  async find(filter?: {muscleGroup?: string}): Promise<PropiedadesExercise[]> {
-    //      if (!filter?.muscleGroup) return this.getAllExercises();
+  //      const filteredExercises = filter.muscleGroup.trim().toLowerCase();
+  //      return this.exercises.filter((e) => (e.muscleGroup ?? '').toLowerCase().includes(filteredExercises));
+  // }
 
-    //      const filteredExercises = filter.muscleGroup.trim().toLowerCase();
-    //      return this.exercises.filter((e) => (e.muscleGroup ?? '').toLowerCase().includes(filteredExercises));
-    // }
+  async getOne(id: number): Promise<PropiedadesExercise | undefined> {
+    const exercise = this.exercises.find((e) => e.id === id);
+    return Promise.resolve(exercise || undefined);
+  }
 
-    async getExerciseById(id: number): Promise<PropiedadesExercise | null> {
-        const exercise = this.exercises.find((e) => e.id === id);
-        return Promise.resolve(exercise || null);
-    }
+  async add(
+    item: Omit<PropiedadesExercise, 'id'>,
+  ): Promise<PropiedadesExercise> {
+    const newId = Math.max(...this.exercises.map((e) => e.id), 0) + 1;
+    const newExercise: PropiedadesExercise = {
+      id: newId,
+      ...item,
+    };
+    this.exercises.push(newExercise);
+    return Promise.resolve(newExercise);
+  }
 
-    async create(
-        propiedades: Omit<PropiedadesExercise, 'id'>
-    ): Promise<PropiedadesExercise> {
-        const newId = Math.max(...this.exercises.map((e) => e.id), 0) + 1;
-        const newExercise: PropiedadesExercise = {
-            id: newId,
-            ...propiedades
-        };
-        this.exercises.push(newExercise);
-        return Promise.resolve(newExercise);
-    }
+  async update(
+    id: number,
+    item: Partial<Omit<PropiedadesExercise, 'id'>>,
+  ): Promise<PropiedadesExercise | undefined> {
+    const exercise = this.exercises.find((e) => e.id === id);
+    if (!exercise) return Promise.resolve(undefined);
 
-    async save(
-        id: number,
-        propiedades: Partial<PropiedadesExercise>
-    ): Promise<PropiedadesExercise | null> {
-        const exercise = this.exercises.find((e) => e.id === id);
-        if (!exercise) return Promise.resolve(null);
+    const updated = { ...exercise, ...item };
+    const index = this.exercises.findIndex((e) => e.id === id);
+    this.exercises[index] = updated;
+    return Promise.resolve(updated);
+  }
 
-        const updated = { ...exercise, ...propiedades };
-        const index = this.exercises.findIndex((e) => e.id === id);
-        this.exercises[index] = updated;
-        return Promise.resolve(updated);
-    }
+  async delete(id: number): Promise<boolean> {
+    const index = this.exercises.findIndex((e) => e.id === id);
+    if (index === -1) return Promise.resolve(false);
 
-    async delete(id: number): Promise<boolean> {
-        const index = this.exercises.findIndex((e) => e.id === id);
-        if (index === -1) return Promise.resolve(false);
-
-        this.exercises.splice(index, 1);
-        return Promise.resolve(true);
-    }
+    this.exercises.splice(index, 1);
+    return Promise.resolve(true);
+  }
 }

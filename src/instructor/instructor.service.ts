@@ -8,22 +8,20 @@ import {
 export class InstructorService {
   constructor(private instructorRepository: InstructorRepository) {}
 
-  async getAllInstructors() {
-    return await this.instructorRepository.getAllInstructors();
+  async getAllInstructors(): Promise<InstructorProps[]> {
+    return await this.instructorRepository.getAll();
   }
 
   async getInstructorById(id: number): Promise<InstructorProps> {
-    const instructor = await this.instructorRepository.getInstructorById(id);
+    const instructor = await this.instructorRepository.getOne(id);
     if (!instructor) {
       throw new Error('Instructor no encontrado');
     }
     return instructor;
   }
 
-  async createInstructor(
-    props: CreateInstructorInput,
-  ): Promise<InstructorProps> {
-    const newInstructor = await this.instructorRepository.create({
+  async add(props: CreateInstructorInput): Promise<InstructorProps> {
+    const newInstructor = await this.instructorRepository.add({
       ...props,
     });
     return newInstructor;
@@ -33,7 +31,7 @@ export class InstructorService {
     id: number,
     props: UpdateInstructorInput,
   ): Promise<InstructorProps> {
-    const updatedInstructor = await this.instructorRepository.save(id, props);
+    const updatedInstructor = await this.instructorRepository.update(id, props);
     if (!updatedInstructor) {
       throw new Error('Instructor no encontrado');
     }

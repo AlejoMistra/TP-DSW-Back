@@ -15,13 +15,12 @@ export class ClassScheduleService {
     private classScheduleRepository: ClassScheduleRepository,
     private instructorRepository: InstructorRepository,
   ) {}
-  async getAll() {
-    return await this.classScheduleRepository.getAllClassSchedules();
+  async getAll(): Promise<ClassScheduleProps[]> {
+    return await this.classScheduleRepository.getAll();
   }
 
   async getById(id: number): Promise<ClassScheduleProps> {
-    const classById =
-      await this.classScheduleRepository.getClassScheduleById(id);
+    const classById = await this.classScheduleRepository.getOne(id);
     if (!classById) {
       throw new Error('Clase no encontrada');
     }
@@ -29,8 +28,7 @@ export class ClassScheduleService {
   }
 
   async getByInstructor(instructorId: number): Promise<ClassScheduleProps[]> {
-    const instructor =
-      await this.instructorRepository.getInstructorById(instructorId);
+    const instructor = await this.instructorRepository.getOne(instructorId);
     if (!instructor) {
       throw new Error('Instructor no encontrado');
     }
@@ -53,14 +51,14 @@ export class ClassScheduleService {
     );
   }
 
-  async create(props: CreateClassScheduleInput): Promise<ClassScheduleProps> {
-    const instructor = await this.instructorRepository.getInstructorById(
+  async add(props: CreateClassScheduleInput): Promise<ClassScheduleProps> {
+    const instructor = await this.instructorRepository.getOne(
       props.instructorId,
     );
     if (!instructor) {
       throw new Error('Instructor no encontrado');
     }
-    const newClass = await this.classScheduleRepository.create(props);
+    const newClass = await this.classScheduleRepository.add(props);
     return newClass;
   }
 
@@ -69,14 +67,14 @@ export class ClassScheduleService {
     props: UpdateClassScheduleInput,
   ): Promise<ClassScheduleProps> {
     if (props.instructorId) {
-      const instructor = await this.instructorRepository.getInstructorById(
+      const instructor = await this.instructorRepository.getOne(
         props.instructorId,
       );
       if (!instructor) {
         throw new Error('Instructor no encontrado');
       }
     }
-    const updatedClass = await this.classScheduleRepository.save(id, props);
+    const updatedClass = await this.classScheduleRepository.update(id, props);
     if (!updatedClass) {
       throw new Error('Clase no encontrada');
     }

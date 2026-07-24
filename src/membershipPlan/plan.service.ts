@@ -8,11 +8,11 @@ export class PlanService {
   constructor(private planRepository: PlanRepository) {}
 
   async getAllPlans(): Promise<PlanProps[]> {
-    return this.planRepository.getAllPlans();
+    return this.planRepository.getAll();
   }
 
   async getPlanById(id: number): Promise<PlanProps> {
-    const plan = await this.planRepository.getPlanById(id);
+    const plan = await this.planRepository.getOne(id);
     if (!plan) {
       throw new Error('Plan no encontrado');
     }
@@ -20,14 +20,14 @@ export class PlanService {
   }
 
   async createPlan(props: CreatePlanInput): Promise<PlanProps> {
-    const newPlan = await this.planRepository.create({
+    const newPlan = await this.planRepository.add({
       ...props,
     });
     return newPlan;
   }
 
   async updatePlan(id: number, props: UpdatePlanInput): Promise<PlanProps> {
-    const updatedPlan = await this.planRepository.save(id, props);
+    const updatedPlan = await this.planRepository.update(id, props);
     if (!updatedPlan) {
       throw new Error('Plan no encontrado');
     }

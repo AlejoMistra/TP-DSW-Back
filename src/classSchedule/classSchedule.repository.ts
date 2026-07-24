@@ -4,8 +4,9 @@ import {
   GymClassCategory,
   DayOfWeek,
 } from './classSchedule.entity.js';
+import { Repository } from '../shared/base.repository';
 
-export class ClassScheduleRepository {
+export class ClassScheduleRepository implements Repository<ClassScheduleProps> {
   private classSchedules: ClassScheduleProps[];
 
   constructor() {
@@ -16,13 +17,13 @@ export class ClassScheduleRepository {
     }));
   }
 
-  async getAllClassSchedules(): Promise<ClassScheduleProps[]> {
+  async getAll(): Promise<ClassScheduleProps[]> {
     return Promise.resolve(this.classSchedules);
   }
 
-  async getClassScheduleById(id: number): Promise<ClassScheduleProps | null> {
+  async getOne(id: number): Promise<ClassScheduleProps | undefined> {
     const schedule = this.classSchedules.find((s) => s.id === id);
-    return Promise.resolve(schedule || null);
+    return Promise.resolve(schedule);
   }
 
   async getClassSchedulesByInstructorId(
@@ -52,28 +53,26 @@ export class ClassScheduleRepository {
     return Promise.resolve(schedules);
   }
 
-  async create(
-    props: Omit<ClassScheduleProps, 'id'>,
-  ): Promise<ClassScheduleProps> {
+  async add(item: Omit<ClassScheduleProps, 'id'>): Promise<ClassScheduleProps> {
     const newId = Math.max(...this.classSchedules.map((s) => s.id), 0) + 1;
     const newSchedule: ClassScheduleProps = {
       id: newId,
-      ...props,
+      ...item,
     };
     this.classSchedules.push(newSchedule);
     return Promise.resolve(newSchedule);
   }
 
-  async save(
+  async update(
     id: number,
-    props: Partial<ClassScheduleProps>,
-  ): Promise<ClassScheduleProps | null> {
+    item: Partial<Omit<ClassScheduleProps, 'id'>>,
+  ): Promise<ClassScheduleProps | undefined> {
     const schedule = this.classSchedules.find((s) => s.id === id);
     if (!schedule) {
-      return Promise.resolve(null);
+      return Promise.resolve(undefined);
     }
 
-    const updated = { ...schedule, ...props };
+    const updated = { ...schedule, ...item };
     const index = this.classSchedules.findIndex((s) => s.id === id);
     this.classSchedules[index] = updated;
     return Promise.resolve(updated);

@@ -19,14 +19,14 @@ export class ExerciseService {
   //  return items.map((it) => ExerciseResponseSchema.parse(it)) as ExerciseResponse[];
   // }
 
-  async getAll() {
+  async getAll(): Promise<PropiedadesExercise[]> {
     //Aca va la logica de negocio, validaciones, etc. Por ejemplo ocultar algun dato o agregar algun campo calculado.
-    return await this.exerciseRepository.getAllExercises();
+    return await this.exerciseRepository.getAll();
   }
 
   async getById(id: number): Promise<PropiedadesExercise> {
     //Aca va la logica de negocio, validaciones, etc. Por ejemplo ocultar algun dato o agregar algun campo calculado.
-    const exercise = await this.exerciseRepository.getExerciseById(id);
+    const exercise = await this.exerciseRepository.getOne(id);
     if (!exercise) {
       throw new Error('Ejercicio no encontrado');
     }
@@ -34,7 +34,7 @@ export class ExerciseService {
   }
 
   async create(props: CreateExerciseInput): Promise<PropiedadesExercise> {
-    const newExercise = await this.exerciseRepository.create(props);
+    const newExercise = await this.exerciseRepository.add(props);
     return newExercise;
   }
 
@@ -42,7 +42,7 @@ export class ExerciseService {
     id: number,
     props: UpdateExerciseInput,
   ): Promise<PropiedadesExercise> {
-    const updatedExercise = await this.exerciseRepository.save(id, props);
+    const updatedExercise = await this.exerciseRepository.update(id, props);
     if (!updatedExercise) {
       throw new Error('Ejercicio no encontrado');
     }
