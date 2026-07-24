@@ -10,7 +10,7 @@ datasource db {
   provider = "mysql"
 }
 
-enum Status {
+enum MembershipStatus {
   ACTIVO
   VENCIDO
   CANCELADO
@@ -21,6 +21,23 @@ PaymentMethod {
   EFECTIVO
   TARJETA
   OTRO
+}
+
+enum DifficultyLevelExercise {
+ beginner
+ intermediate
+ advanced
+}
+
+model Exercise {
+ id          Int      @id @default(autoincrement())
+ name        String
+ description String?
+ muscleGroup String
+ difficultyLevel DifficultyLevelExercise
+
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
 }
 
 model Member {
@@ -39,19 +56,24 @@ model Member {
 }
 
 model Membership {
-  id                Int            @id @default(autoincrement())
-  startDate         DateTime       @default(now())
+  id                Int               @id @default(autoincrement())
+  startDate         DateTime          @default(now())
   endDate           DateTime
-  status            Rol            @default(ACTIVO)
+  status            MembershipStatus  @default(ACTIVO)
   lastPaymentMethod PaymentMethod 
   lastAmountPaid    Float
-  member            Member         @relation(fields: [memberId], references: [id])
-  memberId          Int            @unique // FK 0:1          
+  member            Member            @relation(fields: [memberId], references: [id])
+  memberId          Int               @unique // FK 0:1          
 }
 
 model Instructor {
   id        Int     @id @default(autoincrement())
   name      String
   surname   String
-  email     String  @unique
+  email     String   @unique
+  phone     String?
+  joinDate  DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
