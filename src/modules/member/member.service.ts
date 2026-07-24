@@ -1,4 +1,4 @@
-import { MemberRepository } from '../member/member.repository.js';
+import { MemberRepository } from './member.repository.js';
 import { MemberProps } from './member.entity.js';
 import { CreateMemberInput, UpdateMemberInput } from './member.schemas.js';
 

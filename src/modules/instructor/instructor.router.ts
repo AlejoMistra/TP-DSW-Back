@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { instructorRepository } from '../shared/instances.js';
+import { instructorRepository } from '../../shared/instances.js';
 import { InstructorService } from './instructor.service.js';
 import {
   InstructorIdSchema,
@@ -7,7 +7,7 @@ import {
   UpdateInstructorSchema,
 } from './instructor.schemas.js';
 import { z } from 'zod';
-import { getErrorMessage } from '../utils/errorHandler.js';
+import { getErrorMessage } from '../../utils/errorHandler.js';
 
 export const instructorRouter = Router();
 
