@@ -1,18 +1,18 @@
 import { Router, Request, Response } from 'express';
-import { MemberRepository } from '../member/member.repository.js';
+import { memberRepository } from '../shared/instances.js';
 import { MemberService } from './member.service.js';
 import {
   MemberIdSchema,
   CreateMemberSchema,
   UpdateMemberSchema,
 } from './member.schemas.js';
+import { getErrorMessage } from '../utils/errorHandler.js';
 import { z } from 'zod';
 
 export const memberRouter = Router();
 
 // Instanciación (En proyectos grandes esto se maneja con Inyección de Dependencias, ej: TSyringe)
-const repository = new MemberRepository();
-const service = new MemberService(repository);
+const service = new MemberService(memberRepository);
 
 //GET /api/members
 memberRouter.get('/', async (req: Request, res: Response) => {
@@ -31,9 +31,7 @@ memberRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     // Validar el parámetro ID con Zod
     const validatedId = MemberIdSchema.parse({ id: req.params.id });
-
     const member = await service.getById(validatedId.id);
-
     return res.status(200).json(member);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -42,7 +40,7 @@ memberRouter.get('/:id', async (req: Request, res: Response) => {
         details: error.issues,
       });
     }
-    res.status(500).json({ message: 'Error al obtener el socio' });
+    res.status(404).json({ error: getErrorMessage(error) });
   }
 });
 
@@ -70,11 +68,6 @@ memberRouter.put('/:id', async (req: Request, res: Response) => {
     const validatedData = UpdateMemberSchema.parse(req.body);
 
     const updatedMember = await service.update(validatedId.id, validatedData);
-
-    if (!updatedMember) {
-      return res.status(404).json({ error: 'Socio no encontrado' });
-    }
-
     res.status(200).json(updatedMember);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -83,7 +76,7 @@ memberRouter.put('/:id', async (req: Request, res: Response) => {
         details: error.issues,
       });
     }
-    res.status(500).json({ message: 'Error al actualizar el socio' });
+    res.status(404).json({ error: getErrorMessage(error) });
   }
 });
 

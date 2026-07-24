@@ -1,9 +1,6 @@
-import { PlanRepository } from "./plan.repository.js";
-import { PlanProps } from "./plan.entity.js";
-import {
-  CreatePlanInput,
-  UpdatePlanInput,
-} from "./plan.schemas.js";
+import { PlanRepository } from './plan.repository.js';
+import { PlanProps } from './plan.entity.js';
+import { CreatePlanInput, UpdatePlanInput } from './plan.schemas.js';
 
 // FIXME: La capa service mezcla estilos de error: getPlanById lanza excepción cuando no existe, pero updatePlan devuelve null. Para un API consistente (y más fácil de manejar en el router), considera devolver null también en getPlanById o lanzar un error tipado (p. ej. NotFoundError) para que el router pueda mapearlo a HTTP 404 sin ambigüedad.
 
@@ -17,7 +14,7 @@ export class PlanService {
   async getPlanById(id: number): Promise<PlanProps> {
     const plan = await this.planRepository.getPlanById(id);
     if (!plan) {
-      throw new Error("Plan no encontrado");
+      throw new Error('Plan no encontrado');
     }
     return plan;
   }
@@ -29,11 +26,11 @@ export class PlanService {
     return newPlan;
   }
 
-  async updatePlan(
-    id: number,
-    props: UpdatePlanInput
-  ): Promise<PlanProps | null> {
+  async updatePlan(id: number, props: UpdatePlanInput): Promise<PlanProps> {
     const updatedPlan = await this.planRepository.save(id, props);
+    if (!updatedPlan) {
+      throw new Error('Plan no encontrado');
+    }
     return updatedPlan;
   }
 

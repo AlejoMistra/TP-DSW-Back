@@ -29,11 +29,11 @@ export class MemberService {
     return newMember;
   }
 
-  async update(
-    id: number,
-    props: UpdateMemberInput,
-  ): Promise<MemberProps | null> {
+  async update(id: number, props: UpdateMemberInput): Promise<MemberProps> {
     const updatedMember = await this.memberRepository.save(id, props);
+    if (!updatedMember) {
+      throw new Error('Socio no encontrado');
+    }
     return updatedMember;
   }
 

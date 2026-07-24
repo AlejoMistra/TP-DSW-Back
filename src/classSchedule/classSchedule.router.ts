@@ -1,5 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { ClassScheduleRepository } from './classSchedule.repository.js';
+import {
+  classScheduleRepository,
+  instructorRepository,
+} from '../shared/instances.js';
 import { ClassScheduleService } from './classSchedule.service.js';
 import {
   ClassScheduleIdSchema,
@@ -8,13 +11,10 @@ import {
   UpdateClassScheduleSchema,
   DayOfWeekSchema,
 } from './classSchedule.schemas.js';
-import { InstructorRepository } from '../instructor/instructor.repository.js'; // ← Importar
-
+import { getErrorMessage } from '../utils/errorHandler.js';
 import { z } from 'zod';
 
 export const classScheduleRouter = Router();
-const classScheduleRepository = new ClassScheduleRepository();
-const instructorRepository = new InstructorRepository();
 const service = new ClassScheduleService(
   classScheduleRepository,
   instructorRepository,
@@ -45,9 +45,7 @@ classScheduleRouter.get('/:id', async (req: Request, res: Response) => {
         details: error.issues,
       });
     }
-    return res
-      .status(500)
-      .json({ message: 'Error al obtener el horario de clase' });
+    return res.status(404).json({ error: getErrorMessage(error) });
   }
 });
 // GET /api/classSchedules/instructor/:instructorId
@@ -67,9 +65,7 @@ classScheduleRouter.get(
           details: error.issues,
         });
       }
-      return res
-        .status(500)
-        .json({ message: 'Error al obtener los horarios del instructor' });
+      return res.status(404).json({ error: getErrorMessage(error) });
     }
   },
 );
@@ -130,12 +126,7 @@ classScheduleRouter.post('/', async (req: Request, res: Response) => {
         details: error.issues,
       });
     }
-    if (error instanceof Error && error.message.includes('instructor')) {
-      return res.status(404).json({ message: error.message });
-    }
-    return res
-      .status(500)
-      .json({ message: 'Error al crear el horario de clase' });
+    res.status(404).json({ error: getErrorMessage(error) });
   }
 });
 
@@ -144,11 +135,6 @@ classScheduleRouter.put('/:id', async (req: Request, res: Response) => {
     const validatedId = ClassScheduleIdSchema.parse({ id: req.params.id });
     const validatedData = UpdateClassScheduleSchema.parse(req.body);
     const updatedSchedule = await service.update(validatedId.id, validatedData);
-    if (!updatedSchedule) {
-      return res
-        .status(404)
-        .json({ message: 'Horario de clase no encontrado' });
-    }
     return res.status(200).json(updatedSchedule);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -157,12 +143,7 @@ classScheduleRouter.put('/:id', async (req: Request, res: Response) => {
         details: error.issues,
       });
     }
-    if (error instanceof Error && error.message.includes('instructor')) {
-      return res.status(404).json({ message: error.message });
-    }
-    return res
-      .status(500)
-      .json({ message: 'Error al actualizar el horario de clase' });
+    res.status(404).json({ error: getErrorMessage(error) });
   }
 });
 
