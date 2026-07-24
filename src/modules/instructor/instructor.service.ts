@@ -1,4 +1,4 @@
-import { InstructorRepository } from '../instructor/instructor.repository.js';
+import { InstructorRepository } from './instructor.repository.js';
 import { InstructorProps } from './instructor.entity.js';
 import {
   CreateInstructorInput,

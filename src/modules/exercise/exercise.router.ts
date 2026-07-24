@@ -1,12 +1,12 @@
 import { Router, Request, Response } from 'express';
-import { exerciseRepository } from '../shared/instances.js';
+import { exerciseRepository } from '../../shared/instances.js';
 import { ExerciseService } from './exercise.service.js';
 import {
   CreateExerciseSchema,
   UpdateExerciseSchema,
   ExerciseIdSchema,
 } from './exercise.schemas.js';
-import { getErrorMessage } from '../utils/errorHandler.js';
+import { getErrorMessage } from '../../utils/errorHandler.js';
 import { z } from 'zod';
 
 export const exerciseRouter = Router();
