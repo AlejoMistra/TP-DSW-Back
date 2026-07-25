@@ -6,8 +6,7 @@ import {
   UpdatePlanSchema,
   PlanIdSchema,
 } from './plan.schemas.js';
-import { getErrorMessage } from '../utils/errorHandler.js';
-import { z } from 'zod';
+import { handleError } from '../utils/errorHandler.js';
 
 export const planRouter = Router();
 
@@ -21,9 +20,7 @@ planRouter.get('/', async (req: Request, res: Response) => {
     const plans = await service.getAllPlans();
     res.status(200).json(plans);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: 'Error al obtener los planes de membresía' });
+    handleError(error, res);
   }
 });
 
@@ -34,13 +31,7 @@ planRouter.get('/:id', async (req: Request, res: Response) => {
     const plan = await service.getPlanById(validatedId.id);
     return res.status(200).json(plan);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: 'Validación fallida',
-        details: error.issues,
-      });
-    }
-    res.status(404).json({ error: getErrorMessage(error) });
+    handleError(error, res);
   }
 });
 
@@ -53,13 +44,7 @@ planRouter.post('/', async (req: Request, res: Response) => {
     const newPlan = await service.createPlan(validatedData);
     res.status(201).json(newPlan);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: 'Validación fallida',
-        details: error.issues,
-      });
-    }
-    res.status(500).json({ message: 'Error al crear el plan de membresía' });
+    handleError(error, res);
   }
 });
 
@@ -71,13 +56,7 @@ planRouter.put('/:id', async (req: Request, res: Response) => {
     const updatedPlan = await service.updatePlan(validatedId.id, validatedData);
     res.status(200).json(updatedPlan);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: 'Validación fallida',
-        details: error.issues,
-      });
-    }
-    res.status(404).json({ error: getErrorMessage(error) });
+    handleError(error, res);
   }
 });
 
@@ -93,12 +72,6 @@ planRouter.delete('/:id', async (req: Request, res: Response) => {
     }
     res.status(204).send();
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: 'Validación fallida',
-        details: error.issues,
-      });
-    }
-    res.status(500).json({ message: 'Error al eliminar el plan de membresía' });
+    handleError(error, res);
   }
 });

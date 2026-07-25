@@ -6,8 +6,7 @@ import {
   CreateInstructorSchema,
   UpdateInstructorSchema,
 } from './instructor.schemas.js';
-import { z } from 'zod';
-import { getErrorMessage } from '../utils/errorHandler.js';
+import { handleError } from '../utils/errorHandler.js';
 
 export const instructorRouter = Router();
 
@@ -19,7 +18,7 @@ instructorRouter.get('/', async (req: Request, res: Response) => {
     const instructors = await service.getAllInstructors();
     res.status(200).json(instructors);
   } catch (error) {
-    res.status(500).json({ message: 'Error al obtener los instructores' });
+    handleError(error, res);
   }
 });
 
@@ -31,13 +30,7 @@ instructorRouter.get('/:id', async (req: Request, res: Response) => {
     const instructor = await service.getInstructorById(validatedId.id);
     return res.status(200).json(instructor);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: 'Validacion fallida',
-        details: error.issues,
-      });
-    }
-    res.status(404).json({ message: getErrorMessage(error) });
+    handleError(error, res);
   }
 });
 
@@ -46,16 +39,10 @@ instructorRouter.get('/:id', async (req: Request, res: Response) => {
 instructorRouter.post('/', async (req: Request, res: Response) => {
   try {
     const validatedData = CreateInstructorSchema.parse(req.body);
-    const newInstructor = await service.createInstructor(validatedData);
+    const newInstructor = await service.add(validatedData);
     res.status(201).json(newInstructor);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: 'Validacion fallida',
-        details: error.issues,
-      });
-    }
-    res.status(500).json({ message: 'Error al crear el instructor' });
+    handleError(error, res);
   }
 });
 
@@ -70,13 +57,7 @@ instructorRouter.put('/:id', async (req: Request, res: Response) => {
     );
     res.status(200).json(updatedInstructor);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: 'Validacion fallida',
-        details: error.issues,
-      });
-    }
-    res.status(404).json({ error: getErrorMessage(error) });
+    handleError(error, res);
   }
 });
 
@@ -90,12 +71,6 @@ instructorRouter.delete('/:id', async (req: Request, res: Response) => {
     }
     res.status(204).send();
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: 'Validacion fallida',
-        details: error.issues,
-      });
-    }
-    res.status(500).json({ message: 'Error al eliminar el instructor' });
+    handleError(error, res);
   }
 });

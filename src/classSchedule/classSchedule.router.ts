@@ -11,8 +11,7 @@ import {
   UpdateClassScheduleSchema,
   DayOfWeekSchema,
 } from './classSchedule.schemas.js';
-import { getErrorMessage } from '../utils/errorHandler.js';
-import { z } from 'zod';
+import { handleError } from '../utils/errorHandler.js';
 
 export const classScheduleRouter = Router();
 const service = new ClassScheduleService(
@@ -26,9 +25,7 @@ classScheduleRouter.get('/', async (req: Request, res: Response) => {
     const classSchedules = await service.getAll();
     res.status(200).json(classSchedules);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: 'Error al obtener los horarios de clases' });
+    handleError(error, res);
   }
 });
 
@@ -39,13 +36,7 @@ classScheduleRouter.get('/:id', async (req: Request, res: Response) => {
     const schedule = await service.getById(validatedId.id);
     return res.status(200).json(schedule);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        message: 'Id invalido',
-        details: error.issues,
-      });
-    }
-    return res.status(404).json({ error: getErrorMessage(error) });
+    handleError(error, res);
   }
 });
 // GET /api/classSchedules/instructor/:instructorId
@@ -59,13 +50,7 @@ classScheduleRouter.get(
       const schedules = await service.getByInstructor(validatedId.id);
       return res.status(200).json(schedules);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          message: 'Id invalido',
-          details: error.issues,
-        });
-      }
-      return res.status(404).json({ error: getErrorMessage(error) });
+      handleError(error, res);
     }
   },
 );
@@ -80,15 +65,7 @@ classScheduleRouter.get(
       const schedules = await service.getByCategory(validatedCategory);
       return res.status(200).json(schedules);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          message: 'Categoria invalida',
-          details: error.issues,
-        });
-      }
-      return res
-        .status(500)
-        .json({ message: 'Error al obtener los horarios por categoria' });
+      handleError(error, res);
     }
   },
 );
@@ -101,15 +78,7 @@ classScheduleRouter.get(
       const schedules = await service.getByDayOfWeek(validatedDay);
       return res.status(200).json(schedules);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          message: 'Dia de la semana invalido',
-          details: error.issues,
-        });
-      }
-      return res.status(500).json({
-        message: 'Error al obtener los horarios por dia de la semana',
-      });
+      handleError(error, res);
     }
   },
 );
@@ -120,13 +89,7 @@ classScheduleRouter.post('/', async (req: Request, res: Response) => {
     const newSchedule = await service.add(validatedData);
     return res.status(201).json(newSchedule);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        message: 'Validacion fallida',
-        details: error.issues,
-      });
-    }
-    res.status(404).json({ error: getErrorMessage(error) });
+    handleError(error, res);
   }
 });
 
@@ -137,13 +100,7 @@ classScheduleRouter.put('/:id', async (req: Request, res: Response) => {
     const updatedSchedule = await service.update(validatedId.id, validatedData);
     return res.status(200).json(updatedSchedule);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        message: 'Validacion fallida',
-        details: error.issues,
-      });
-    }
-    res.status(404).json({ error: getErrorMessage(error) });
+    handleError(error, res);
   }
 });
 
@@ -159,14 +116,6 @@ classScheduleRouter.delete('/:id', async (req: Request, res: Response) => {
     }
     return res.status(204).send();
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        message: 'Id invalido',
-        details: error.issues,
-      });
-    }
-    return res
-      .status(500)
-      .json({ message: 'Error al eliminar el horario de clase' });
+    handleError(error, res);
   }
 });
