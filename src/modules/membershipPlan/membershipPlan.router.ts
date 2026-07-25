@@ -1,8 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { membershipPlanRepository } from '../../shared/instances.js';
 import { MembershipPlanService } from './membershipPlan.service.js';
-import {
-  CreatePlanSchema, UpdatePlanSchema, PlanIdSchema} from './membershipPlan.schemas.js';
+import { CreatePlanSchema, UpdatePlanSchema, PlanIdSchema } from './membershipPlan.schemas.js';
 import { getErrorMessage } from '../../utils/errorHandler.js';
 import { z } from 'zod';
 

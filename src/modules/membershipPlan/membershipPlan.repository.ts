@@ -1,4 +1,4 @@
-import { CreatePlanInput, UpdatePlanInput, PlanIdSchema } from './membershipPlan.schemas.js';
+import { CreatePlanInput, UpdatePlanInput } from './membershipPlan.schemas.js';
 import { prisma } from '../../lib/prisma.js';
 import type { MembershipPlan } from '../../generated/prisma/client';
 
@@ -22,8 +22,7 @@ export class MembershipPlanRepository {
         price: membershipPlan.price,
         durationDays: membershipPlan.durationDays,
       }
-    }
-    )
+    })
   }
   
   async updateMembershipPlan(id: number, membershipPlan: UpdatePlanInput): Promise<MembershipPlan> {

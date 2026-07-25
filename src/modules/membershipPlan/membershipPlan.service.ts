@@ -1,5 +1,3 @@
-import { membershipPlanRepository } from '../../shared/instances.js';
-import { PlanProps } from './membershipPlan.entity.js';
 import { CreatePlanInput, UpdatePlanInput } from './membershipPlan.schemas.js';
 import type { MembershipPlanRepository } from './membershipPlan.repository.js';
 
