@@ -11,17 +11,19 @@ datasource db {
 }
 
 model Member {
-  id       Int      @id @default(autoincrement())
-  name     String
-  surname  String
-  email    String   @unique
-  phone    String?
-  joinDate DateTime @default(now())
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id         Int         @id @default(autoincrement())
+  name       String
+  surname    String
+  email      String      @unique
+  phone      String?
+  joinDate   DateTime    @default(now())
   membership Membership?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  classBookings ClassBooking[]
 
   @@map("members")
 }
@@ -34,8 +36,11 @@ model Instructor {
   phone    String?
   joinDate DateTime @default(now())
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  classSchedules ClassSchedule[]
 
   @@map("instructors")
 }
@@ -44,12 +49,13 @@ model Membership {
   id                Int              @id @default(autoincrement())
   startDate         DateTime         @default(now())
   endDate           DateTime
-  status            MembershipStatus @default(active)
+  status            MembershipStatus @default(ACTIVE)
   lastPaymentMethod PaymentMethod
   lastAmountPaid    Decimal
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   // UN SOCIO TIENE SOLO UNA MEMBRESÍA (1:1)
   member   Member @relation(fields: [memberId], references: [id])
@@ -63,17 +69,84 @@ model Membership {
 }
 
 model MembershipPlan {
-  id           Int          @id @default(autoincrement())
+  id           Int     @id @default(autoincrement())
   name         String
   description  String?
   price        Float
   durationDays Int
-  memberships  Membership[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  memberships Membership[]
 
   @@map("membership_plans")
+}
+
+model ClassSchedule {
+  id              Int           @id @default(autoincrement())
+  name            String
+  description     String?
+  category        ClassCategory
+  maxCapacity     Int
+  durationMinutes Int
+
+  instructorId Int
+  dayOfWeek    DayOfWeek
+  startTime    String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  instructor Instructor     @relation(fields: [instructorId], references: [id])
+  sessions   ClassSession[]
+
+  @@index([instructorId])
+  @@index([dayOfWeek, startTime])
+  @@map("class_schedules")
+}
+
+model ClassSession {
+  id                Int         @id @default(autoincrement())
+  classScheduleId   Int
+  date              DateTime
+  startTime         DateTime
+  endTime           DateTime
+  remainingCapacity Int
+  status            ClassStatus @default(SCHEDULED)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  classSchedule ClassSchedule  @relation(fields: [classScheduleId], references: [id])
+  bookings      ClassBooking[]
+
+  @@unique([classScheduleId, date, startTime])
+  @@index([classScheduleId])
+  @@map("class_sessions")
+}
+
+model ClassBooking {
+  id             Int                @id @default(autoincrement())
+  memberId       Int
+  classSessionId Int
+  bookingDate    DateTime           @default(now())
+  status         ClassBookingStatus @default(CONFIRMED)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  member       Member       @relation(fields: [memberId], references: [id])
+  classSession ClassSession @relation(fields: [classSessionId], references: [id])
+
+  @@unique([memberId, classSessionId])
+  @@index([memberId])
+  @@index([classSessionId, status])
+  @@map("class_bookings")
 }
 
 model Exercise {
@@ -83,27 +156,62 @@ model Exercise {
   muscleGroup     String
   difficultyLevel DifficultyLevelExercise
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   @@map("exercises")
 }
 
-enum MembershipStatus {
-  active
-  expired
-  canceled
+enum ClassBookingStatus {
+  CONFIRMED
+  CANCELLED
 }
 
-enum PaymentMethod {
-  transfer
-  cash
-  card
-  other
+enum ClassCategory {
+  CARDIO
+  CROSSFIT
+  DANCE
+  FUNCTIONAL
+  HIIT
+  OTHER
+  PILATES
+  SPINNING
+  STRETCHING
+  YOGA
+}
+
+enum ClassStatus {
+  SCHEDULED
+  CANCELLED
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
 }
 
 enum DifficultyLevelExercise {
-  beginner
-  intermediate
-  advanced
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum MembershipStatus {
+  ACTIVE
+  EXPIRED
+  CANCELED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  TRANSFER
+  CASH
+  OTHER
 }
