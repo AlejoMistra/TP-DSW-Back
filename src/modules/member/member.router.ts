@@ -1,12 +1,12 @@
 import { Router, Request, Response } from 'express';
-import { memberRepository } from '../shared/instances.js';
+import { memberRepository } from '../../shared/instances.js';
 import { MemberService } from './member.service.js';
 import {
   MemberIdSchema,
   CreateMemberSchema,
   UpdateMemberSchema,
 } from './member.schemas.js';
-import { handleError } from '../utils/errorHandler.js';
+import { handleError } from '../../utils/errorHandler.js';
 
 export const memberRouter = Router();
 

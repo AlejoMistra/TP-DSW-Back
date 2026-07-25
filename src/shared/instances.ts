@@ -1,8 +1,8 @@
-import { InstructorRepository } from '../instructor/instructor.repository.js';
-import { MemberRepository } from '../member/member.repository.js';
-import { ExerciseRepository } from '../exercise/exercise.repository.js';
-import { PlanRepository } from '../membershipPlan/plan.repository.js';
-import { ClassScheduleRepository } from '../classSchedule/classSchedule.repository.js';
+import { InstructorRepository } from '../modules/instructor/instructor.repository.js';
+import { MemberRepository } from '../modules/member/member.repository.js';
+import { ExerciseRepository } from '../modules/exercise/exercise.repository.js';
+import { PlanRepository } from '../modules/membershipPlan/plan.repository.js';
+import { ClassScheduleRepository } from '../modules/classSchedule/classSchedule.repository.js';
 
 export const instructorRepository = new InstructorRepository();
 export const memberRepository = new MemberRepository();

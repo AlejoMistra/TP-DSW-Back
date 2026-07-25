@@ -1,12 +1,12 @@
 import { Router, Request, Response } from 'express';
-import { planRepository } from '../shared/instances.js';
+import { planRepository } from '../../shared/instances.js';
 import { PlanService } from './plan.service.js';
 import {
   CreatePlanSchema,
   UpdatePlanSchema,
   PlanIdSchema,
 } from './plan.schemas.js';
-import { handleError } from '../utils/errorHandler.js';
+import { handleError } from '../../utils/errorHandler.js';
 
 export const planRouter = Router();
 

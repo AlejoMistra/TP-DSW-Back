@@ -1,13 +1,12 @@
 import { Router, Request, Response } from 'express';
-import { exerciseRepository } from '../shared/instances.js';
+import { exerciseRepository } from '../../shared/instances.js';
 import { ExerciseService } from './exercise.service.js';
 import {
   CreateExerciseSchema,
   UpdateExerciseSchema,
   ExerciseIdSchema,
 } from './exercise.schemas.js';
-import { handleError } from '../utils/errorHandler.js';
-
+import { handleError } from '../../utils/errorHandler.js';
 export const exerciseRouter = Router();
 
 // Instanciación (En proyectos grandes esto se maneja con Inyección de Dependencias, ej: TSyringe)

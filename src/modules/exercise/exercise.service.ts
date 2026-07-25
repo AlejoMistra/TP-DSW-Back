@@ -1,4 +1,4 @@
-import { ExerciseRepository } from '../exercise/exercise.repository.js';
+import { ExerciseRepository } from './exercise.repository.js';
 import { PropiedadesExercise } from './exercise.entity.js';
 import {
   CreateExerciseInput,

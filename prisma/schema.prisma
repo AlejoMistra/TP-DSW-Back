@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -12,32 +10,84 @@ datasource db {
   provider = "mysql"
 }
 
-enum DifficultyLevelExercise {
- beginner
- intermediate
- advanced
-}
-
-model Exercise {
- id          Int      @id @default(autoincrement())
- name        String
- description String?
- muscleGroup String
- difficultyLevel DifficultyLevelExercise
-
- createdAt DateTime @default(now())
- updatedAt DateTime @updatedAt
-}
-
 model Member {
-  id        Int      @id @default(autoincrement())
-  name      String
-  surname   String
-  idNumber  String   @unique
-  email     String   @unique
-  phone     String?
-  joinDate  DateTime @default(now())
+  id       Int      @id @default(autoincrement())
+  name     String
+  surname  String
+  email    String   @unique
+  phone    String?
+  joinDate DateTime @default(now())
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  membership Membership?
+}
+
+model Instructor {
+  id       Int      @id @default(autoincrement())
+  name     String
+  surname  String
+  email    String   @unique
+  phone    String?
+  joinDate DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Membership {
+  id                Int              @id @default(autoincrement())
+  startDate         DateTime         @default(now())
+  endDate           DateTime
+  status            MembershipStatus @default(Activo)
+  lastPaymentMethod PaymentMethod
+  lastAmountPaid    Float
+
+  // UN SOCIO TIENE SOLO UNA MEMBRESÍA (1:1)
+  member   Member @relation(fields: [memberId], references: [id])
+  memberId Int    @unique
+
+  // MUCHAS MEMBRESÍAS COMPARTEN EL MISMO PLAN (1:N)
+  membershipPlan   MembershipPlan @relation(fields: [membershipPlanId], references: [id])
+  membershipPlanId Int
+}
+
+model MembershipPlan {
+  id           Int          @id @default(autoincrement())
+  name         String
+  description  String?
+  price        Float
+  durationDays Int
+  memberships  Membership[]
+}
+
+model Exercise {
+  id              Int                     @id @default(autoincrement())
+  name            String
+  description     String?
+  muscleGroup     String
+  difficultyLevel DifficultyLevelExercise
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum MembershipStatus {
+  Activo
+  Vencido
+  Cancelado
+}
+
+enum PaymentMethod {
+  Transferencia
+  Efectivo
+  Tarjeta
+  Otro
+}
+
+enum DifficultyLevelExercise {
+  Principiante
+  Intermedio
+  Avanzado
 }

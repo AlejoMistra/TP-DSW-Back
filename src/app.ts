@@ -1,9 +1,9 @@
 import express from 'express';
-import { exerciseRouter } from './exercise/exercise.router.js';
-import { memberRouter } from './member/member.router.js';
-import { instructorRouter } from './instructor/instructor.router.js';
-import { classScheduleRouter } from './classSchedule/classSchedule.router.js';
-import { planRouter } from './membershipPlan/plan.router.js';
+import { exerciseRouter } from './modules/exercise/exercise.router.js';
+import { memberRouter } from './modules/member/member.router.js';
+import { instructorRouter } from './modules/instructor/instructor.router.js';
+import { classScheduleRouter } from './modules/classSchedule/classSchedule.router.js';
+import { planRouter } from './modules/membershipPlan/plan.router.js';
 import cors from 'cors';
 
 const app = express();

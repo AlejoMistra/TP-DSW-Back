@@ -1,5 +1,5 @@
 import { ClassScheduleRepository } from '../classSchedule/classSchedule.repository.js';
-import { InstructorRepository } from '../instructor/instructor.repository.js';
+import { InstructorRepository } from '../modules/instructor/instructor.repository.js';
 import {
   ClassScheduleProps,
   GymClassCategory,

@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import {
   classScheduleRepository,
   instructorRepository,
-} from '../shared/instances.js';
+} from '../../shared/instances.js';
 import { ClassScheduleService } from './classSchedule.service.js';
 import {
   ClassScheduleIdSchema,
@@ -11,7 +11,7 @@ import {
   UpdateClassScheduleSchema,
   DayOfWeekSchema,
 } from './classSchedule.schemas.js';
-import { handleError } from '../utils/errorHandler.js';
+import { handleError } from '../../utils/errorHandler.js';
 
 export const classScheduleRouter = Router();
 const service = new ClassScheduleService(
