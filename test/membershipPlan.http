@@ -1,0 +1,172 @@
+@baseUrl = http://localhost:3000/api/membership-plans
+@existingId = 3
+@nonExistingId = 999999
+
+### 1. Obtener todos los planes
+GET {{baseUrl}}
+
+# Response esperada:
+# - 200 OK
+# - Body: array (puede venir vacio [])
+
+### 2. Obtener un plan por ID valido (existente o no)
+GET {{baseUrl}}/{{existingId}}
+
+# Response esperada:
+# - 200 OK
+# - Body: objeto si existe; null si no existe (comportamiento actual)
+
+### 3. Obtener un plan con ID invalido (no numerico)
+GET {{baseUrl}}/abc
+
+# Response esperada:
+# - 400 Bad Request
+# - Body: { "error": "Validacion fallida", "details": [...] }
+
+### 4. Obtener un plan inexistente (control de codigo de respuesta)
+GET {{baseUrl}}/{{nonExistingId}}
+
+# Response esperada (actual):
+# - 200 OK
+# - Body: null
+# Nota: idealmente deberia ser 404, este caso ayuda a detectar esa diferencia.
+
+### 5. Crear un plan valido
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "Plan Basico",
+  "description": "Acceso 3 veces por semana",
+  "price": 15000,
+  "durationDays": 30
+}
+
+# Response esperada:
+# - 201 Created
+# - Body: objeto creado con id
+
+### 6. Crear plan invalido (name corto)
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "A",
+  "description": "Descripcion valida",
+  "price": 15000,
+  "durationDays": 30
+}
+
+# Response esperada:
+# - 400 Bad Request
+# - Body: { "error": "Validacion fallida", "details": [...] }
+# - Debe incluir error de min length para name
+
+### 7. Crear plan invalido (price negativo y durationDays no entero)
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "Plan Invalido",
+  "description": "Campos numericos invalidos",
+  "price": -100,
+  "durationDays": 30.5
+}
+
+# Response esperada:
+# - 400 Bad Request
+# - Body: { "error": "Validacion fallida", "details": [...] }
+# - Debe incluir errores de precio positivo y duracion entera/positiva
+
+### 8. Crear plan invalido (tipos incorrectos)
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "Plan Tipos",
+  "description": "Tipos invalidos",
+  "price": "15000",
+  "durationDays": "30"
+}
+
+# Response esperada:
+# - 400 Bad Request
+# - Body: { "error": "Validacion fallida", "details": [...] }
+
+### 9. Actualizar plan existente con body valido
+PUT {{baseUrl}}/{{existingId}}
+Content-Type: application/json
+
+{
+  "name": "Plan Basico Actualizado",
+  "description": "Acceso libre de lunes a viernes",
+  "price": 18000,
+  "durationDays": 30
+}
+
+# Response esperada:
+# - 200 OK
+# - Body: objeto actualizado
+
+### 10. Actualizar con ID invalido
+PUT {{baseUrl}}/id-invalido
+Content-Type: application/json
+
+{
+  "name": "Plan X"
+}
+
+# Response esperada:
+# - 400 Bad Request
+# - Body: { "error": "Validacion fallida", "details": [...] }
+
+### 11. Actualizar con body invalido
+PUT {{baseUrl}}/{{existingId}}
+Content-Type: application/json
+
+{
+  "name": "A",
+  "price": 0,
+  "durationDays": -10
+}
+
+# Response esperada:
+# - 400 Bad Request
+# - Body: { "error": "Validacion fallida", "details": [...] }
+
+### 12. Actualizar plan inexistente
+PUT {{baseUrl}}/{{nonExistingId}}
+Content-Type: application/json
+
+{
+  "name": "Plan Fantasma",
+  "description": "No deberia existir",
+  "price": 10000,
+  "durationDays": 15
+}
+
+# Response esperada:
+# - 404 Not Found
+# - Body: { "error": "..." } con mensaje de Prisma/Error
+
+### 13. Eliminar plan existente
+DELETE {{baseUrl}}/{{existingId}}
+
+# Response esperada:
+# - 204 No Content
+# - Sin body
+
+### 14. Eliminar con ID invalido
+DELETE {{baseUrl}}/no-numero
+
+# Response esperada:
+# - 400 Bad Request
+# - Body: { "error": "Validacion fallida", "details": [...] }
+
+### 15. Eliminar plan inexistente (verificar manejo de errores)
+DELETE {{baseUrl}}/{{nonExistingId}}
+
+# Response esperada (actual):
+# - 500 Internal Server Error
+# - Body: { "message": "Error al eliminar el plan de membresia" }
+# Nota: idealmente deberia mapearse a 404 cuando el recurso no existe.
