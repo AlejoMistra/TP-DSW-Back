@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3000/api/socios
+@baseUrl = http://localhost:3000/api/members
 
 ### 1. Obtener todos los socios
 GET {{baseUrl}}
@@ -11,11 +11,11 @@ POST {{baseUrl}}
 Content-Type: application/json
 
 {
-  "nombre": "Juan",
-  "apellido": "Pérez",
+  "name": "Juan",
+  "surname": "Pérez",
   "email": "juan.perez@ejemplo.com",
-  "telefono": "12345678",
-  "estado": "activo"
+  "phoneNumber": "12345678",
+  "status": "active"
 }
 
 ### 4. Crear un socio INVÁLIDO (Para probar las validaciones de Zod)
@@ -24,11 +24,11 @@ POST {{baseUrl}}
 Content-Type: application/json
 
 {
-  "nombre": "A",
-  "apellido": "B",
+  "name": "A",
+  "surname": "B",
   "email": "correo-sin-arroba.com",
-  "telefono": "123",
-  "estado": "inactivo"
+  "phoneNumber": "123",
+  "status": "inactive"
 }
 
 ### 5. Actualizar un socio existente
@@ -36,11 +36,11 @@ PUT {{baseUrl}}/1
 Content-Type: application/json
 
 {
-  "nombre": "Juan Carlos",
-  "apellido": "Pérez",
+  "name": "Juan Carlos",
+  "surname": "Pérez",
   "email": "juan.perez@ejemplo.com",
-  "telefono": "1122334455",
-  "estado": "activo"
+  "phoneNumber": "1122334455",
+  "status": "active"
 }
 
 ### 6. Eliminar un socio
