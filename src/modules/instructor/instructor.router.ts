@@ -15,7 +15,7 @@ const service = new InstructorService(instructorRepository);
 // GET /api/instructors
 instructorRouter.get('/', async (req: Request, res: Response) => {
   try {
-    const instructors = await service.getAllInstructors();
+    const instructors = await service.getAll();
     res.status(200).json(instructors);
   } catch (error) {
     handleError(error, res);
@@ -27,7 +27,7 @@ instructorRouter.get('/', async (req: Request, res: Response) => {
 instructorRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     const validatedId = InstructorIdSchema.parse({ id: req.params.id });
-    const instructor = await service.getInstructorById(validatedId.id);
+    const instructor = await service.getById(validatedId.id);
     return res.status(200).json(instructor);
   } catch (error) {
     handleError(error, res);
@@ -51,7 +51,7 @@ instructorRouter.put('/:id', async (req: Request, res: Response) => {
   try {
     const validatedId = InstructorIdSchema.parse({ id: req.params.id });
     const validatedData = UpdateInstructorSchema.parse(req.body);
-    const updatedInstructor = await service.updateInstructor(
+    const updatedInstructor = await service.update(
       validatedId.id,
       validatedData,
     );
@@ -65,7 +65,7 @@ instructorRouter.put('/:id', async (req: Request, res: Response) => {
 instructorRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
     const validatedId = InstructorIdSchema.parse({ id: req.params.id });
-    const deleted = await service.deleteInstructor(validatedId.id);
+    const deleted = await service.delete(validatedId.id);
     if (!deleted) {
       return res.status(404).json({ error: 'Instructor no encontrado' });
     }

@@ -1,4 +1,4 @@
-import { Repository } from '../shared/base.repository.js';
+import { Repository } from '../../shared/base.repository.js';
 import PlansMock from './plans.json' with { type: 'json' };
 import { PlanProps, MembershipPlan } from './plan.entity.js';
 

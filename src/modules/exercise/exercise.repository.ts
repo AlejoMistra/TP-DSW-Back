@@ -1,12 +1,9 @@
-import { Repository } from '../shared/base.repository.js';
+import { Repository } from '../../shared/base.repository.js';
 import ExercisesMock from './exercises.json' with { type: 'json' };
-import {
-  PropiedadesExercise,
-  DifficultyLevelExercise,
-} from './exercise.entity.js';
+import { ExerciseProps, DifficultyLevelExercise } from './exercise.entity.js';
 
-export class ExerciseRepository implements Repository<PropiedadesExercise> {
-  private exercises: PropiedadesExercise[];
+export class ExerciseRepository implements Repository<ExerciseProps> {
+  private exercises: ExerciseProps[];
 
   constructor() {
     this.exercises = ExercisesMock.map((exercise) => ({
@@ -15,7 +12,7 @@ export class ExerciseRepository implements Repository<PropiedadesExercise> {
     }));
   }
 
-  async getAll(): Promise<PropiedadesExercise[]> {
+  async getAll(): Promise<ExerciseProps[]> {
     return Promise.resolve(this.exercises);
   }
 
@@ -27,16 +24,14 @@ export class ExerciseRepository implements Repository<PropiedadesExercise> {
   //      return this.exercises.filter((e) => (e.muscleGroup ?? '').toLowerCase().includes(filteredExercises));
   // }
 
-  async getOne(id: number): Promise<PropiedadesExercise | undefined> {
+  async getOne(id: number): Promise<ExerciseProps | undefined> {
     const exercise = this.exercises.find((e) => e.id === id);
     return Promise.resolve(exercise || undefined);
   }
 
-  async add(
-    item: Omit<PropiedadesExercise, 'id'>,
-  ): Promise<PropiedadesExercise> {
+  async add(item: Omit<ExerciseProps, 'id'>): Promise<ExerciseProps> {
     const newId = Math.max(...this.exercises.map((e) => e.id), 0) + 1;
-    const newExercise: PropiedadesExercise = {
+    const newExercise: ExerciseProps = {
       id: newId,
       ...item,
     };
@@ -46,8 +41,8 @@ export class ExerciseRepository implements Repository<PropiedadesExercise> {
 
   async update(
     id: number,
-    item: Partial<Omit<PropiedadesExercise, 'id'>>,
-  ): Promise<PropiedadesExercise | undefined> {
+    item: Partial<Omit<ExerciseProps, 'id'>>,
+  ): Promise<ExerciseProps | undefined> {
     const exercise = this.exercises.find((e) => e.id === id);
     if (!exercise) return Promise.resolve(undefined);
 
