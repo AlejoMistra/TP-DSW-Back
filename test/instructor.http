@@ -34,7 +34,7 @@ Content-Type: application/json
 {
   "name": "Carlos Manuel",
   "surname": "García López",
-  "email": "carlos.manuel@gym.com",
+  "email": "carlos.manuel@gym.com"
 }
 
 ### 6. Eliminar un instructor
