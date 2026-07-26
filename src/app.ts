@@ -3,7 +3,7 @@ import { exerciseRouter } from './modules/exercise/exercise.router.js';
 import { memberRouter } from './modules/member/member.router.js';
 import { instructorRouter } from './modules/instructor/instructor.router.js';
 import { classScheduleRouter } from './modules/classSchedule/classSchedule.router.js';
-import { planRouter } from './modules/membershipPlan/plan.router.js';
+import { membershipPlanRouter } from './modules/membershipPlan/membershipPlan.router.js';
 import cors from 'cors';
 
 const app = express();
@@ -57,6 +57,6 @@ app.use('/api/exercises', exerciseRouter);
 app.use('/api/members', memberRouter);
 app.use('/api/instructors', instructorRouter);
 app.use('/api/classSchedules', classScheduleRouter);
-app.use('/api/membership-plans', planRouter);
+app.use('/api/membership-plans', membershipPlanRouter);
 
 export { app };
