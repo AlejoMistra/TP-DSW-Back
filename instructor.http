@@ -13,8 +13,7 @@ Content-Type: application/json
 {
   "name": "Carlos",
   "surname": "García",
-  "email": "carlos.garcia@gym.com",
-
+  "email": "carlos.garcia@gym.com"
 }
 
 ### 4. Crear un instructor INVÁLIDO (Para probar validaciones de Zod)
@@ -25,7 +24,7 @@ Content-Type: application/json
 {
   "name": "A",
   "surname": "B",
-  "email": "correo-invalido.com",
+  "email": "correo-invalido.com"
 }
 
 ### 5. Actualizar un instructor existente
@@ -39,4 +38,4 @@ Content-Type: application/json
 }
 
 ### 6. Eliminar un instructor
-DELETE {{baseUrl}}/1
+DELETE {{baseUrl}}/4

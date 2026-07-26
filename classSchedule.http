@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3000/api/class-schedules
+@baseUrl = http://localhost:3000/api/classSchedules
 
 ### 1. Obtener todos los horarios de clases
 GET {{baseUrl}}
@@ -11,13 +11,14 @@ POST {{baseUrl}}
 Content-Type: application/json
 
 {
-  "className": "Crossfit",
-  "category": "funcional",
-  "dayOfWeek": "lunes",
-  "startTime": "08:00",
-  "endTime": "09:00",
-  "instructorId": 1,
-  "capacity": 20
+  "name": "Crossfit",
+  "description": "Clase de crossfit para todos los niveles",
+  "category": "Crossfit",
+  "dayOfWeek": "Monday",
+  "startTime": "09:00",
+  "durationMinutes": 60,
+  "instructorId": 4,
+  "maxNumber": 20
 }
 
 ### 4. Crear un horario INVÁLIDO
@@ -26,13 +27,13 @@ POST {{baseUrl}}
 Content-Type: application/json
 
 {
-  "className": "A",
+  "name": "A",
+  "description": "Clase inválida",
   "category": "invalida",
   "dayOfWeek": "xyz",
-  "startTime": "25:00",
-  "endTime": "invalid",
   "instructorId": -1,
-  "capacity": -5
+  "durationMinutes": 0,
+  "maxNumber": -5
 }
 
 ### 5. Actualizar un horario existente
@@ -40,23 +41,22 @@ PUT {{baseUrl}}/1
 Content-Type: application/json
 
 {
-  "className": "Crossfit Avanzado",
-  "category": "funcional",
-  "dayOfWeek": "lunes",
-  "startTime": "18:00",
-  "endTime": "19:30",
+  "name": "Crossfit Avanzado",
+  "category": "Crossfit",
+  "dayOfWeek": "Tuesday",
+  "durationMinutes": 90,
   "instructorId": 2,
-  "capacity": 15
+  "maxNumber": 15
 }
 
 ### 6. Eliminar un horario de clase
 DELETE {{baseUrl}}/1
 
 ### 7. Obtener clases por instructor (método especial)
-GET {{baseUrl}}/instructor/1
+GET {{baseUrl}}/instructor/4
 
 ### 8. Obtener clases por categoría (método especial)
-GET {{baseUrl}}/category/funcional
+GET {{baseUrl}}/category/Crossfit
 
 ### 9. Obtener clases por día de la semana (método especial)
-GET {{baseUrl}}/day/lunes
+GET {{baseUrl}}/day/Tuesday

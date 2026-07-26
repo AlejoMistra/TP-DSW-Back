@@ -14,7 +14,7 @@ Content-Type: application/json
   "name": "Plan Básico",
   "description": "Acceso a equipamiento básico",
   "price": 28000,
-  "duration": 30,
+  "durationDays": 30
 }
 
 ### 4. Crear un plan INVÁLIDO
@@ -26,7 +26,7 @@ Content-Type: application/json
   "name": "A",
   "description": "X",
   "price": -1000,
-  "duration": 0,
+  "durationDays": 0
   }
 
 ### 5. Actualizar un plan existente
@@ -37,7 +37,7 @@ Content-Type: application/json
   "name": "Plan Básico Plus",
   "description": "Acceso completo a equipamiento",
   "price": 35000,
-  "duration": 30,
+  "durationDays": 30
 }
 
 ### 6. Eliminar un plan
