@@ -2,13 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-<<<<<<< HEAD
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
-=======
   provider = "prisma-client"
   output   = "../src/generated/prisma"
->>>>>>> 36c26ff10c4837b2bb6309da4c61bf5ab54a29d5
 }
 
 datasource db {
