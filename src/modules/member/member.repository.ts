@@ -1,9 +1,6 @@
 import MembersMock from './members.json' with { type: 'json' }; //por ahora es un json con socios, depues una bd
 import { MemberProps, MemberStatus } from './member.entity.js';
-<<<<<<< HEAD
 import { Repository } from '../../shared/base.repository.js';
-=======
->>>>>>> 36c26ff10c4837b2bb6309da4c61bf5ab54a29d5
 
 //import { PrismaClient } from '@prisma/client';
 

@@ -11,12 +11,7 @@ import {
   UpdateClassScheduleSchema,
   DayOfWeekSchema,
 } from './classSchedule.schemas.js';
-<<<<<<< HEAD
 import { handleError } from '../../utils/errorHandler.js';
-=======
-import { getErrorMessage } from '../../utils/errorHandler.js';
-import { z } from 'zod';
->>>>>>> 36c26ff10c4837b2bb6309da4c61bf5ab54a29d5
 
 export const classScheduleRouter = Router();
 const service = new ClassScheduleService(
