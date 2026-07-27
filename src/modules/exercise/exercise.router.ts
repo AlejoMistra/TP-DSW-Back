@@ -6,9 +6,7 @@ import {
   UpdateExerciseSchema,
   ExerciseIdSchema,
 } from './exercise.schemas.js';
-import { getErrorMessage } from '../../utils/errorHandler.js';
-import { z } from 'zod';
-
+import { handleError } from '../../utils/errorHandler.js';
 export const exerciseRouter = Router();
 
 // Instanciación (En proyectos grandes esto se maneja con Inyección de Dependencias, ej: TSyringe)
@@ -19,7 +17,7 @@ exerciseRouter.get('/', async (req: Request, res: Response) => {
     const exercises = await service.getAll();
     res.status(200).json(exercises);
   } catch (error) {
-    res.status(500).json({ message: 'Error al obtener los ejercicios' });
+    handleError(error, res);
   }
 });
 
@@ -29,12 +27,7 @@ exerciseRouter.get('/:id', async (req: Request, res: Response) => {
     const exercise = await service.getById(validatedId.id);
     res.status(200).json(exercise);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res
-        .status(400)
-        .json({ message: 'Parámetros inválidos', errors: error.issues });
-    }
-    res.status(404).json({ message: getErrorMessage(error) });
+    handleError(error, res);
   }
 });
 
@@ -44,12 +37,7 @@ exerciseRouter.post('/', async (req: Request, res: Response) => {
     const newExercise = await service.create(validatedData);
     res.status(201).json(newExercise);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res
-        .status(400)
-        .json({ error: 'Validación fallida', details: error.issues });
-    }
-    res.status(500).json({ message: 'Error al crear el ejercicio' });
+    handleError(error, res);
   }
 });
 
@@ -60,12 +48,7 @@ exerciseRouter.put('/:id', async (req: Request, res: Response) => {
     const updatedExercise = await service.update(validatedId.id, validatedData);
     res.status(200).json(updatedExercise);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res
-        .status(400)
-        .json({ error: 'Validación fallida', details: error.issues });
-    }
-    res.status(404).json({ error: getErrorMessage(error) });
+    handleError(error, res);
   }
 });
 
@@ -78,11 +61,6 @@ exerciseRouter.delete('/:id', async (req: Request, res: Response) => {
     }
     res.status(204).send();
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res
-        .status(400)
-        .json({ error: 'Validación fallida', details: error.issues });
-    }
-    res.status(500).json({ message: 'Error al eliminar el ejercicio' });
+    handleError(error, res);
   }
 });

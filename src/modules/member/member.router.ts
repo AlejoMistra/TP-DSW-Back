@@ -6,8 +6,7 @@ import {
   CreateMemberSchema,
   UpdateMemberSchema,
 } from './member.schemas.js';
-import { getErrorMessage } from '../../utils/errorHandler.js';
-import { z } from 'zod';
+import { handleError } from '../../utils/errorHandler.js';
 
 export const memberRouter = Router();
 
@@ -20,8 +19,7 @@ memberRouter.get('/', async (req: Request, res: Response) => {
     const members = await service.getAll();
     res.status(200).json(members);
   } catch (error) {
-    //Validaciones para atrapar errores evitando que rompa el server y para devolver mensajes claros.
-    res.status(500).json({ message: 'Error al obtener los socios' });
+    handleError(error, res);
   }
 });
 
@@ -34,13 +32,7 @@ memberRouter.get('/:id', async (req: Request, res: Response) => {
     const member = await service.getById(validatedId.id);
     return res.status(200).json(member);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: 'Validación fallida',
-        details: error.issues,
-      });
-    }
-    res.status(404).json({ error: getErrorMessage(error) });
+    handleError(error, res);
   }
 });
 
@@ -51,13 +43,7 @@ memberRouter.post('/', async (req: Request, res: Response) => {
     const newMember = await service.create(validatedData);
     res.status(201).json(newMember);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: 'Validación fallida',
-        details: error.issues,
-      });
-    }
-    res.status(500).json({ message: 'Error al crear el socio' });
+    handleError(error, res);
   }
 });
 
@@ -70,13 +56,7 @@ memberRouter.put('/:id', async (req: Request, res: Response) => {
     const updatedMember = await service.update(validatedId.id, validatedData);
     res.status(200).json(updatedMember);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: 'Validación fallida',
-        details: error.issues,
-      });
-    }
-    res.status(404).json({ error: getErrorMessage(error) });
+    handleError(error, res);
   }
 });
 
@@ -93,12 +73,6 @@ memberRouter.delete('/:id', async (req: Request, res: Response) => {
 
     res.status(204).send();
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: 'Validación fallida',
-        details: error.issues,
-      });
-    }
-    res.status(500).json({ message: 'Error al eliminar el socio' });
+    handleError(error, res);
   }
 });

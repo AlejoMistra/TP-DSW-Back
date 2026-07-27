@@ -8,39 +8,37 @@ import {
 export class InstructorService {
   constructor(private instructorRepository: InstructorRepository) {}
 
-  async getAllInstructors() {
-    return await this.instructorRepository.getAllInstructors();
+  async getAll(): Promise<InstructorProps[]> {
+    return await this.instructorRepository.getAll();
   }
 
-  async getInstructorById(id: number): Promise<InstructorProps> {
-    const instructor = await this.instructorRepository.getInstructorById(id);
+  async getById(id: number): Promise<InstructorProps> {
+    const instructor = await this.instructorRepository.getOne(id);
     if (!instructor) {
       throw new Error('Instructor no encontrado');
     }
     return instructor;
   }
 
-  async createInstructor(
-    props: CreateInstructorInput,
-  ): Promise<InstructorProps> {
-    const newInstructor = await this.instructorRepository.create({
+  async add(props: CreateInstructorInput): Promise<InstructorProps> {
+    const newInstructor = await this.instructorRepository.add({
       ...props,
     });
     return newInstructor;
   }
 
-  async updateInstructor(
+  async update(
     id: number,
     props: UpdateInstructorInput,
   ): Promise<InstructorProps> {
-    const updatedInstructor = await this.instructorRepository.save(id, props);
+    const updatedInstructor = await this.instructorRepository.update(id, props);
     if (!updatedInstructor) {
       throw new Error('Instructor no encontrado');
     }
     return updatedInstructor;
   }
 
-  async deleteInstructor(id: number): Promise<boolean> {
+  async delete(id: number): Promise<boolean> {
     return await this.instructorRepository.delete(id);
   }
 }

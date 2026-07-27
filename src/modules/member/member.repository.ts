@@ -1,7 +1,10 @@
 import MembersMock from './members.json' with { type: 'json' }; //por ahora es un json con socios, depues una bd
 import { MemberProps, MemberStatus } from './member.entity.js';
+import { Repository } from '../../shared/base.repository.js';
 
-export class MemberRepository {
+//import { PrismaClient } from '@prisma/client';
+
+export class MemberRepository implements Repository<MemberProps> {
   private members: MemberProps[];
 
   constructor() {
@@ -13,33 +16,33 @@ export class MemberRepository {
     }));
   }
 
-  async getAllMembers(): Promise<MemberProps[]> {
+  async getAll(): Promise<MemberProps[]> {
     return Promise.resolve(this.members);
   }
 
-  async getMemberById(id: number): Promise<MemberProps | null> {
+  async getOne(id: number): Promise<MemberProps | undefined> {
     const member = this.members.find((s) => s.id === id);
-    return Promise.resolve(member || null);
+    return Promise.resolve(member);
   }
 
-  async create(props: Omit<MemberProps, 'id'>): Promise<MemberProps> {
+  async add(item: Omit<MemberProps, 'id'>): Promise<MemberProps> {
     const newId = Math.max(...this.members.map((m) => m.id), 0) + 1;
     const newMember: MemberProps = {
       id: newId,
-      ...props,
+      ...item,
     };
     this.members.push(newMember);
     return Promise.resolve(newMember);
   }
 
-  async save(
+  async update(
     id: number,
-    props: Partial<MemberProps>,
-  ): Promise<MemberProps | null> {
+    item: Partial<Omit<MemberProps, 'id'>>,
+  ): Promise<MemberProps | undefined> {
     const member = this.members.find((m) => m.id === id);
-    if (!member) return Promise.resolve(null);
+    if (!member) return Promise.resolve(undefined);
 
-    const updated = { ...member, ...props };
+    const updated = { ...member, ...item };
     const index = this.members.findIndex((m) => m.id === id);
     this.members[index] = updated;
     return Promise.resolve(updated);
