@@ -6,33 +6,42 @@ import {
   CreateMemberSchema,
   UpdateMemberSchema,
 } from './member.schemas.js';
-import { getErrorMessage } from '../../utils/errorHandler.js';
+//import { handleError } from '../../utils/errorHandler.js';
 import { z } from 'zod';
 
 export const memberRouter = Router();
 
-// Instanciación (En proyectos grandes esto se maneja con Inyección de Dependencias, ej: TSyringe)
 const service = new MemberService(memberRepository);
 
 //GET /api/members
+// memberRouter.get('/', async (req: Request, res: Response) => {
+//   try {
+//     const members = await service.getAll();
+//     res.status(200).json(members);
+//   } catch (error) {
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// });
+
 memberRouter.get('/', async (req: Request, res: Response) => {
   try {
+    console.log('GET /members - iniciando...');
     const members = await service.getAll();
+    console.log('GET /members - Miembros obtenidos:', members);
     res.status(200).json(members);
   } catch (error) {
-    //Validaciones para atrapar errores evitando que rompa el server y para devolver mensajes claros.
-    res.status(500).json({ message: 'Error al obtener los socios' });
+    console.error('ERROR en GET /members:', error);
+    // handleError(error, res);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 //GET /api/members/:id
-
 memberRouter.get('/:id', async (req: Request, res: Response) => {
   try {
-    // Validar el parámetro ID con Zod
     const validatedId = MemberIdSchema.parse({ id: req.params.id });
     const member = await service.getById(validatedId.id);
-    return res.status(200).json(member);
+    res.status(200).json(member);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
@@ -40,11 +49,11 @@ memberRouter.get('/:id', async (req: Request, res: Response) => {
         details: error.issues,
       });
     }
-    res.status(404).json({ error: getErrorMessage(error) });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-//POST /api/members - Crear nuevo socio
+//POST /api/members
 memberRouter.post('/', async (req: Request, res: Response) => {
   try {
     const validatedData = CreateMemberSchema.parse(req.body);
@@ -57,16 +66,21 @@ memberRouter.post('/', async (req: Request, res: Response) => {
         details: error.issues,
       });
     }
-    res.status(500).json({ message: 'Error al crear el socio' });
+    // Captura cualquier otro error
+    if (error instanceof Error) {
+      return res.status(400).json({
+        error: error.message,
+      });
+    }
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-//PUT /api/members/:id - Actualizar socio
+//PUT /api/members/:id
 memberRouter.put('/:id', async (req: Request, res: Response) => {
   try {
     const validatedId = MemberIdSchema.parse({ id: req.params.id });
     const validatedData = UpdateMemberSchema.parse(req.body);
-
     const updatedMember = await service.update(validatedId.id, validatedData);
     res.status(200).json(updatedMember);
   } catch (error) {
@@ -76,21 +90,15 @@ memberRouter.put('/:id', async (req: Request, res: Response) => {
         details: error.issues,
       });
     }
-    res.status(404).json({ error: getErrorMessage(error) });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-//DELETE /api/members/:id - Eliminar socio
+//DELETE /api/members/:id
 memberRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
     const validatedId = MemberIdSchema.parse({ id: req.params.id });
-
-    const eliminated = await service.delete(validatedId.id);
-
-    if (!eliminated) {
-      return res.status(404).json({ error: 'Socio no encontrado' });
-    }
-
+    await service.delete(validatedId.id);
     res.status(204).send();
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -99,6 +107,6 @@ memberRouter.delete('/:id', async (req: Request, res: Response) => {
         details: error.issues,
       });
     }
-    res.status(500).json({ message: 'Error al eliminar el socio' });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -1,55 +1,52 @@
-import MembersMock from './members.json' with { type: 'json' }; //por ahora es un json con socios, depues una bd
-import { MemberProps, MemberStatus } from './member.entity.js';
+import { CreateMemberInput, UpdateMemberInput } from './member.schemas.js';
+import { Member } from '../../generated/prisma/client.js';
+import { prisma } from '../../lib/prisma.js';
 
 export class MemberRepository {
-  private members: MemberProps[];
-
-  constructor() {
-    //simula la carga de dados desde una BD a memoria
-    this.members = MembersMock.map((member) => ({
-      ...member,
-      joinDate: new Date(member.joinDate),
-      status: member.status as MemberStatus,
-    }));
+  
+  async getAllMembers(): Promise<Member[]> {
+    return await prisma.member.findMany({
+      where: { deletedAt: null },
+      // orderBy: { createdAt: 'desc' },
+    });
   }
 
-  async getAllMembers(): Promise<MemberProps[]> {
-    return Promise.resolve(this.members);
+  async getMemberById(id: number): Promise<Member | null> {
+    return await prisma.member.findUnique({
+      where: { id },
+    });
   }
 
-  async getMemberById(id: number): Promise<MemberProps | null> {
-    const member = this.members.find((s) => s.id === id);
-    return Promise.resolve(member || null);
+async create(props: CreateMemberInput): Promise<Member> {
+  // Validar email único ANTES de insertar
+  const existing = await prisma.member.findUnique({
+    where: { email: props.email }
+  });
+  if (existing) {
+    throw new Error('Email ya existe');
   }
 
-  async create(props: Omit<MemberProps, 'id'>): Promise<MemberProps> {
-    const newId = Math.max(...this.members.map((m) => m.id), 0) + 1;
-    const newMember: MemberProps = {
-      id: newId,
-      ...props,
-    };
-    this.members.push(newMember);
-    return Promise.resolve(newMember);
+  return await prisma.member.create({
+    data: props,
+  });
+}
+
+  async update(id: number, props: UpdateMemberInput): Promise<Member | null> {
+    return await prisma.member.update({
+      where: { id },
+      data: {
+        name: props.name,
+        surname: props.surname,
+        email: props.email,
+        phone: props.phone ?? null,
+        status: props.status ?? 'ACTIVE',
+      },
+    });
   }
 
-  async save(
-    id: number,
-    props: Partial<MemberProps>,
-  ): Promise<MemberProps | null> {
-    const member = this.members.find((m) => m.id === id);
-    if (!member) return Promise.resolve(null);
-
-    const updated = { ...member, ...props };
-    const index = this.members.findIndex((m) => m.id === id);
-    this.members[index] = updated;
-    return Promise.resolve(updated);
-  }
-
-  async delete(id: number): Promise<boolean> {
-    const index = this.members.findIndex((m) => m.id === id);
-    if (index === -1) return Promise.resolve(false);
-
-    this.members.splice(index, 1);
-    return Promise.resolve(true);
+  async delete(id: number): Promise<void> {
+    await prisma.member.delete({
+      where: { id },
+    });
   }
 }
