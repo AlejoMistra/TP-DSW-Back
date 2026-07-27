@@ -30,9 +30,11 @@ export class PlanRepository implements Repository<PlanProps> {
     return Promise.resolve(newPlan);
   }
 
+  
+
   async update(
     id: number,
-    item: Partial<PlanProps>,
+    item: Partial<Omit<PlanProps, 'id>>,
   ): Promise<PlanProps | undefined> {
     const plan = this.plans.find((p) => p.id === id);
     if (!plan) return Promise.resolve(undefined);
