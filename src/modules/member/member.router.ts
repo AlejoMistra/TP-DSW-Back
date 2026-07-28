@@ -6,14 +6,23 @@ import {
   CreateMemberSchema,
   UpdateMemberSchema,
 } from './member.schemas.js';
+
 import { handleError } from '../../utils/errorHandler.js';
 
 export const memberRouter = Router();
 
-// Instanciación (En proyectos grandes esto se maneja con Inyección de Dependencias, ej: TSyringe)
 const service = new MemberService(memberRepository);
 
 //GET /api/members
+// memberRouter.get('/', async (req: Request, res: Response) => {
+//   try {
+//     const members = await service.getAll();
+//     res.status(200).json(members);
+//   } catch (error) {
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// });
+
 memberRouter.get('/', async (req: Request, res: Response) => {
   try {
     const members = await service.getAll();
@@ -24,19 +33,18 @@ memberRouter.get('/', async (req: Request, res: Response) => {
 });
 
 //GET /api/members/:id
-
 memberRouter.get('/:id', async (req: Request, res: Response) => {
   try {
-    // Validar el parámetro ID con Zod
     const validatedId = MemberIdSchema.parse({ id: req.params.id });
     const member = await service.getById(validatedId.id);
-    return res.status(200).json(member);
+    res.status(200).json(member);
   } catch (error) {
+
     handleError(error, res);
   }
 });
 
-//POST /api/members - Crear nuevo socio
+//POST /api/members
 memberRouter.post('/', async (req: Request, res: Response) => {
   try {
     const validatedData = CreateMemberSchema.parse(req.body);
@@ -47,12 +55,11 @@ memberRouter.post('/', async (req: Request, res: Response) => {
   }
 });
 
-//PUT /api/members/:id - Actualizar socio
+//PUT /api/members/:id
 memberRouter.put('/:id', async (req: Request, res: Response) => {
   try {
     const validatedId = MemberIdSchema.parse({ id: req.params.id });
     const validatedData = UpdateMemberSchema.parse(req.body);
-
     const updatedMember = await service.update(validatedId.id, validatedData);
     res.status(200).json(updatedMember);
   } catch (error) {
@@ -60,17 +67,11 @@ memberRouter.put('/:id', async (req: Request, res: Response) => {
   }
 });
 
-//DELETE /api/members/:id - Eliminar socio
+//DELETE /api/members/:id
 memberRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
     const validatedId = MemberIdSchema.parse({ id: req.params.id });
-
-    const eliminated = await service.delete(validatedId.id);
-
-    if (!eliminated) {
-      return res.status(404).json({ error: 'Socio no encontrado' });
-    }
-
+    await service.delete(validatedId.id);
     res.status(204).send();
   } catch (error) {
     handleError(error, res);
