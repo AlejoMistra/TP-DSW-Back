@@ -7,7 +7,6 @@ import {
   UpdateMemberSchema,
 } from './member.schemas.js';
 
-import { z } from 'zod';
 import { handleError } from '../../utils/errorHandler.js';
 
 export const memberRouter = Router();
