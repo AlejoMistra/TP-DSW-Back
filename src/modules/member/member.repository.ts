@@ -17,19 +17,20 @@ export class MemberRepository {
     });
   }
 
-async create(props: CreateMemberInput): Promise<Member> {
+  async create(props: CreateMemberInput): Promise<Member> {
   // Validar email único ANTES de insertar
-  const existing = await prisma.member.findUnique({
-    where: { email: props.email }
-  });
-  if (existing) {
-    throw new Error('Email ya existe');
-  }
+    const existing = await prisma.member.findUnique({
+       where: { email: props.email }
+    });
+    if (existing) {
+       throw new Error('Email ya existe');
+    }
 
-  return await prisma.member.create({
-    data: props,
-  });
-}
+   return await prisma.member.create({
+     data: props,
+    });
+
+  }
 
   async update(id: number, props: UpdateMemberInput): Promise<Member | null> {
     return await prisma.member.update({

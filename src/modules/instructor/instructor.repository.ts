@@ -1,7 +1,8 @@
+import { Repository } from '../../shared/base.repository.js';
 import InstructoresMock from './instructores.json' with { type: 'json' }; //por ahora es un json con socios, depues una bd
 import { InstructorProps } from './instructor.entity.js';
 
-export class InstructorRepository {
+export class InstructorRepository implements Repository<InstructorProps> {
   private instructors: InstructorProps[];
 
   constructor() {
@@ -10,32 +11,33 @@ export class InstructorRepository {
     }));
   }
 
-  async getAllInstructors(): Promise<InstructorProps[]> {
+  async getAll(): Promise<InstructorProps[]> {
     return Promise.resolve(this.instructors);
   }
 
-  async getInstructorById(id: number): Promise<InstructorProps | null> {
+  async getOne(id: number): Promise<InstructorProps | undefined> {
     const instructor = this.instructors.find((i) => i.id === id);
-    return Promise.resolve(instructor || null);
+    return Promise.resolve(instructor || undefined);
   }
 
-  async create(props: Omit<InstructorProps, 'id'>): Promise<InstructorProps> {
+  async add(item: Omit<InstructorProps, 'id'>): Promise<InstructorProps> {
     const newId = Math.max(...this.instructors.map((i) => i.id), 0) + 1;
     const newInstructor: InstructorProps = {
       id: newId,
-      ...props,
+      ...item,
     };
     this.instructors.push(newInstructor);
     return Promise.resolve(newInstructor);
   }
 
-  async save(
+  async update(
     id: number,
-    props: Partial<InstructorProps>,
-  ): Promise<InstructorProps | null> {
+    item: Partial<Omit<InstructorProps, 'id'>>,
+  ): Promise<InstructorProps | undefined> {
     const instructor = this.instructors.find((i) => i.id === id);
-    if (!instructor) return Promise.resolve(null);
-    const updated = { ...instructor, ...props };
+    if (!instructor) return Promise.resolve(undefined);
+
+    const updated = { ...instructor, ...item };
     const index = this.instructors.findIndex((i) => i.id === id);
     this.instructors[index] = updated;
     return Promise.resolve(updated);
@@ -44,6 +46,7 @@ export class InstructorRepository {
   async delete(id: number): Promise<boolean> {
     const index = this.instructors.findIndex((i) => i.id === id);
     if (index === -1) return Promise.resolve(false);
+
     this.instructors.splice(index, 1);
     return Promise.resolve(true);
   }

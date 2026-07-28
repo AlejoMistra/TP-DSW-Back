@@ -65,9 +65,9 @@ POST {{baseUrl}}/members
 Content-Type: application/json
 
 {
-  "name": "Ana",
-  "surname": "Martínez",
-  "email": "ana.martinez@example.com",
+  "name": "Alejo",
+  "surname": "Borda",
+  "email": "alejo.borda@example.com",
   "phone": "9876543210",
   "status": "INACTIVE"
 }
@@ -131,7 +131,7 @@ Content-Type: application/json
 
 ### ❌ POST - Email sin dominio
 POST {{baseUrl}}/members
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "Juan",
@@ -141,7 +141,7 @@ POST {{baseUrl}}/members
 
 ### ❌ POST - Email duplicado (crear 2 veces el mismo)
 POST {{baseUrl}}/members
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "Duplicado",
@@ -151,7 +151,7 @@ POST {{baseUrl}}/members
 
 ### ❌ POST - Teléfono con menos de 7 dígitos
 POST {{baseUrl}}/members
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "Juan",
@@ -162,7 +162,7 @@ POST {{baseUrl}}/members
 
 ### ❌ POST - Teléfono con más de 15 dígitos
 POST {{baseUrl}}/members
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "Juan",
@@ -173,7 +173,7 @@ POST {{baseUrl}}/members
 
 ### ❌ POST - Teléfono con letras
 POST {{baseUrl}}/members
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "Juan",
@@ -184,7 +184,7 @@ POST {{baseUrl}}/members
 
 ### ❌ POST - Status inválido
 POST {{baseUrl}}/members
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "Juan",
@@ -195,17 +195,17 @@ POST {{baseUrl}}/members
 
 ### ❌ POST - Nombre muy largo (más de 100 caracteres)
 POST {{baseUrl}}/members
-{{@contentType}}
+Content-Type: application/json
 
 {
-  "name": "Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan",
+  "name": "Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan El pepe",
   "surname": "García",
-  "email": "test8@example.com"
+  "email": "test1234garcia@example.com"
 }
 
 ### ❌ POST - Falta el nombre
 POST {{baseUrl}}/members
-{{@contentType}}
+Content-Type: application/json  
 
 {
   "surname": "García",
@@ -214,7 +214,7 @@ POST {{baseUrl}}/members
 
 ### ❌ POST - Falta el apellido
 POST {{baseUrl}}/members
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "Juan",
@@ -223,7 +223,7 @@ POST {{baseUrl}}/members
 
 ### ❌ POST - Falta el email
 POST {{baseUrl}}/members
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "Juan",
@@ -232,7 +232,7 @@ POST {{baseUrl}}/members
 
 ### ❌ POST - JSON inválido
 POST {{baseUrl}}/members
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "Juan"
@@ -241,7 +241,7 @@ POST {{baseUrl}}/members
 
 ### ❌ POST - Campo extra no esperado (debe ignorarse)
 POST {{baseUrl}}/members
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "Juan",
@@ -289,7 +289,7 @@ GET {{baseUrl}}/members/
 
 ### ✅ PUT - Actualizar solo nombre
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "JuanActualizado"
@@ -297,7 +297,7 @@ PUT {{baseUrl}}/members/1
 
 ### ✅ PUT - Actualizar solo email
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json
 
 {
   "email": "juanuevo@example.com"
@@ -305,7 +305,7 @@ PUT {{baseUrl}}/members/1
 
 ### ✅ PUT - Actualizar solo teléfono
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json
 
 {
   "phone": "9999999999"
@@ -313,7 +313,7 @@ PUT {{baseUrl}}/members/1
 
 ### ✅ PUT - Actualizar solo status
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json
 
 {
   "status": "INACTIVE"
@@ -321,7 +321,7 @@ PUT {{baseUrl}}/members/1
 
 ### ✅ PUT - Actualizar múltiples campos
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "JuanCompleto",
@@ -333,7 +333,7 @@ PUT {{baseUrl}}/members/1
 
 ### ✅ PUT - Cambiar status a INACTIVE
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json
 
 {
   "status": "INACTIVE"
@@ -341,7 +341,7 @@ PUT {{baseUrl}}/members/1
 
 ### ✅ PUT - Volver a cambiar status a ACTIVE
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json
 
 {
   "status": "ACTIVE"
@@ -349,7 +349,7 @@ PUT {{baseUrl}}/members/1
 
 ### ✅ PUT - Limpiar teléfono (null)
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json
 
 {
   "phone": null
@@ -362,7 +362,7 @@ PUT {{baseUrl}}/members/1
 
 ### ❌ PUT - Actualizar con email duplicado
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json
 
 {
   "email": "maria.gonzalez@example.com"
@@ -370,7 +370,7 @@ PUT {{baseUrl}}/members/1
 
 ### ❌ PUT - Actualizar nombre a muy corto
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "A"
@@ -378,7 +378,7 @@ PUT {{baseUrl}}/members/1
 
 ### ❌ PUT - Actualizar email inválido
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json
 
 {
   "email": "email-invalido"
@@ -386,7 +386,7 @@ PUT {{baseUrl}}/members/1
 
 ### ❌ PUT - Actualizar teléfono inválido
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json
 
 {
   "phone": "123"
@@ -394,7 +394,7 @@ PUT {{baseUrl}}/members/1
 
 ### ❌ PUT - Status inválido
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json
 
 {
   "status": "PENDIENTE"
@@ -402,7 +402,7 @@ PUT {{baseUrl}}/members/1
 
 ### ❌ PUT - ID que no existe
 PUT {{baseUrl}}/members/9999
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "NoExiste"
@@ -410,7 +410,7 @@ PUT {{baseUrl}}/members/9999
 
 ### ❌ PUT - ID inválido
 PUT {{baseUrl}}/members/abc
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "Test"
@@ -418,7 +418,7 @@ PUT {{baseUrl}}/members/abc
 
 ### ❌ PUT - JSON inválido
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "Test"
@@ -485,7 +485,7 @@ POST {{baseUrl}}/members
 
 ### ❌ PUT - Actualizar con campos que no existen
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "Test",
@@ -494,7 +494,7 @@ PUT {{baseUrl}}/members/1
 
 ### ❌ POST - Array en lugar de objeto
 POST {{baseUrl}}/members
-{{@contentType}}
+Content-Type: application/json
 
 [
   {
@@ -506,19 +506,19 @@ POST {{baseUrl}}/members
 
 ### ❌ POST - Null como body
 POST {{baseUrl}}/members
-{{@contentType}}
+Content-Type: application/json
 
 null
 
 ### ❌ POST - String en lugar de JSON
 POST {{baseUrl}}/members
-{{@contentType}}
+Content-Type: application/json
 
 "esto no es un objeto"
 
 ### ❌ POST - Número en lugar de JSON
 POST {{baseUrl}}/members
-{{@contentType}}
+Content-Type: application/json
 
 123
 
@@ -527,7 +527,7 @@ GET {{baseUrl}}/members/99999999999999999999
 
 ### ❌ PUT - Cambiar todos los campos a valores mínimos
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "ab",
@@ -537,7 +537,7 @@ PUT {{baseUrl}}/members/1
 
 ### ❌ POST - Todos los campos vacíos
 POST {{baseUrl}}/members
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "",
@@ -553,7 +553,7 @@ POST {{baseUrl}}/members
 
 ### PASO 1: Crear un miembro nuevo
 POST {{baseUrl}}/members
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "FlowTest",
@@ -571,7 +571,7 @@ GET {{baseUrl}}/members/1
 
 ### PASO 4: Actualizar el miembro
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json
 
 {
   "name": "FlowTestUpdated",
@@ -583,7 +583,7 @@ GET {{baseUrl}}/members/1
 
 ### PASO 6: Cambiar a INACTIVE
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json
 
 {
   "status": "INACTIVE"
@@ -591,7 +591,7 @@ PUT {{baseUrl}}/members/1
 
 ### PASO 7: Cambiar a ACTIVE nuevamente
 PUT {{baseUrl}}/members/1
-{{@contentType}}
+Content-Type: application/json  
 
 {
   "status": "ACTIVE"

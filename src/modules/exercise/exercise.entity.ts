@@ -1,4 +1,4 @@
-export interface PropiedadesExercise {
+export interface ExerciseProps {
   id: number;
   name: string;
   description: string;
@@ -9,17 +9,17 @@ export interface PropiedadesExercise {
 export type DifficultyLevelExercise = 'beginner' | 'intermediate' | 'advanced';
 
 export class Exercise {
-    id: number;
-    name: string;
-    description: string;
-    muscleGroup: string;
-    difficultyLevel: DifficultyLevelExercise;
+  id: number;
+  name: string;
+  description: string;
+  muscleGroup: string;
+  difficultyLevel: DifficultyLevelExercise;
 
-    constructor(props: PropiedadesExercise) {
-        this.id = props.id;
-        this.name = props.name;
-        this.description = props.description;
-        this.muscleGroup = props.muscleGroup;
-        this.difficultyLevel = props.difficultyLevel;
-    }   
+  constructor(props: ExerciseProps) {
+    this.id = props.id;
+    this.name = props.name;
+    this.description = props.description;
+    this.muscleGroup = props.muscleGroup;
+    this.difficultyLevel = props.difficultyLevel;
+  }
 }

@@ -1,5 +1,5 @@
 import { ExerciseRepository } from './exercise.repository.js';
-import { PropiedadesExercise } from './exercise.entity.js';
+import { ExerciseProps } from './exercise.entity.js';
 import {
   CreateExerciseInput,
   ExerciseResponse,
@@ -19,30 +19,27 @@ export class ExerciseService {
   //  return items.map((it) => ExerciseResponseSchema.parse(it)) as ExerciseResponse[];
   // }
 
-  async getAll() {
+  async getAll(): Promise<ExerciseProps[]> {
     //Aca va la logica de negocio, validaciones, etc. Por ejemplo ocultar algun dato o agregar algun campo calculado.
-    return await this.exerciseRepository.getAllExercises();
+    return await this.exerciseRepository.getAll();
   }
 
-  async getById(id: number): Promise<PropiedadesExercise> {
+  async getById(id: number): Promise<ExerciseProps> {
     //Aca va la logica de negocio, validaciones, etc. Por ejemplo ocultar algun dato o agregar algun campo calculado.
-    const exercise = await this.exerciseRepository.getExerciseById(id);
+    const exercise = await this.exerciseRepository.getOne(id);
     if (!exercise) {
       throw new Error('Ejercicio no encontrado');
     }
     return exercise;
   }
 
-  async create(props: CreateExerciseInput): Promise<PropiedadesExercise> {
-    const newExercise = await this.exerciseRepository.create(props);
+  async create(props: CreateExerciseInput): Promise<ExerciseProps> {
+    const newExercise = await this.exerciseRepository.add(props);
     return newExercise;
   }
 
-  async update(
-    id: number,
-    props: UpdateExerciseInput,
-  ): Promise<PropiedadesExercise> {
-    const updatedExercise = await this.exerciseRepository.save(id, props);
+  async update(id: number, props: UpdateExerciseInput): Promise<ExerciseProps> {
+    const updatedExercise = await this.exerciseRepository.update(id, props);
     if (!updatedExercise) {
       throw new Error('Ejercicio no encontrado');
     }

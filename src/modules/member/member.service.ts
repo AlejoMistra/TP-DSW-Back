@@ -5,6 +5,7 @@ import { CreateMemberInput, UpdateMemberInput } from './member.schemas.js';
 export class MemberService {
   constructor(private memberRepository: MemberRepository) {}
 
+
   async getAll(): Promise<Member[]> {
     return await this.memberRepository.getAllMembers();
   }
@@ -27,6 +28,7 @@ export class MemberService {
     if (!member) {
       throw new Error('Socio no encontrado');
     }
+
 
     const updatedMember = await this.memberRepository.update(id, props);
     if (!updatedMember) {

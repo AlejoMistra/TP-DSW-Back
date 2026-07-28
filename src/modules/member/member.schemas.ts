@@ -8,23 +8,31 @@ export const MemberIdSchema = z.object({
 
 // Schema para crear un socio (POST - sin ID ni fechaIngreso)
 export const CreateMemberSchema = z.object({
-  name: z.string().min(2, 'Nombre debe tener al menos 2 caracteres').max(100),
+  name: z.string().min(2, 'Nombre debe tener al menos 2 caracteres').max(100, 'Nombre máximo 100 caracteres'),
   surname: z
     .string()
     .min(2, 'Apellido debe tener al menos 2 caracteres')
-    .max(100),
+    .max(100, 'Apellido máximo 100 caracteres'),
   email: z.email('Email inválido'),
   phone: z
     .string()
     .regex(/^\d{7,15}$/, 'Teléfono debe tener entre 7 y 15 dígitos')
     .nullable()
     .optional(),
-  joinDate: z.date().optional(),
-  status: z.enum(['ACTIVE', 'INACTIVE']).default('ACTIVE'),
 });
 
-// Schema para actualizar un socio (PUT/PATCH - todos campos opcionales)
-export const UpdateMemberSchema = CreateMemberSchema.partial();
+// Schema para actualizar (solo name, surname, email, phone)
+export const UpdateMemberSchema = z.object({
+  name: z.string().min(2).max(100).optional(),
+  surname: z.string().min(2).max(100).optional(),
+  email: z.email().optional(),
+  phone: z
+    .string()
+    .regex(/^\d{7,15}$/)
+    .nullable()
+    .optional(),
+  status: z.enum(['ACTIVE', 'INACTIVE']).optional(), // Solo en update
+});
 
 // Schema de respuesta (con ID y fechaIngreso)
 export const MemberResponseSchema = z.object({

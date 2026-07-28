@@ -1,0 +1,41 @@
+@baseUrl = http://localhost:3000/api/instructors
+
+### 1. Obtener todos los instructores
+GET {{baseUrl}}
+
+### 2. Obtener un instructor por ID
+GET {{baseUrl}}/1
+
+### 3. Crear un instructor válido
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "Carlos",
+  "surname": "García",
+  "email": "carlos.garcia@gym.com"
+}
+
+### 4. Crear un instructor INVÁLIDO (Para probar validaciones de Zod)
+# Debería devolver error 400 por nombre corto, email inválido, etc
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "A",
+  "surname": "B",
+  "email": "correo-invalido.com"
+}
+
+### 5. Actualizar un instructor existente
+PUT {{baseUrl}}/1
+Content-Type: application/json
+
+{
+  "name": "Carlos Manuel",
+  "surname": "García López",
+  "email": "carlos.manuel@gym.com"
+}
+
+### 6. Eliminar un instructor
+DELETE {{baseUrl}}/4
