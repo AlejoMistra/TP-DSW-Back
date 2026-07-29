@@ -5,13 +5,12 @@ import { CreateMemberInput, UpdateMemberInput } from './member.schemas.js';
 export class MemberService {
   constructor(private memberRepository: MemberRepository) {}
 
-
   async getAll(): Promise<Member[]> {
-    return await this.memberRepository.getAllMembers();
+    return await this.memberRepository.getAll();
   }
 
   async getById(id: number): Promise<Member> {
-    const member = await this.memberRepository.getMemberById(id);
+    const member = await this.memberRepository.getOne(id);
     if (!member) {
       throw new Error('Socio no encontrado');
     }
@@ -19,16 +18,15 @@ export class MemberService {
   }
 
   async create(props: CreateMemberInput): Promise<Member> {
-    return await this.memberRepository.create(props);
+    return await this.memberRepository.add(props);
   }
 
   async update(id: number, props: UpdateMemberInput): Promise<Member> {
     // Validar que exista el member
-    const member = await this.memberRepository.getMemberById(id);
+    const member = await this.memberRepository.getOne(id);
     if (!member) {
       throw new Error('Socio no encontrado');
     }
-
 
     const updatedMember = await this.memberRepository.update(id, props);
     if (!updatedMember) {
@@ -38,11 +36,11 @@ export class MemberService {
   }
 
   async delete(id: number): Promise<void> {
-    const member = await this.memberRepository.getMemberById(id);
+    const member = await this.memberRepository.getOne(id);
     if (!member) {
       throw new Error('Socio no encontrado');
     }
-    
+
     await this.memberRepository.delete(id);
   }
 }
