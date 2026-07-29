@@ -52,14 +52,9 @@ export class MemberRepository implements Repository<Member> {
     }
   }
 
-  async delete(id: number): Promise<boolean> {
-    try {
-      await prisma.member.delete({
-        where: { id },
-      });
-      return true;
-    } catch (error) {
-      return false;
-    }
+  async delete(id: number): Promise<void> {
+    await prisma.member.delete({
+      where: { id },
+    });
   }
 }
