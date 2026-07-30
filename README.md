@@ -135,7 +135,7 @@ El servidor queda disponible en `http://localhost:3000`.
 - `PUT /api/membership-plans/:id`
 - `DELETE /api/membership-plans/:id`
 
-## Sugerencias y preguntas abiertas
+## Sugerencias y cuestiones a revisar
 
 - Hay modelos en Prisma que todavía no tienen endpoints expuestos, como membresías, sesiones de clase y reservas.
 - Conviene unificar la estrategia de variables de entorno entre Prisma CLI (`DATABASE_URL`) y la conexión usada por la app.
