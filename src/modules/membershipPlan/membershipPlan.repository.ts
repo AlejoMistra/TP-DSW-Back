@@ -1,9 +1,8 @@
 import { CreatePlanInput, UpdatePlanInput } from './membershipPlan.schemas.js';
 import { prisma } from '../../lib/prisma.js';
 import type { MembershipPlan } from '../../generated/prisma/client';
-import { Repository } from '../../shared/base.repository.js';
 
-export class MembershipPlanRepository implements Repository<MembershipPlan> {
+export class MembershipPlanRepository{
   
   async getAll(): Promise<MembershipPlan[]> {
     return prisma.membershipPlan.findMany();
