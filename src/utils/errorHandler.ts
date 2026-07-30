@@ -9,14 +9,20 @@ export function handleError(error: unknown, res: Response): void {
     }));
     res
       .status(400)
-      .json({ code: 'VALIDATION_ERROR', error: 'Validacion fallida', details });
+      .json({
+        statusCode: 400,
+        code: 'VALIDATION_ERROR',
+        error: 'Validacion fallida',
+        details,
+      });
     return;
   }
+
+  const statusCode = getHttpStatus(error);
   const code = getErrorCode(error);
-  const status = getHttpStatus(error);
   const message = getErrorMessage(error);
 
-  res.status(status).json({ code, error: message });
+  res.status(statusCode).json({ statusCode, code, error: message });
 }
 
 export function getErrorMessage(error: unknown): string {
