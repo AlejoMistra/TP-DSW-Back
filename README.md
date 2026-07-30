@@ -62,7 +62,7 @@ Crear un archivo `.env` en la raíz con, como mínimo:
 
 ```env
 PORT=3000
-DATABASE_URL=******localhost:3306/database
+DATABASE_URL=<mysql-connection-string>
 DATABASE_HOST=localhost
 DATABASE_PORT=3306
 DATABASE_USER=user
