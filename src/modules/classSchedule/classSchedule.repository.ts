@@ -4,9 +4,8 @@ import {
   GymClassCategory,
   DayOfWeek,
 } from './classSchedule.entity.js';
-import { Repository } from '../../shared/base.repository.js';
 
-export class ClassScheduleRepository implements Repository<ClassScheduleProps> {
+export class ClassScheduleRepository {
   private classSchedules: ClassScheduleProps[];
 
   constructor() {

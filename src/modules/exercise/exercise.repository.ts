@@ -1,8 +1,7 @@
-import { Repository } from '../../shared/base.repository.js';
 import ExercisesMock from './exercises.json' with { type: 'json' };
 import { ExerciseProps, DifficultyLevelExercise } from './exercise.entity.js';
 
-export class ExerciseRepository implements Repository<ExerciseProps> {
+export class ExerciseRepository {
   private exercises: ExerciseProps[];
 
   constructor() {
