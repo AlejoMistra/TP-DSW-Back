@@ -1,9 +1,8 @@
 import { CreateMemberInput, UpdateMemberInput } from './member.schemas.js';
 import { Member } from '../../generated/prisma/client.js';
 import { prisma } from '../../lib/prisma.js';
-import { Repository } from '../../shared/base.repository.js';
 
-export class MemberRepository implements Repository<Member> {
+export class MemberRepository {
   async getAll(): Promise<Member[]> {
     return await prisma.member.findMany({
       where: { deletedAt: null },

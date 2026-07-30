@@ -1,8 +1,7 @@
-import { Repository } from '../../shared/base.repository.js';
 import InstructoresMock from './instructores.json' with { type: 'json' }; //por ahora es un json con socios, depues una bd
 import { InstructorProps } from './instructor.entity.js';
 
-export class InstructorRepository implements Repository<InstructorProps> {
+export class InstructorRepository {
   private instructors: InstructorProps[];
 
   constructor() {
