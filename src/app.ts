@@ -1,9 +1,10 @@
 import express from 'express';
-import { exerciseRouter } from './modules/exercise/exercise.router.js';
 import { memberRouter } from './modules/member/member.router.js';
 import { instructorRouter } from './modules/instructor/instructor.router.js';
-import { classScheduleRouter } from './modules/classSchedule/classSchedule.router.js';
+import { membershipRouter } from './modules/membership/membership.routes.js';
 import { membershipPlanRouter } from './modules/membershipPlan/membershipPlan.router.js';
+import { classScheduleRouter } from './modules/classSchedule/classSchedule.router.js';
+import { exerciseRouter } from './modules/exercise/exercise.router.js';
 import cors from 'cors';
 
 const app = express();
@@ -31,6 +32,14 @@ app.get('/', (_req, res) => {
         'GET: Obtener todos los instructores | POST: Crear nuevo instructor',
       '/api/instructors/:id':
         'GET: Obtener un instructor | PUT: Actualizar instructor | DELETE: Eliminar instructor',
+      '/api/memberships':
+        'GET: Obtener todas las membresías | POST: Crear nueva membresía',
+      '/api/memberships/:id':
+        'GET: Obtener una membresía | PUT: Actualizar membresía | DELETE: Eliminar membresía',
+      '/api/membership-plans':
+        'GET: Obtener todos los planes de membresía | POST: Crear nuevo plan de membresía',
+      '/api/membership-plans/:id':
+        'GET: Obtener un plan de membresía | PUT: Actualizar plan de membresía | DELETE: Eliminar plan de membresía',
       '/api/classSchedules':
         'GET: Obtener todos los horarios de clases | POST: Crear nuevo horario de clase',
       '/api/classSchedules/:id':
@@ -41,10 +50,6 @@ app.get('/', (_req, res) => {
         'GET: Obtener todos los horarios de clase de una categoria',
       '/api/classSchedules/day/:dayOfWeek':
         'GET: Obtener todos los horarios de clase de un dia',
-      '/api/membership-plans':
-        'GET: Obtener todos los planes de membresía | POST: Crear nuevo plan de membresía',
-      '/api/membership-plans/:id':
-        'GET: Obtener un plan de membresía | PUT: Actualizar plan de membresía | DELETE: Eliminar plan de membresía',
     },
   });
 });
@@ -53,10 +58,11 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
 });
 
-app.use('/api/exercises', exerciseRouter);
 app.use('/api/members', memberRouter);
 app.use('/api/instructors', instructorRouter);
-app.use('/api/classSchedules', classScheduleRouter);
+app.use('/api/memberships', membershipRouter);
 app.use('/api/membership-plans', membershipPlanRouter);
+app.use('/api/classSchedules', classScheduleRouter);
+app.use('/api/exercises', exerciseRouter);
 
 export { app };
