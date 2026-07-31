@@ -10,7 +10,12 @@ export const CreateInstructorSchema = z.object({
     .string()
     .min(2, 'Apellido debe tener al menos 2 caracteres')
     .max(100),
-  email: z.string().email('Email invalido'),
+  email: z.email('Email invalido'),
+  phone: z
+    .string()
+    .regex(/^\d{7,15}$/, 'Teléfono debe tener entre 7 y 15 dígitos')
+    .nullable()
+    .optional(),
 });
 
 export const UpdateInstructorSchema = CreateInstructorSchema.partial();
