@@ -65,10 +65,7 @@ instructorRouter.put('/:id', async (req: Request, res: Response) => {
 instructorRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
     const validatedId = InstructorIdSchema.parse({ id: req.params.id });
-    const deleted = await service.delete(validatedId.id);
-    if (!deleted) {
-      return res.status(404).json({ error: 'Instructor no encontrado' });
-    }
+    await service.delete(validatedId.id);
     res.status(204).send();
   } catch (error) {
     handleError(error, res);
