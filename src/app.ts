@@ -1,7 +1,7 @@
 import express from 'express';
 import { memberRouter } from './modules/member/member.router.js';
 import { instructorRouter } from './modules/instructor/instructor.router.js';
-import { membershipRouter } from './modules/membership/membership.routes.js';
+import { membershipRouter } from './modules/membership/membership.router.js';
 import { membershipPlanRouter } from './modules/membershipPlan/membershipPlan.router.js';
 import { classScheduleRouter } from './modules/classSchedule/classSchedule.router.js';
 import { exerciseRouter } from './modules/exercise/exercise.router.js';
