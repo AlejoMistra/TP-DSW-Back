@@ -11,7 +11,7 @@ export class MemberRepository {
   }
 
   async getOne(id: number): Promise<Member | undefined> {
-    const member = await prisma.member.findUnique({
+    const member = await prisma.member.findFirst({
       where: { id, deletedAt: null },
     });
     return member ?? undefined;
@@ -52,8 +52,9 @@ export class MemberRepository {
   }
 
   async delete(id: number): Promise<void> {
-    await prisma.member.delete({
+    await prisma.member.update({
       where: { id },
+      data: { deletedAt: new Date() },
     });
   }
 }
