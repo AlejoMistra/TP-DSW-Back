@@ -58,9 +58,7 @@ export class MembershipService {
       endDate: membership.endDate.toISOString(),
       lastPaymentMethod: membership.lastPaymentMethod ?? undefined,
       lastPaymentDate: membership.lastPaymentDate?.toISOString() ?? undefined,
-      lastPaymentAmount: membership.lastPaymentAmount
-        ? Number(membership.lastPaymentAmount)
-        : undefined,
+      lastPaymentAmount: membership.lastPaymentAmount?.toNumber() ?? undefined,
     });
   }
 }
