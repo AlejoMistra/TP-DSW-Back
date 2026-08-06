@@ -15,37 +15,45 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
+const availableEndpoints = {
+  '/': 'GET: Resumen de la API',
+  '/health': 'GET: Verificar el estado del servidor',
+  '/api/members':
+    'GET: Obtener todos los socios | POST: Crear nuevo socio',
+  '/api/members/:id':
+    'GET: Obtener un socio | PUT: Actualizar socio | DELETE: Eliminar socio',
+  '/api/instructors':
+    'GET: Obtener todos los instructores | POST: Crear nuevo instructor',
+  '/api/instructors/:id':
+    'GET: Obtener un instructor | PUT: Actualizar instructor | DELETE: Eliminar instructor',
+  '/api/exercises':
+    'GET: Obtener todos los ejercicios | POST: Crear nuevo ejercicio',
+  '/api/exercises/:id':
+    'GET: Obtener un ejercicio | PUT: Actualizar ejercicio | DELETE: Eliminar ejercicio',
+  '/api/classSchedules':
+    'GET: Obtener todos los horarios de clase | POST: Crear nuevo horario de clase',
+  '/api/classSchedules/:id':
+    'GET: Obtener un horario de clase | PUT: Actualizar horario de clase | DELETE: Eliminar horario de clase',
+  '/api/classSchedules/instructor/:instructorId':
+    'GET: Obtener todos los horarios de clase de un instructor',
+  '/api/classSchedules/category/:category':
+    'GET: Obtener todos los horarios de clase de una categoría',
+  '/api/classSchedules/day/:dayOfWeek':
+    'GET: Obtener todos los horarios de clase de un día',
+  '/api/membership-plans':
+    'GET: Obtener todos los planes de membresía | POST: Crear nuevo plan de membresía',
+  '/api/membership-plans/:id':
+    'GET: Obtener un plan de membresía | PUT: Actualizar plan de membresía | DELETE: Eliminar plan de membresía',
+} as const;
+
 app.use(cors(corsOptions));
 
 app.use(express.json());
 
 app.get('/', (_req, res) => {
   res.json({
-    message: 'Bienvenido a la API de gestión de socios de gimnasio.',
-    endpoints: {
-      '/health': 'GET: Verificar el estado del servidor',
-      '/api/members': 'GET: Obtener todos los socios | POST: Crear nuevo socio',
-      '/api/members/:id':
-        'GET: Obtener un socio | PUT: Actualizar socio | DELETE: Eliminar socio',
-      '/api/instructors':
-        'GET: Obtener todos los instructores | POST: Crear nuevo instructor',
-      '/api/instructors/:id':
-        'GET: Obtener un instructor | PUT: Actualizar instructor | DELETE: Eliminar instructor',
-      '/api/classSchedules':
-        'GET: Obtener todos los horarios de clases | POST: Crear nuevo horario de clase',
-      '/api/classSchedules/:id':
-        'GET: Obtener un horario de clase | PUT: Actualizar horario de clase | DELETE: Eliminar horario de clase',
-      '/api/classSchedules/instructor/:instructorId':
-        'GET: Obtener todos los horarios de clase de un instructor',
-      '/api/classSchedules/category/:category':
-        'GET: Obtener todos los horarios de clase de una categoria',
-      '/api/classSchedules/day/:dayOfWeek':
-        'GET: Obtener todos los horarios de clase de un dia',
-      '/api/membership-plans':
-        'GET: Obtener todos los planes de membresía | POST: Crear nuevo plan de membresía',
-      '/api/membership-plans/:id':
-        'GET: Obtener un plan de membresía | PUT: Actualizar plan de membresía | DELETE: Eliminar plan de membresía',
-    },
+    message: 'Bienvenido a la API de gestión de gimnasio.',
+    endpoints: availableEndpoints,
   });
 });
 
