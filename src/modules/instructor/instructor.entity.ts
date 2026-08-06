@@ -4,7 +4,7 @@ export interface InstructorProps {
   surname: string;
   //especialidad: string;
   email: string;
-  phoneNumber: string;
+  phoneNumber?: string;
 }
 
 export class Instructor {
@@ -12,7 +12,7 @@ export class Instructor {
   name: string;
   surname: string;
   email: string;
-  phoneNumber: string;
+  phoneNumber?: string;
 
   constructor(props: InstructorProps) {
     this.id = props.id;

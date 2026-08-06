@@ -13,7 +13,7 @@ export class InstructorRepository {
   }
 
   async getOne(id: number): Promise<Instructor | undefined> {
-    const instructor = await prisma.instructor.findUnique({
+    const instructor = await prisma.instructor.findFirst({
       where: { id, deletedAt: null },
     });
     return instructor ?? undefined;
@@ -31,28 +31,27 @@ export class InstructorRepository {
     });
   }
 
+  // TODO: Because UpdateInstructorInput is partial, this update currently passes undefined for omitted fields (and coerces phoneNumber to null when phone is not provided). This can cause Prisma validation errors and/or unintentionally clear fields on partial updates. Build the data object to include only keys that are actually provided (and only set phoneNumber to null when the caller explicitly sends phone: null). Also, catching all errors and returning undefined hides non-not-found problems (e.g., unique constraint violations); prefer letting Prisma errors bubble up (and map them in a higher layer) or translating them into a specific error type.
+
   async update(
     id: number,
     props: UpdateInstructorInput,
   ): Promise<Instructor | undefined> {
-    try {
-      return await prisma.instructor.update({
-        where: { id },
-        data: {
-          name: props.name,
-          surname: props.surname,
-          email: props.email,
-          phoneNumber: props.phone ?? null,
-        },
-      });
-    } catch (error) {
-      return undefined;
-    }
+    return prisma.instructor.update({
+      where: { id },
+      data: {
+        name: props.name,
+        surname: props.surname,
+        email: props.email,
+        phoneNumber: props.phone ?? null,
+      },
+    });
   }
 
   async delete(id: number): Promise<void> {
-    await prisma.instructor.delete({
+    await prisma.instructor.update({
       where: { id },
+      data: { deletedAt: new Date() },
     });
   }
 }
