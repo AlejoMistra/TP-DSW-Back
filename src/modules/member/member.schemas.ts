@@ -8,7 +8,10 @@ export const MemberIdSchema = z.object({
 
 // Schema para crear un socio (POST - sin ID ni fechaIngreso)
 export const CreateMemberSchema = z.object({
-  name: z.string().min(2, 'Nombre debe tener al menos 2 caracteres').max(100, 'Nombre máximo 100 caracteres'),
+  name: z
+    .string()
+    .min(2, 'Nombre debe tener al menos 2 caracteres')
+    .max(100, 'Nombre máximo 100 caracteres'),
   surname: z
     .string()
     .min(2, 'Apellido debe tener al menos 2 caracteres')
