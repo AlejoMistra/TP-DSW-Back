@@ -1,0 +1,103 @@
+@baseUrl = http://localhost:3000/api/memberships
+@contentType = application/json
+
+# Ajustar estos valores a registros reales de tu base de datos.
+@existingMembershipId = 4
+@nonExistingMembershipId = 999999
+@memberId = 4
+@membershipPlanId = 1
+
+### 1. Obtener todas las membresías OK
+GET {{baseUrl}}
+
+### 2. Obtener una membresía por ID válido OK
+GET {{baseUrl}}/{{existingMembershipId}}
+
+### 3. Obtener una membresía con ID inválido (no numérico) OK
+GET {{baseUrl}}/abc
+
+### 4. Obtener una membresía inexistente  OK
+GET {{baseUrl}}/{{nonExistingMembershipId}}
+
+### 5. Crear una membresía válida OK
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "memberId": "{{memberId}}",
+  "membershipPlanId": "{{membershipPlanId}}",
+  "startDate": "2026-07-01T00:00:00.000Z",
+  "endDate": "2026-08-01T00:00:00.000Z",
+  "lastPaymentMethod": "CREDIT_CARD",
+  "lastPaymentDate": "2026-07-01T00:00:00.000Z",
+  "lastPaymentAmount": 15000
+}
+
+### 6. Crear una membresía inválida (memberId no numérico) OK
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "memberId": "abc",
+  "membershipPlanId": "{{membershipPlanId}}",
+  "startDate": "2026-07-01T00:00:00.000Z",
+  "endDate": "2026-08-01T00:00:00.000Z"
+}
+
+### 7. Crear una membresía inválida (fecha inválida) OK
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "memberId": "{{memberId}}",
+  "membershipPlanId": "{{membershipPlanId}}",
+  "startDate": "fecha-invalida",
+  "endDate": "2026-08-01T00:00:00.000Z"
+}
+
+### 8. Crear una membresía inválida (monto de pago negativo) OK
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "memberId": "{{memberId}}",
+  "membershipPlanId": "{{membershipPlanId}}",
+  "startDate": "2026-07-01T00:00:00.000Z",
+  "endDate": "2026-08-01T00:00:00.000Z",
+  "lastPaymentAmount": -100
+}
+
+### 9. Actualizar una membresía existente con datos válidos OK
+PUT {{baseUrl}}/{{existingMembershipId}}
+Content-Type: {{contentType}}
+
+{
+  "lastPaymentMethod": "TRANSFER",
+  "lastPaymentDate": "2026-07-15T00:00:00.000Z",
+  "lastPaymentAmount": 20000
+}
+
+### 10. Actualizar una membresía con ID inválido OK
+PUT {{baseUrl}}/abc
+Content-Type: {{contentType}}
+
+{
+  "lastPaymentAmount": 25000
+}
+
+### 11. Actualizar una membresía inexistente OK
+PUT {{baseUrl}}/{{nonExistingMembershipId}}
+Content-Type: {{contentType}}
+
+{
+  "lastPaymentMethod": "CASH"
+}
+
+### 12. Eliminar una membresía existente  OK
+DELETE {{baseUrl}}/{{existingMembershipId}}
+
+### 13. Eliminar una membresía con ID inválido  OK
+DELETE {{baseUrl}}/abc
+
+### 14. Eliminar una membresía inexistente  OK
+DELETE {{baseUrl}}/{{nonExistingMembershipId}}

@@ -40,10 +40,10 @@ export const MembershipResponseSchema = z.object({
   id: z.number(),
   memberId: z.number(),
   membershipPlanId: z.number(),
-  startDate: z.date(),
-  endDate: z.date(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
   lastPaymentMethod: paymentMethodEnum.optional(),
-  lastPaymentDate: z.date().optional(),
+  lastPaymentDate: z.coerce.date().optional(),
   lastPaymentAmount: z.number().nonnegative().optional(),
 });
 
