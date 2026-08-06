@@ -13,8 +13,8 @@ export const MembershipIdSchema = z.object({
 });
 
 export const CreateMembershipSchema = z.object({
-  memberId: z.string().regex(/^\d+$/, 'ID de usuario debe ser un número').transform(Number),
-  membershipPlanId: z.string().regex(/^\d+$/, 'ID de plan debe ser un número').transform(Number),
+  memberId: z.coerce.number().int().positive('ID de usuario debe ser un número mayor que 0'),
+  membershipPlanId: z.coerce.number().int().positive('ID de plan debe ser un número mayor que 0'),
   startDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
     message: 'Fecha de inicio inválida',
   }),
