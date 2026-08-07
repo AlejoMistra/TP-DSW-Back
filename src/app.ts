@@ -1,9 +1,10 @@
 import express from 'express';
-import { exerciseRouter } from './modules/exercise/exercise.router.js';
 import { memberRouter } from './modules/member/member.router.js';
 import { instructorRouter } from './modules/instructor/instructor.router.js';
-import { classScheduleRouter } from './modules/classSchedule/classSchedule.router.js';
+import { membershipRouter } from './modules/membership/membership.router.js';
 import { membershipPlanRouter } from './modules/membershipPlan/membershipPlan.router.js';
+import { classScheduleRouter } from './modules/classSchedule/classSchedule.router.js';
+import { exerciseRouter } from './modules/exercise/exercise.router.js';
 import cors from 'cors';
 
 const app = express();
@@ -61,10 +62,11 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
 });
 
-app.use('/api/exercises', exerciseRouter);
 app.use('/api/members', memberRouter);
 app.use('/api/instructors', instructorRouter);
-app.use('/api/classSchedules', classScheduleRouter);
+app.use('/api/memberships', membershipRouter);
 app.use('/api/membership-plans', membershipPlanRouter);
+app.use('/api/classSchedules', classScheduleRouter);
+app.use('/api/exercises', exerciseRouter);
 
 export { app };

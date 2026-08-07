@@ -19,7 +19,7 @@ model Member {
   phone      String?
   joinDate   DateTime    @default(now())
   membership Membership?
-  status    Status      @default(ACTIVE)
+  status     Status      @default(ACTIVE)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -52,8 +52,9 @@ model Membership {
   startDate         DateTime         @default(now())
   endDate           DateTime
   status            MembershipStatus @default(ACTIVE)
-  lastPaymentMethod PaymentMethod
-  lastAmountPaid    Decimal
+  lastPaymentMethod PaymentMethod?
+  lastPaymentDate   DateTime?
+  lastPaymentAmount Decimal?
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
