@@ -11,6 +11,28 @@ datasource db {
   provider = "mysql"
 }
 
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique //TODO: Revisar que member y instructor tambien tienen email y puede generar inconsistencias, decidir que hacer, se puede eliminar de member e instructor y dejarlo derivado o sincronizado por servicio
+  passwordHash String
+  role         UserRole
+  isActive     Boolean  @default(true)
+
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+
+  member     Member?
+  instructor Instructor?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([role, isActive])
+  @@map("users")
+}
+
 model Member {
   id         Int         @id @default(autoincrement())
   name       String
@@ -21,11 +43,14 @@ model Member {
   membership Membership?
   status     Status      @default(ACTIVE)
 
+  classBookings ClassBooking[]
+
+  user   User? @relation(fields: [userId], references: [id]) //TODO: Cambiar a required cuando se implemente el registro de usuarios
+  userId Int?  @unique
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
-
-  classBookings ClassBooking[]
 
   @@map("members")
 }
@@ -43,6 +68,8 @@ model Instructor {
   deletedAt DateTime?
 
   classSchedules ClassSchedule[]
+  user           User?           @relation(fields: [userId], references: [id]) //TODO: Cambiar a required cuando se implemente el registro de usuarios
+  userId         Int             @unique
 
   @@map("instructors")
 }
@@ -222,4 +249,10 @@ enum PaymentMethod {
 enum Status {
   ACTIVE
   INACTIVE
+}
+
+enum UserRole {
+  ADMIN
+  INSTRUCTOR
+  MEMBER
 }
