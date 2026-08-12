@@ -17,13 +17,14 @@ model Member {
   surname    String
   email      String      @unique
   phone      String?
-  joinDate   DateTime    @default(now())
+  docType    docType     @default(DNI)
+  docNumber  String      @default("")
+  birthDate  DateTime    @default(now())
   membership Membership?
   status     Status      @default(ACTIVE)
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  deletedAt  DateTime?
 
   classBookings ClassBooking[]
 
@@ -222,4 +223,9 @@ enum PaymentMethod {
 enum Status {
   ACTIVE
   INACTIVE
+}
+
+enum docType {
+  DNI
+  PASAPORTE
 }
