@@ -42,6 +42,7 @@ export class MemberRepository {
           name: props.name,
           surname: props.surname,
           email: props.email,
+          birthDate: props.birthDate,
           phone: props.phone ?? null,
           status: props.status ?? 'ACTIVE',
         },

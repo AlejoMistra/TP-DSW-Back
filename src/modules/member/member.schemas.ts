@@ -22,7 +22,7 @@ export const CreateMemberSchema = z.object({
     .regex(/^\d{7,15}$/, 'Teléfono debe tener entre 7 y 15 dígitos')
     .nullable()
     .optional(),
-  docType: z.enum(['DNI', 'PASAPORTE']),
+  docType: z.enum(['DNI', 'PASAPORTE']).default('DNI'),
   docNumber: z
     .string()
     .min(8, 'Formato invalido de documento')
@@ -41,6 +41,7 @@ export const UpdateMemberSchema = z.object({
     .regex(/^\d{7,15}$/)
     .nullable()
     .optional(),
+  birthDate: z.date().optional(),
   status: z.enum(['ACTIVE', 'INACTIVE']).optional(), // Solo en update
 });
 
@@ -51,7 +52,7 @@ export const MemberResponseSchema = z.object({
   surname: z.string(),
   email: z.string(),
   phone: z.string().nullable(),
-  docType: z.enum(['DNI', 'Pasaporte']),
+  docType: z.enum(['DNI', 'PASAPORTE']),
   docNumber: z.string(),
   birthDate: z.date(),
   status: z.enum(['ACTIVE', 'INACTIVE']),
