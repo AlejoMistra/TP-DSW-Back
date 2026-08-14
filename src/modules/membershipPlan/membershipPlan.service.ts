@@ -6,25 +6,23 @@ import type { MembershipPlanRepository } from './membershipPlan.repository.js';
 export class MembershipPlanService {
   constructor(private readonly repository: MembershipPlanRepository) {}
 
-  // TODO: Considerar si conviene que el service devuelva un DTO (Data Transfer Object) en lugar de la entidad directamente, para desacoplar la capa de persistencia de la capa de presentación.
-
   async getAllPlans() {
-    return await this.repository.findAllMembershipPlans();
+    return await this.repository.getAll();
   }
 
   async getPlanById(id: number) {
-    return await this.repository.findMembershipPlanById(id);
+    return await this.repository.getOne(id);
   }
 
   async createPlan(plan: CreatePlanInput) {
-    return await this.repository.createMembershipPlan(plan);
+    return await this.repository.add(plan);
   }
 
   async updatePlan(id: number, plan: UpdatePlanInput) {
-    return await this.repository.updateMembershipPlan(id, plan);
+    return await this.repository.update(id, plan);
   }
 
   async deletePlan(id: number) {
-    return await this.repository.deleteMembershipPlan(id);
+    return await this.repository.delete(id);
   }
 }
