@@ -30,6 +30,21 @@ membershipRouter.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
+membershipRouter.get(
+  '/member/:memberId',
+  async (req: Request, res: Response) => {
+    try {
+      const validatedMemberId = MembershipIdSchema.parse({
+        id: req.params.memberId,
+      });
+      const membership = await service.getByMemberId(validatedMemberId.id);
+      res.status(200).json(membership);
+    } catch (error) {
+      handleError(error, res);
+    }
+  },
+);
+
 membershipRouter.post('/', async (req: Request, res: Response) => {
   try {
     const validatedData = CreateMembershipSchema.parse(req.body);
@@ -44,7 +59,10 @@ membershipRouter.put('/:id', async (req: Request, res: Response) => {
   try {
     const validatedId = MembershipIdSchema.parse({ id: req.params.id });
     const validatedData = UpdateMembershipSchema.parse(req.body);
-    const updatedMembership = await service.update(validatedId.id, validatedData);
+    const updatedMembership = await service.update(
+      validatedId.id,
+      validatedData,
+    );
     res.status(200).json(updatedMembership);
   } catch (error) {
     handleError(error, res);

@@ -48,7 +48,9 @@ export const UpdateMemberSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato inválido de fecha (YYYY-MM-DD)')
     .optional(),
-  status: z.enum(['ACTIVE', 'INACTIVE']).optional(), // Solo en update
+  membershipPlanId: z.number().int().positive().optional(),
+
+  status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
 });
 
 // Schema de respuesta (con ID y fechaIngreso)
