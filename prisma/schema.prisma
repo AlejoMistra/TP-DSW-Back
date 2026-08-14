@@ -19,7 +19,7 @@ model Member {
   phone      String?
   docType    docType     @default(DNI)
   docNumber  String      @default("")
-  birthDate  DateTime    @default(now())
+  birthDate  DateTime
   membership Membership?
   status     Status      @default(ACTIVE)
   createdAt  DateTime    @default(now())

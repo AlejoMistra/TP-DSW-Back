@@ -27,8 +27,11 @@ export const CreateMemberSchema = z.object({
     .string()
     .min(8, 'Formato invalido de documento')
     .max(8, 'Formato invalido de documento'),
-  birthDate: z.date('Formato invalido de fecha'),
+  birthDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato inválido de fecha (YYYY-MM-DD)'),
   status: z.enum(['ACTIVE', 'INACTIVE']).default('ACTIVE'), // Por defecto será ACTIVE
+  membershipPlanId: z.number().int().positive('Plan es requerido'),
 });
 
 // Schema para actualizar (solo name, surname, email, phone)
@@ -41,7 +44,10 @@ export const UpdateMemberSchema = z.object({
     .regex(/^\d{7,15}$/)
     .nullable()
     .optional(),
-  birthDate: z.date().optional(),
+  birthDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato inválido de fecha (YYYY-MM-DD)')
+    .optional(),
   status: z.enum(['ACTIVE', 'INACTIVE']).optional(), // Solo en update
 });
 
