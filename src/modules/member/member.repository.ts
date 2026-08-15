@@ -1,7 +1,6 @@
 import { CreateMemberInput, UpdateMemberInput } from './member.schemas.js';
 import { Member } from '../../generated/prisma/client.js';
 import { prisma } from '../../lib/prisma.js';
-
 export class MemberRepository {
   async getAll(): Promise<Member[]> {
     return await prisma.member.findMany({
@@ -25,7 +24,13 @@ export class MemberRepository {
     if (existing) {
       throw new Error('Email ya existe');
     }
-    const { membershipPlanId, ...memberData } = props;
+    const {
+      membershipPlanId,
+      lastPaymentMethod,
+      lastPaymentDate,
+      lastPaymentAmount,
+      ...memberData
+    } = props;
     const memberDataFormatted = {
       ...memberData,
       birthDate: new Date(memberData.birthDate + 'T00:00:00'),
@@ -34,12 +39,17 @@ export class MemberRepository {
       data: memberDataFormatted,
     });
 
+    const startDate = new Date();
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + 1);
     await prisma.membership.create({
       data: {
         memberId: member.id,
         membershipPlanId: membershipPlanId,
+        lastPaymentMethod: lastPaymentMethod || null,
+        lastPaymentDate: lastPaymentDate ? new Date(lastPaymentDate) : null,
+        lastPaymentAmount: lastPaymentAmount ? lastPaymentAmount : null,
+        startDate: startDate,
         endDate: endDate,
         status: 'ACTIVE',
       },
