@@ -1,14 +1,20 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+datasource db {
+  provider = "mysql"
+}
+
 generator client {
   provider            = "prisma-client"
   output              = "../src/generated/prisma"
-  importFileExtension = "js"
+  importFileExtension = "ts"
 }
 
-datasource db {
-  provider = "mysql"
+generator zod {
+  provider = "prisma-zod-generator"
+  output   = "../src/generated/zod"
+  config   = "./zod-generator.config.json"
 }
 
 model Member {
