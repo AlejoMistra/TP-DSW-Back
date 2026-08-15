@@ -73,7 +73,7 @@ export class MemberRepository {
   async delete(id: number): Promise<void> {
     await prisma.member.update({
       where: { id },
-      data: { deletedAt: new Date() },
+      data: { deletedAt: new Date(), status: 'INACTIVE' },
     });
   }
 }
