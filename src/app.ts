@@ -3,7 +3,7 @@ import cors from 'cors';
 import { memberRouter } from './modules/member/member.router.js';
 import { instructorRouter } from './modules/instructor/instructor.router.js';
 import { membershipRouter } from './modules/membership/membership.router.js';
-import { membershipPlanRoutes } from './modules/membershipPlan/membershipPlan.routes.js';
+import { membershipPlanRouter } from './modules/membershipPlan/membershipPlan.routes.js';
 import { classScheduleRouter } from './modules/classSchedule/classSchedule.router.js';
 import { exerciseRouter } from './modules/exercise/exercise.router.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
@@ -66,7 +66,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/members', memberRouter);
 app.use('/api/instructors', instructorRouter);
 app.use('/api/memberships', membershipRouter);
-app.use('/api/membership-plans', membershipPlanRoutes);
+app.use('/api/membership-plans', membershipPlanRouter);
 app.use('/api/classSchedules', classScheduleRouter);
 app.use('/api/exercises', exerciseRouter);
 
