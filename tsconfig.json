@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
     "target": "ES2023",
-    "module": "ESNext",
+    "module": "NodeNext",
     "types": [
       "node"
     ],
-    "moduleResolution": "bundler",
+    "moduleResolution": "NodeNext",
+    "rootDir": "./src",
     "outDir": "./dist",
     "resolveJsonModule": true,
     "esModuleInterop": true,
@@ -14,7 +15,10 @@
     "ignoreDeprecations": "6.0"
   },
   "include": [
-    "src/**/*",
-    "prisma/seed.ts"
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "prisma.config.ts"
   ]
 }
