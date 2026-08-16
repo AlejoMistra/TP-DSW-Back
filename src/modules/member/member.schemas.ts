@@ -1,5 +1,5 @@
  import { z } from 'zod';
-import { Membership, Status } from '../../generated/prisma/client';
+import { Membership, Status } from '../../generated/prisma/client.js';
 
 export const MemberIdSchema = z.object({
   id: z.string().regex(/^\d+$/, 'ID debe ser un número').transform(Number),

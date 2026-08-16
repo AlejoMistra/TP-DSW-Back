@@ -7,6 +7,7 @@ import {
 import { MembershipRepository } from './membership.repository.js';
 import type { Membership } from '../../generated/prisma/client.js';
 
+
 export class MembershipService {
   constructor(private readonly repository: MembershipRepository) {}
 

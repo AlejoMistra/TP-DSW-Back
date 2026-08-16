@@ -8,7 +8,8 @@ datasource db {
 generator client {
   provider            = "prisma-client"
   output              = "../src/generated/prisma"
-  importFileExtension = "ts"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
 }
 
 generator zod {
@@ -80,9 +81,13 @@ model Membership {
 
 model MembershipPlan {
   id           Int     @id @default(autoincrement())
+  /// @zod.min(1, "El nombre del plan no puede estar vacío").max(100, "El nombre del plan no puede superar los 100 caracteres")
   name         String
+  /// @zod.max(500, "La descripción del plan no puede superar los 500 caracteres")
   description  String?
+  /// @zod.min(0.01, "El precio del plan debe ser mayor a 0")
   price        Float
+  /// @zod.min(1, "La duración del plan debe ser mayor a 0")
   durationDays Int
 
   createdAt DateTime  @default(now())
