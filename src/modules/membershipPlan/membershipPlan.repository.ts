@@ -3,17 +3,17 @@ import type { MembershipPlan } from '../../generated/prisma/client.js';
 import { CreateMembershipPlanInput, UpdateMembershipPlanInput } from './membershipPlan.schemas.js';
 
 export class MembershipPlanRepository{
-  async getAll(): Promise<MembershipPlan[]> {
+  async findAll(): Promise<MembershipPlan[]> {
     return prisma.membershipPlan.findMany();
   }
 
-  async getOne(id: number): Promise<MembershipPlan | null> {
+  async findOne(id: number): Promise<MembershipPlan | null> {
     return prisma.membershipPlan.findUnique({
       where: { id },
     });
   }
 
-  async add(membershipPlan: CreateMembershipPlanInput): Promise<MembershipPlan> {
+  async create(membershipPlan: CreateMembershipPlanInput): Promise<MembershipPlan> {
     return prisma.membershipPlan.create({
       data: membershipPlan,
     });
@@ -26,7 +26,7 @@ export class MembershipPlanRepository{
     });
   }
 
-  async delete(id: number): Promise<void> {
+  async remove(id: number): Promise<void> {
     await prisma.membershipPlan.delete({
       where: { id },
     });

@@ -11,26 +11,26 @@ import { NotFoundError } from '../../utils/errors.js';
 export class MembershipPlanService {
   constructor(private readonly repository: MembershipPlanRepository) {}
 
-  async getAllPlans(): Promise<MembershipPlanResponse[]> {
-    const membershipPlans = await this.repository.getAll();
+  async findAll(): Promise<MembershipPlanResponse[]> {
+    const membershipPlans = await this.repository.findAll();
     return membershipPlans.map((plan) => this.toResponse(plan));
   }
 
-  async getPlanById(id: number): Promise<MembershipPlanResponse> {
-    const membershipPlan = await this.repository.getOne(id);
+  async findOne(id: number): Promise<MembershipPlanResponse> {
+    const membershipPlan = await this.repository.findOne(id);
     if (!membershipPlan) {
       throw new NotFoundError(`Plan de membresía con ID ${id} no encontrado`);
     }
     return this.toResponse(membershipPlan);
   }
 
-  async createPlan(plan: CreateMembershipPlanInput): Promise<MembershipPlanResponse> {
-    const newPlan = await this.repository.add(plan);
+  async create(plan: CreateMembershipPlanInput): Promise<MembershipPlanResponse> {
+    const newPlan = await this.repository.create(plan);
     return this.toResponse(newPlan);
   }
 
-  async updatePlan(id: number, plan: UpdateMembershipPlanInput): Promise<MembershipPlanResponse> {
-    const existingPlan = await this.repository.getOne(id);
+  async update(id: number, plan: UpdateMembershipPlanInput): Promise<MembershipPlanResponse> {
+    const existingPlan = await this.repository.findOne(id);
     if (!existingPlan) {
       throw new NotFoundError(`Plan de membresía con ID ${id} no encontrado`);
     }
@@ -38,12 +38,12 @@ export class MembershipPlanService {
     return this.toResponse(updatedPlan);
   }
 
-  async deletePlan(id: number): Promise<void> {
-    const existingPlan = await this.repository.getOne(id);
+  async remove(id: number): Promise<void> {
+    const existingPlan = await this.repository.findOne(id);
     if (!existingPlan) {
       throw new NotFoundError(`Plan de membresía con ID ${id} no encontrado`);
     }
-    await this.repository.delete(id);
+    await this.repository.remove(id);
   }
 
   private toResponse(plan: MembershipPlan): MembershipPlanResponse {
