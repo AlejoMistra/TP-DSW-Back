@@ -22,6 +22,21 @@ export const CreateMemberSchema = z.object({
     .regex(/^\d{7,15}$/, 'Teléfono debe tener entre 7 y 15 dígitos')
     .nullable()
     .optional(),
+  docType: z.enum(['DNI', 'PASAPORTE']).default('DNI'),
+  docNumber: z
+    .string()
+    .min(8, 'Formato invalido de documento')
+    .max(8, 'Formato invalido de documento'),
+  birthDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato inválido de fecha (YYYY-MM-DD)'),
+  status: z.enum(['ACTIVE', 'INACTIVE']).default('ACTIVE'), // Por defecto será ACTIVE
+  membershipPlanId: z.number().int().positive('Plan es requerido'),
+  lastPaymentMethod: z
+    .enum(['CREDIT_CARD', 'DEBIT_CARD', 'TRANSFER', 'CASH', 'OTHER'])
+    .optional(),
+  lastPaymentDate: z.string().optional(),
+  lastPaymentAmount: z.number().positive().optional(),
 });
 
 // Schema para actualizar (solo name, surname, email, phone)
@@ -34,7 +49,13 @@ export const UpdateMemberSchema = z.object({
     .regex(/^\d{7,15}$/)
     .nullable()
     .optional(),
-  status: z.enum(['ACTIVE', 'INACTIVE']).optional(), // Solo en update
+  birthDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato inválido de fecha (YYYY-MM-DD)')
+    .optional(),
+  membershipPlanId: z.number().int().positive().optional(),
+
+  status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
 });
 
 // Schema de respuesta (con ID y fechaIngreso)
@@ -44,7 +65,9 @@ export const MemberResponseSchema = z.object({
   surname: z.string(),
   email: z.string(),
   phone: z.string().nullable(),
-  joinDate: z.date(),
+  docType: z.enum(['DNI', 'PASAPORTE']),
+  docNumber: z.string(),
+  birthDate: z.date(),
   status: z.enum(['ACTIVE', 'INACTIVE']),
   createdAt: z.date(),
   updatedAt: z.date(),
