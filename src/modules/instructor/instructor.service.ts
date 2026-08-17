@@ -13,7 +13,7 @@ export class InstructorService {
   }
 
   async getById(id: number): Promise<Instructor> {
-    const instructor = await this.instructorRepository.getOne(id);
+    const instructor = await this.instructorRepository.getById(id);
     if (!instructor) {
       throw new Error('Instructor no encontrado');
     }
@@ -28,7 +28,7 @@ export class InstructorService {
   }
 
   async update(id: number, props: UpdateInstructorInput): Promise<Instructor> {
-    const instructor = await this.instructorRepository.getOne(id);
+    const instructor = await this.instructorRepository.getById(id);
     if (!instructor) {
       throw new Error('Instructor no encontrado');
     }
@@ -40,10 +40,12 @@ export class InstructorService {
   }
 
   async delete(id: number): Promise<void> {
-    const instructor = await this.instructorRepository.getOne(id);
+    const instructor = await this.instructorRepository.getById(id);
     if (!instructor) {
       throw new Error('Instructor no encontrado');
     }
     await this.instructorRepository.delete(id);
   }
 }
+
+//Falta el toResponse

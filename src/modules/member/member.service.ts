@@ -44,3 +44,5 @@ export class MemberService {
     await this.memberRepository.delete(id);
   }
 }
+
+//Falta agregar el toResponse

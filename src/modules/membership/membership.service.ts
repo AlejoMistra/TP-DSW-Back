@@ -49,6 +49,9 @@ export class MembershipService {
   }
 
   //TODO: Validar si esta ok tener este mappeo aca o si deberia estar en membership.mapper.ts
+  //Se supone que esto esta bien si es un sistema simple, pero si ya tenemos el toresponse en varios modulos
+  //conviene tener un membership.mapper.ts para mantener consistencia. Tambien hay que ver si en schema se espera un ISO o un date
+  // porque si se espera un date, el toISOString() deberia cambiar a Date
   private toResponse(membership: Membership): MembershipResponse {
     return MembershipResponseSchema.parse({
       id: membership.id,

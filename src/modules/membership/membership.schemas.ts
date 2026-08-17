@@ -34,6 +34,13 @@ export const CreateMembershipSchema = z.object({
     .optional(),
 });
 
+//SIRVE PARA QUE SI O SI SE CAMBIE UN CAMPO
+
+// export const UpdateMembershipSchema = CreateMembershipSchema.partial().refine(
+//   (data) => Object.values(data).some((v) => v !== undefined),
+//   { message: 'Debe enviar al menos un campo para actualizar' },
+// );
+
 export const UpdateMembershipSchema = CreateMembershipSchema.partial();
 
 export const MembershipResponseSchema = z.object({

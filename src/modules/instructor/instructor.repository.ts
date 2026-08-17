@@ -12,7 +12,7 @@ export class InstructorRepository {
     });
   }
 
-  async getOne(id: number): Promise<Instructor | undefined> {
+  async getById(id: number): Promise<Instructor | undefined> {
     const instructor = await prisma.instructor.findFirst({
       where: { id, deletedAt: null },
     });
@@ -43,7 +43,7 @@ export class InstructorRepository {
         name: props.name,
         surname: props.surname,
         email: props.email,
-        phoneNumber: props.phone ?? null,
+        phone: props.phone ?? null,
       },
     });
   }
