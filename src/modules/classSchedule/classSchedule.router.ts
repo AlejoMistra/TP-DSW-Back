@@ -72,7 +72,7 @@ classScheduleRouter.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// PATCH /api/classSchedules/:id
+// PUT /api/classSchedules/:id
 classScheduleRouter.put('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = ClassScheduleIdSchema.parse({ id: req.params.id });

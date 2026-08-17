@@ -6,8 +6,7 @@ export const ClassScheduleIdSchema = z.object({
   id: z.coerce.number().int().positive('ID debe ser un número mayor que 0'),
 });
 
-// Enums desde Prisma (evita desincronización)
-export const ClassScheduleCategorySchema = z.enum(ClassCategory, {
+export const ClassScheduleCategorySchema = z.nativeEnum(ClassCategory, {
   message: `La categoría debe ser una de: ${Object.values(ClassCategory).join(', ')}`,
 });
 

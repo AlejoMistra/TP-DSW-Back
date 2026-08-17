@@ -18,7 +18,7 @@ const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 export const CreateClassSessionSchema = z.object({
   classScheduleId: z.coerce.number().int().positive(),
-  date: z.string().transform((v) => new Date(v)),
+  date: z.coerce.date(),
   startTime: z.string().regex(timeRegex, 'Formato HH:mm'),
   endTime: z.string().regex(timeRegex, 'Formato HH:mm'),
   status: z.enum(['SCHEDULED', 'CANCELLED']).default('SCHEDULED').optional(),
@@ -26,7 +26,7 @@ export const CreateClassSessionSchema = z.object({
 
 export const UpdateClassSessionSchema = z.object({
   classScheduleId: z.coerce.number().int().positive().optional(),
-  date: z.string().transform((v) => new Date(v)).optional(),
+  date: z.coerce.date().optional(),
   startTime: z.string().regex(timeRegex, 'Formato HH:mm').optional(),
   endTime: z.string().regex(timeRegex, 'Formato HH:mm').optional(),
   remainingCapacity: z.coerce.number().int().nonnegative().optional(),
@@ -36,7 +36,7 @@ export const UpdateClassSessionSchema = z.object({
 export const ClassSessionResponseSchema = z.object({
   id: z.number().int().positive(),
   classScheduleId: z.number().int().positive(),
-  date: z.string().transform((v) => new Date(v)),
+  date: z.coerce.date(),
   startTime: z.string().regex(timeRegex, 'Formato HH:mm'),
   endTime: z.string().regex(timeRegex, 'Formato HH:mm'),
   remainingCapacity: z.number().int().min(0),
