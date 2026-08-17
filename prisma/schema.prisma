@@ -108,8 +108,6 @@ model ClassSchedule {
   durationMinutes Int
 
   instructorId Int
-  dayOfWeek    DayOfWeek
-  startTime    String
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -118,8 +116,8 @@ model ClassSchedule {
   instructor Instructor     @relation(fields: [instructorId], references: [id])
   sessions   ClassSession[]
 
+  @@unique([name, instructorId]) //sin este unique se pueden crear varios schedules iguales
   @@index([instructorId])
-  @@index([dayOfWeek, startTime])
   @@map("class_schedules")
 }
 
@@ -127,8 +125,8 @@ model ClassSession {
   id                Int         @id @default(autoincrement())
   classScheduleId   Int
   date              DateTime
-  startTime         DateTime
-  endTime           DateTime
+  startTime         String
+  endTime           String
   remainingCapacity Int
   status            ClassStatus @default(SCHEDULED)
 
@@ -199,16 +197,6 @@ enum ClassCategory {
 enum ClassStatus {
   SCHEDULED
   CANCELLED
-}
-
-enum DayOfWeek {
-  MONDAY
-  TUESDAY
-  WEDNESDAY
-  THURSDAY
-  FRIDAY
-  SATURDAY
-  SUNDAY
 }
 
 enum DifficultyLevelExercise {

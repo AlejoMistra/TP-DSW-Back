@@ -6,6 +6,8 @@ import { membershipRouter } from './modules/membership/membership.router.js';
 import { membershipPlanRouter } from './modules/membershipPlan/membershipPlan.routes.js';
 import { classScheduleRouter } from './modules/classSchedule/classSchedule.router.js';
 import { exerciseRouter } from './modules/exercise/exercise.router.js';
+import { classBookingRouter } from './modules/classBooking/classBooking.router.js';
+import { classSessionRouter } from './modules/classSession/classSession.router.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
 
 const app = express();
@@ -46,6 +48,14 @@ const availableEndpoints = {
     'GET: Obtener todos los planes de membresía | POST: Crear nuevo plan de membresía',
   '/api/membership-plans/:id':
     'GET: Obtener un plan de membresía | PUT: Actualizar plan de membresía | DELETE: Eliminar plan de membresía',
+  '/api/classBookings':
+    'GET: Obtener todas las reservas de clase | POST: Crear nueva reserva de clase',
+  '/api/classBookings/:id':
+    'GET: Obtener una reserva de clase | PUT: Actualizar reserva de clase | DELETE: Eliminar reserva de clase',
+  '/api/classSessions':
+    'GET: Obtener todas las sesiones de clase | POST: Crear nueva sesión de clase',
+  '/api/classSessions/:id':
+    'GET: Obtener una sesión de clase | PUT: Actualizar sesión de clase | DELETE: Eliminar sesión de clase',
 } as const;
 
 app.use(cors(corsOptions));
@@ -69,6 +79,8 @@ app.use('/api/memberships', membershipRouter);
 app.use('/api/membership-plans', membershipPlanRouter);
 app.use('/api/classSchedules', classScheduleRouter);
 app.use('/api/exercises', exerciseRouter);
+app.use('/api/classBookings', classBookingRouter);
+app.use('/api/classSessions', classSessionRouter);
 
 app.use(errorHandler);
 

@@ -1,86 +1,70 @@
-import ClassSchedulesMock from './classSchedules.json' with { type: 'json' };
-import {
-  ClassScheduleProps,
-  GymClassCategory,
-  DayOfWeek,
-} from './classSchedule.entity.js';
+import { prisma } from '../../lib/prisma.js';
+import type { ClassSchedule } from '../../generated/prisma/client.js';
+import type {
+  CreateClassScheduleInput,
+  UpdateClassScheduleInput,
+} from './classSchedule.schemas.js';
 
 export class ClassScheduleRepository {
-  private classSchedules: ClassScheduleProps[];
-
-  constructor() {
-    this.classSchedules = ClassSchedulesMock.map((schedule) => ({
-      ...schedule,
-      category: schedule.category as GymClassCategory,
-      dayOfWeek: schedule.dayOfWeek as DayOfWeek,
-    }));
+  async getAll(): Promise<ClassSchedule[]> {
+    return prisma.classSchedule.findMany({
+      where: { deletedAt: null },
+    });
   }
 
-  async getAll(): Promise<ClassScheduleProps[]> {
-    return Promise.resolve(this.classSchedules);
+  async getById(id: number): Promise<ClassSchedule | null> {
+    return prisma.classSchedule.findFirst({
+      where: { id, deletedAt: null },
+    });
   }
 
-  async getOne(id: number): Promise<ClassScheduleProps | undefined> {
-    const schedule = this.classSchedules.find((s) => s.id === id);
-    return Promise.resolve(schedule);
+  async create(input: CreateClassScheduleInput): Promise<ClassSchedule> {
+    return prisma.classSchedule.create({
+      data: {
+        name: input.name,
+        description: input.description ?? null,
+        category: input.category,
+        maxCapacity: input.maxCapacity,
+        durationMinutes: input.durationMinutes,
+        instructor: { connect: { id: input.instructorId } },
+      },
+    });
   }
 
-  async getClassSchedulesByInstructorId(
-    instructorId: number,
-  ): Promise<ClassScheduleProps[]> {
-    const schedules = this.classSchedules.filter(
-      (s) => s.instructorId === instructorId,
-    );
-    return Promise.resolve(schedules);
+  async update(id: number, input: UpdateClassScheduleInput): Promise<ClassSchedule> {
+    return prisma.classSchedule.update({
+      where: { id },
+      data: {
+        name: input.name,
+        description: input.description,
+        category: input.category,
+        maxCapacity: input.maxCapacity,
+        durationMinutes: input.durationMinutes,
+        instructor:
+          input.instructorId !== undefined
+            ? { connect: { id: input.instructorId } }
+            : undefined,
+      },
+    });
   }
 
-  async getClassSchedulesByCategory(
-    category: GymClassCategory,
-  ): Promise<ClassScheduleProps[]> {
-    const schedules = this.classSchedules.filter(
-      (s) => s.category === category,
-    );
-    return Promise.resolve(schedules);
+  async delete(id: number): Promise<ClassSchedule> {
+    return prisma.classSchedule.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   }
 
-  async getClassSchedulesByDayOfWeek(
-    dayOfWeek: DayOfWeek,
-  ): Promise<ClassScheduleProps[]> {
-    const schedules = this.classSchedules.filter(
-      (s) => s.dayOfWeek === dayOfWeek,
-    );
-    return Promise.resolve(schedules);
+  // opcionales (si ya los usabas en tu router anterior)
+  async getByInstructorId(instructorId: number): Promise<ClassSchedule[]> {
+    return prisma.classSchedule.findMany({
+      where: { instructorId, deletedAt: null },
+    });
   }
 
-  async add(item: Omit<ClassScheduleProps, 'id'>): Promise<ClassScheduleProps> {
-    const newId = Math.max(...this.classSchedules.map((s) => s.id), 0) + 1;
-    const newSchedule: ClassScheduleProps = {
-      id: newId,
-      ...item,
-    };
-    this.classSchedules.push(newSchedule);
-    return Promise.resolve(newSchedule);
-  }
-
-  async update(
-    id: number,
-    item: Partial<Omit<ClassScheduleProps, 'id'>>,
-  ): Promise<ClassScheduleProps | undefined> {
-    const schedule = this.classSchedules.find((s) => s.id === id);
-    if (!schedule) {
-      return Promise.resolve(undefined);
-    }
-
-    const updated = { ...schedule, ...item };
-    const index = this.classSchedules.findIndex((s) => s.id === id);
-    this.classSchedules[index] = updated;
-    return Promise.resolve(updated);
-  }
-
-  async delete(id: number): Promise<boolean> {
-    const index = this.classSchedules.findIndex((s) => s.id === id);
-    if (index === -1) return Promise.resolve(false);
-    this.classSchedules.splice(index, 1);
-    return Promise.resolve(true);
+  async getByCategory(category: CreateClassScheduleInput['category']): Promise<ClassSchedule[]> {
+    return prisma.classSchedule.findMany({
+      where: { category, deletedAt: null },
+    });
   }
 }
