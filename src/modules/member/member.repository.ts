@@ -1,7 +1,6 @@
 import { CreateMemberInput, UpdateMemberInput } from './member.schemas.js';
 import { Member } from '../../generated/prisma/client.js';
 import { prisma } from '../../lib/prisma.js';
-
 export class MemberRepository {
   async getAll(): Promise<Member[]> {
     return await prisma.member.findMany({
@@ -25,10 +24,37 @@ export class MemberRepository {
     if (existing) {
       throw new Error('Email ya existe');
     }
-
-    return await prisma.member.create({
-      data: props,
+    const {
+      membershipPlanId,
+      lastPaymentMethod,
+      lastPaymentDate,
+      lastPaymentAmount,
+      ...memberData
+    } = props;
+    const memberDataFormatted = {
+      ...memberData,
+      birthDate: new Date(memberData.birthDate + 'T00:00:00'),
+    };
+    const member = await prisma.member.create({
+      data: memberDataFormatted,
     });
+
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + 1);
+    await prisma.membership.create({
+      data: {
+        memberId: member.id,
+        membershipPlanId: membershipPlanId,
+        lastPaymentMethod: lastPaymentMethod || null,
+        lastPaymentDate: lastPaymentDate ? new Date(lastPaymentDate) : null,
+        lastPaymentAmount: lastPaymentAmount ? lastPaymentAmount : null,
+        startDate: startDate,
+        endDate: endDate,
+        status: 'ACTIVE',
+      },
+    });
+    return member;
   }
 
   async update(
@@ -42,6 +68,9 @@ export class MemberRepository {
           name: props.name,
           surname: props.surname,
           email: props.email,
+          birthDate: props.birthDate
+            ? new Date(props.birthDate + 'T00:00:00')
+            : undefined,
           phone: props.phone ?? null,
           status: props.status ?? 'ACTIVE',
         },
@@ -54,7 +83,7 @@ export class MemberRepository {
   async delete(id: number): Promise<void> {
     await prisma.member.update({
       where: { id },
-      data: { deletedAt: new Date() },
+      data: { deletedAt: new Date(), status: 'INACTIVE' },
     });
   }
 }

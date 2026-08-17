@@ -7,6 +7,7 @@ import {
 import { MembershipRepository } from './membership.repository.js';
 import type { Membership } from '../../generated/prisma/client.js';
 
+
 export class MembershipService {
   constructor(private readonly repository: MembershipRepository) {}
 
@@ -24,12 +25,25 @@ export class MembershipService {
     return this.toResponse(membership);
   }
 
+  async getByMemberId(memberId: number): Promise<MembershipResponse> {
+    const membership = await this.repository.getByMemberId(memberId);
+    if (!membership) {
+      throw new Error(
+        `Membresía para el miembro con ID ${memberId} no encontrada`,
+      );
+    }
+    return this.toResponse(membership);
+  }
+
   async create(input: CreateMembershipInput): Promise<MembershipResponse> {
     const membership = await this.repository.create(input);
     return this.toResponse(membership);
   }
 
-  async update(id: number, input: UpdateMembershipInput): Promise<MembershipResponse> {
+  async update(
+    id: number,
+    input: UpdateMembershipInput,
+  ): Promise<MembershipResponse> {
     const existingMembership = await this.repository.getById(id);
     if (!existingMembership) {
       throw new Error(`Membresía con ID ${id} no encontrada`);

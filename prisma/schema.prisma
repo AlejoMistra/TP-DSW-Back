@@ -1,14 +1,21 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+datasource db {
+  provider = "mysql"
+}
+
 generator client {
   provider            = "prisma-client"
   output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
   importFileExtension = "js"
 }
 
-datasource db {
-  provider = "mysql"
+generator zod {
+  provider = "prisma-zod-generator"
+  output   = "../src/generated/zod"
+  config   = "./zod-generator.config.json"
 }
 
 model Member {
@@ -17,13 +24,14 @@ model Member {
   surname    String
   email      String      @unique
   phone      String?
-  joinDate   DateTime    @default(now())
+  docType    docType     @default(DNI)
+  docNumber  String      @default("")
+  birthDate  DateTime
   membership Membership?
   status     Status      @default(ACTIVE)
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  deletedAt  DateTime?
 
   classBookings ClassBooking[]
 
@@ -73,9 +81,13 @@ model Membership {
 
 model MembershipPlan {
   id           Int     @id @default(autoincrement())
+  /// @zod.min(1, "El nombre del plan no puede estar vacío").max(100, "El nombre del plan no puede superar los 100 caracteres")
   name         String
+  /// @zod.max(500, "La descripción del plan no puede superar los 500 caracteres")
   description  String?
+  /// @zod.min(0.01, "El precio del plan debe ser mayor a 0")
   price        Float
+  /// @zod.min(1, "La duración del plan debe ser mayor a 0")
   durationDays Int
 
   createdAt DateTime  @default(now())
@@ -210,4 +222,9 @@ enum PaymentMethod {
 enum Status {
   ACTIVE
   INACTIVE
+}
+
+enum docType {
+  DNI
+  PASAPORTE
 }
