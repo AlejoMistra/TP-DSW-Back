@@ -3,7 +3,7 @@ import type {
   UpdateMembershipInput,
 } from './membership.schemas.js';
 import { prisma } from '../../lib/prisma.js';
-import type { Membership } from '../../generated/prisma/client';
+import type { Membership } from '../../generated/prisma/client.js';
 
 export class MembershipRepository {
   async getAll(): Promise<Membership[]> {

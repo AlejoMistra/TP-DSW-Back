@@ -1,12 +1,10 @@
-import { z } from 'zod';
+ import { z } from 'zod';
+import { Membership, Status } from '../../generated/prisma/client.js';
 
-// MemberIdSchema podria borrarse
-// Schema para obtener un socio por ID (parámetro de ruta)
 export const MemberIdSchema = z.object({
   id: z.string().regex(/^\d+$/, 'ID debe ser un número').transform(Number),
 });
 
-// Schema para crear un socio (POST - sin ID ni fechaIngreso)
 export const CreateMemberSchema = z.object({
   name: z
     .string()
@@ -58,7 +56,6 @@ export const UpdateMemberSchema = z.object({
   status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
 });
 
-// Schema de respuesta (con ID y fechaIngreso)
 export const MemberResponseSchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -74,8 +71,6 @@ export const MemberResponseSchema = z.object({
   deletedAt: z.date().nullable(),
 });
 
-// Revisar esto
-// Tipos inferidos automáticamente de TypeScript
 export type CreateMemberInput = z.infer<typeof CreateMemberSchema>;
 export type UpdateMemberInput = z.infer<typeof UpdateMemberSchema>;
 export type MemberResponse = z.infer<typeof MemberResponseSchema>;

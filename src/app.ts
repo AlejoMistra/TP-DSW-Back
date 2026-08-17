@@ -1,11 +1,12 @@
 import express from 'express';
+import cors from 'cors';
 import { memberRouter } from './modules/member/member.router.js';
 import { instructorRouter } from './modules/instructor/instructor.router.js';
 import { membershipRouter } from './modules/membership/membership.router.js';
-import { membershipPlanRouter } from './modules/membershipPlan/membershipPlan.router.js';
+import { membershipPlanRouter } from './modules/membershipPlan/membershipPlan.routes.js';
 import { classScheduleRouter } from './modules/classSchedule/classSchedule.router.js';
 import { exerciseRouter } from './modules/exercise/exercise.router.js';
-import cors from 'cors';
+import { errorHandler } from './middlewares/errorHandler.middleware.js';
 
 const app = express();
 
@@ -68,5 +69,7 @@ app.use('/api/memberships', membershipRouter);
 app.use('/api/membership-plans', membershipPlanRouter);
 app.use('/api/classSchedules', classScheduleRouter);
 app.use('/api/exercises', exerciseRouter);
+
+app.use(errorHandler);
 
 export { app };
