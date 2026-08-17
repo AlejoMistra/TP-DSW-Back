@@ -1,87 +1,88 @@
-import { ClassScheduleRepository } from '../classSchedule/classSchedule.repository.js';
-import { InstructorRepository } from '../instructor/instructor.repository.js';
+import type { ClassSchedule } from '../../generated/prisma/client.js';
 import {
-  ClassScheduleProps,
-  GymClassCategory,
-  DayOfWeek,
-} from './classSchedule.entity.js';
-import {
-  CreateClassScheduleInput,
-  UpdateClassScheduleInput,
+  ClassScheduleResponseSchema,
+  type ClassScheduleResponse,
+  type CreateClassScheduleInput,
+  type UpdateClassScheduleInput,
 } from './classSchedule.schemas.js';
+import { ClassScheduleRepository } from './classSchedule.repository.js';
+import { InstructorRepository } from '../instructor/instructor.repository.js';
+import { ClassCategory } from '../../generated/prisma/client.js';
 
 export class ClassScheduleService {
   constructor(
-    private classScheduleRepository: ClassScheduleRepository,
-    private instructorRepository: InstructorRepository,
+    private readonly classScheduleRepository: ClassScheduleRepository,
+    private readonly instructorRepository: InstructorRepository,
   ) {}
-  async getAll(): Promise<ClassScheduleProps[]> {
-    return await this.classScheduleRepository.getAll();
+
+  async getAll(): Promise<ClassScheduleResponse[]> {
+    const classes = await this.classScheduleRepository.getAll();
+    return classes.map((c) => this.toResponse(c));
   }
 
-  async getById(id: number): Promise<ClassScheduleProps> {
-    const classById = await this.classScheduleRepository.getOne(id);
-    if (!classById) {
-      throw new Error('Clase no encontrada');
-    }
-    return classById;
+  async getById(id: number): Promise<ClassScheduleResponse> {
+    const classById = await this.classScheduleRepository.getById(id);
+    if (!classById) throw new Error(`ClassSchedule with ID ${id} not found`);
+    return this.toResponse(classById);
   }
 
-  async getByInstructor(instructorId: number): Promise<ClassScheduleProps[]> {
-    const instructor = await this.instructorRepository.getOne(instructorId);
-    if (!instructor) {
-      throw new Error('Instructor no encontrado');
-    }
-    return await this.classScheduleRepository.getClassSchedulesByInstructorId(
-      instructorId,
-    );
+  async getByInstructor(instructorId: number): Promise<ClassScheduleResponse[]> {
+    const instructor = await this.instructorRepository.getById(instructorId);
+    if (!instructor) throw new Error(`Instructor with ID ${instructorId} not found`);
+
+    const classes = await this.classScheduleRepository.getByInstructorId(instructorId);
+
+    return classes.map((c) => this.toResponse(c));
   }
 
-  async getByCategory(
-    category: GymClassCategory,
-  ): Promise<ClassScheduleProps[]> {
-    return await this.classScheduleRepository.getClassSchedulesByCategory(
-      category,
-    );
+  async getByCategory(category: ClassCategory): Promise<ClassScheduleResponse[]> {
+    const classes = await this.classScheduleRepository.getByCategory(category);
+    return classes.map((c) => this.toResponse(c));
   }
 
-  async getByDayOfWeek(dayOfWeek: DayOfWeek): Promise<ClassScheduleProps[]> {
-    return await this.classScheduleRepository.getClassSchedulesByDayOfWeek(
-      dayOfWeek,
-    );
-  }
+  async create(input: CreateClassScheduleInput): Promise<ClassScheduleResponse> {
+    const instructor = await this.instructorRepository.getById(input.instructorId);
+    if (!instructor) throw new Error(`Instructor with ID ${input.instructorId} not found`);
 
-  async add(props: CreateClassScheduleInput): Promise<ClassScheduleProps> {
-    const instructor = await this.instructorRepository.getOne(
-      props.instructorId,
-    );
-    if (!instructor) {
-      throw new Error('Instructor no encontrado');
-    }
-    const newClass = await this.classScheduleRepository.add(props);
-    return newClass;
+    const created = await this.classScheduleRepository.create(input);
+    return this.toResponse(created);
   }
 
   async update(
     id: number,
-    props: UpdateClassScheduleInput,
-  ): Promise<ClassScheduleProps> {
-    if (props.instructorId) {
-      const instructor = await this.instructorRepository.getOne(
-        props.instructorId,
-      );
-      if (!instructor) {
-        throw new Error('Instructor no encontrado');
-      }
+    input: UpdateClassScheduleInput,
+  ): Promise<ClassScheduleResponse> {
+    const existing = await this.classScheduleRepository.getById(id);
+    if (!existing) throw new Error(`ClassSchedule with ID ${id} not found`);
+
+    if (input.instructorId !== undefined) {
+      const instructor = await this.instructorRepository.getById(input.instructorId);
+      if (!instructor) throw new Error(`Instructor with ID ${input.instructorId} not found`);
     }
-    const updatedClass = await this.classScheduleRepository.update(id, props);
-    if (!updatedClass) {
-      throw new Error('Clase no encontrada');
-    }
-    return updatedClass;
+
+    const updated = await this.classScheduleRepository.update(id, input);
+    return this.toResponse(updated);
   }
 
-  async delete(id: number): Promise<boolean> {
-    return await this.classScheduleRepository.delete(id);
+  async delete(id: number): Promise<void> {
+    const existing = await this.classScheduleRepository.getById(id);
+    if (!existing) throw new Error(`ClassSchedule with ID ${id} not found`);
+
+    await this.classScheduleRepository.delete(id);
   }
-}
+
+  private toResponse(classSchedule: ClassSchedule): ClassScheduleResponse {
+    return ClassScheduleResponseSchema.parse({
+      id: classSchedule.id,
+      name: classSchedule.name,
+      description: classSchedule.description,
+      category: classSchedule.category,
+      maxCapacity: classSchedule.maxCapacity,
+      durationMinutes: classSchedule.durationMinutes,
+      instructorId: classSchedule.instructorId,
+      createdAt: classSchedule.createdAt,
+      updatedAt: classSchedule.updatedAt,
+      deletedAt: classSchedule.deletedAt,
+    });
+  }
+}  

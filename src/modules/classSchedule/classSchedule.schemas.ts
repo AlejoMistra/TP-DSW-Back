@@ -1,73 +1,70 @@
 import { z } from 'zod';
-import { GymClassCategory } from './classSchedule.entity.js';
+import { ClassCategory } from '../../generated/prisma/client.js';
 
-const daysOfWeek = [
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-  'Sunday',
-] as const;
-
-export const DayOfWeekSchema = z.enum(daysOfWeek, {
-  message: `El dia ingresado es invalido`,
-});
-
-export const ClassScheduleCategorySchema = z.nativeEnum(GymClassCategory, {
-  message: `La Categoria debe pertenecer a algunas de las siguientes: ${Object.values(GymClassCategory).join(', ')}`,
-});
-
+// Params
 export const ClassScheduleIdSchema = z.object({
-  id: z.coerce.number().int().positive('ID debe ser un numero mayor que 0'),
+  id: z.coerce.number().int().positive('ID debe ser un número mayor que 0'),
 });
 
+// Enums desde Prisma (evita desincronización)
+export const ClassScheduleCategorySchema = z.enum(ClassCategory, {
+  message: `La categoría debe ser una de: ${Object.values(ClassCategory).join(', ')}`,
+});
+
+// Body create
 export const CreateClassScheduleSchema = z.object({
   name: z
     .string()
     .min(1, 'La clase debe tener un nombre')
-    .max(50, 'El nombre de la clase no puede superar los 50 caracteres'),
+    .max(50, 'El nombre no puede superar los 50 caracteres'),
+
   description: z
     .string()
-    .min(1, 'La clase debe tener una descripcion')
-    .max(100, 'La descripcion de la clase no puede superar los 100 caracteres'),
-  category: z.nativeEnum(GymClassCategory, {
-    message: `La categoria de la clase debe ser una de las siguientes: ${Object.values(GymClassCategory).join(', ')}`,
-  }),
-  maxNumber: z.coerce
+    .max(100, 'La descripción no puede superar los 100 caracteres')
+    .optional(),
+
+  category: ClassScheduleCategorySchema,
+
+  // En prisma es maxCapacity (NO maxNumber)
+  maxCapacity: z.coerce
     .number()
     .int()
-    .positive('El numero maximo de participantes debe ser mayor que 0')
-    .max(
-      50,
-      'La capacidad maxima de la clase no puede superar los 50 participantes',
-    ),
+    .positive('La capacidad máxima debe ser mayor a 0')
+    .max(50, 'La capacidad máxima no puede superar los 50 participantes'),
 
   durationMinutes: z.coerce
     .number()
     .int()
-    .positive('La duracion de la clase debe ser mayor a 0 minutos')
-    .max(180, 'La duracion de la clase no puede superar los 180 minutos'),
+    .positive('La duración debe ser mayor a 0 minutos')
+    .max(180, 'La duración no puede superar los 180 minutos'),
+
   instructorId: z.coerce
     .number()
     .int()
-    .positive('El ID del instructor debe ser un numero mayor que 0'),
-  dayOfWeek: DayOfWeekSchema,
-  startTime: z
-    .string()
-    .regex(/^\d{2}:\d{2}$/, 'El formato debe ser HH:mm (ejemplo: 08:00)'),
+    .positive('El ID del instructor debe ser mayor que 0'),
+
 });
 
-export const UpdateClassScheduleSchema = CreateClassScheduleSchema.partial();
-export const ClassScheduleResponseSchema = CreateClassScheduleSchema.extend({
-  id: z.number(),
+// Body update (parcial)
+export const UpdateClassScheduleSchema = CreateClassScheduleSchema.partial().refine(
+  (data) => Object.keys(data).length > 0,
+  { message: 'Debe enviar al menos un campo para actualizar' },
+);
+
+// Response
+export const ClassScheduleResponseSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string(),
+  description: z.string().nullable(),
+  category: ClassScheduleCategorySchema,
+  maxCapacity: z.number().int().positive(),
+  durationMinutes: z.number().int().positive(),
+  instructorId: z.number().int().positive(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  deletedAt: z.date().nullable(),
 });
 
-export type CreateClassScheduleInput = z.infer<
-  typeof CreateClassScheduleSchema
->;
-export type UpdateClassScheduleInput = z.infer<
-  typeof UpdateClassScheduleSchema
->;
+export type CreateClassScheduleInput = z.infer<typeof CreateClassScheduleSchema>;
+export type UpdateClassScheduleInput = z.infer<typeof UpdateClassScheduleSchema>;
 export type ClassScheduleResponse = z.infer<typeof ClassScheduleResponseSchema>;
