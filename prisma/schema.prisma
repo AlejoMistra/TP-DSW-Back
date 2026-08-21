@@ -1,0 +1,230 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "mysql"
+}
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+generator zod {
+  provider = "prisma-zod-generator"
+  output   = "../src/generated/zod"
+  config   = "./zod-generator.config.json"
+}
+
+model Member {
+  id         Int         @id @default(autoincrement())
+  name       String
+  surname    String
+  email      String      @unique
+  phone      String?
+  docType    docType     @default(DNI)
+  docNumber  String      @default("")
+  birthDate  DateTime
+  membership Membership?
+  status     Status      @default(ACTIVE)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  deletedAt  DateTime?
+
+  classBookings ClassBooking[]
+
+  @@map("members")
+}
+
+model Instructor {
+  id       Int      @id @default(autoincrement())
+  name     String
+  surname  String
+  email    String   @unique
+  phone    String?
+  joinDate DateTime @default(now())
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  classSchedules ClassSchedule[]
+
+  @@map("instructors")
+}
+
+model Membership {
+  id                Int              @id @default(autoincrement())
+  startDate         DateTime         @default(now())
+  endDate           DateTime
+  status            MembershipStatus @default(ACTIVE)
+  lastPaymentMethod PaymentMethod?
+  lastPaymentDate   DateTime?
+  lastPaymentAmount Decimal?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // UN SOCIO TIENE SOLO UNA MEMBRESÍA (1:1)
+  member   Member @relation(fields: [memberId], references: [id])
+  memberId Int    @unique
+
+  // MUCHAS MEMBRESÍAS COMPARTEN EL MISMO PLAN (1:N)
+  membershipPlan   MembershipPlan @relation(fields: [membershipPlanId], references: [id])
+  membershipPlanId Int
+
+  @@map("memberships")
+}
+
+model MembershipPlan {
+  id           Int     @id @default(autoincrement())
+  /// @zod.min(1, "El nombre del plan no puede estar vacío").max(100, "El nombre del plan no puede superar los 100 caracteres")
+  name         String
+  /// @zod.max(500, "La descripción del plan no puede superar los 500 caracteres")
+  description  String?
+  /// @zod.min(0.01, "El precio del plan debe ser mayor a 0")
+  price        Float
+  /// @zod.min(1, "La duración del plan debe ser mayor a 0")
+  durationDays Int
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  memberships Membership[]
+
+  @@map("membership_plans")
+}
+
+model ClassSchedule {
+  id              Int           @id @default(autoincrement())
+  name            String
+  description     String?
+  category        ClassCategory
+  maxCapacity     Int
+  durationMinutes Int
+
+  instructorId Int
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  instructor Instructor     @relation(fields: [instructorId], references: [id])
+  sessions   ClassSession[]
+
+  @@unique([name, instructorId]) //sin este unique se pueden crear varios schedules iguales
+  @@index([instructorId])
+  @@map("class_schedules")
+}
+
+model ClassSession {
+  id                Int         @id @default(autoincrement())
+  classScheduleId   Int
+  date              DateTime
+  startTime         String
+  endTime           String
+  remainingCapacity Int
+  status            ClassStatus @default(SCHEDULED)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  classSchedule ClassSchedule  @relation(fields: [classScheduleId], references: [id])
+  bookings      ClassBooking[]
+
+  @@unique([classScheduleId, date, startTime])
+  @@index([classScheduleId])
+  @@map("class_sessions")
+}
+
+model ClassBooking {
+  id             Int                @id @default(autoincrement())
+  memberId       Int
+  classSessionId Int
+  bookingDate    DateTime           @default(now())
+  status         ClassBookingStatus @default(CONFIRMED)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  member       Member       @relation(fields: [memberId], references: [id])
+  classSession ClassSession @relation(fields: [classSessionId], references: [id])
+
+  @@unique([memberId, classSessionId])
+  @@index([memberId])
+  @@index([classSessionId, status])
+  @@map("class_bookings")
+}
+
+model Exercise {
+  id              Int                     @id @default(autoincrement())
+  name            String
+  description     String?
+  muscleGroup     String
+  difficultyLevel DifficultyLevelExercise
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("exercises")
+}
+
+enum ClassBookingStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+enum ClassCategory {
+  CARDIO
+  CROSSFIT
+  DANCE
+  FUNCTIONAL
+  HIIT
+  OTHER
+  PILATES
+  SPINNING
+  STRETCHING
+  YOGA
+}
+
+enum ClassStatus {
+  SCHEDULED
+  CANCELLED
+}
+
+enum DifficultyLevelExercise {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum MembershipStatus {
+  ACTIVE
+  EXPIRED
+  CANCELED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  TRANSFER
+  CASH
+  OTHER
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+enum docType {
+  DNI
+  PASAPORTE
+}

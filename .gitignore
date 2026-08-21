@@ -26,3 +26,7 @@ Thumbs.db
 
 # TypeScript cache
 *.tsbuildinfo
+/src/generated/prisma
+/src/generated/zod
+
+/generated/prisma

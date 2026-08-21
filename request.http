@@ -1,0 +1,610 @@
+###############################################################################
+# MEMBER CRUD - Testing Completo
+# Para usar: Instala la extensión "REST Client" en VS Code
+# Luego clickea "Send Request" encima de cada bloque
+###############################################################################
+
+### ========== VARIABLES ==========
+@baseUrl = http://localhost:3000/api
+@contentType = Content-Type: application/json
+
+### ========== VARIABLES DE RESPUESTA (se actualizan automáticamente) ==========
+@memberId = 999
+
+###############################################################################
+# 1️⃣ GET - OBTENER TODOS LOS MIEMBROS (Sin filtros)
+###############################################################################
+
+### ✅ GET - Traer todos los miembros
+GET {{baseUrl}}/members
+
+### ✅ GET - Traer todos (verificar estructura)
+GET {{baseUrl}}/members
+Accept: application/json
+
+
+###############################################################################
+# 2️⃣ POST - CREAR MIEMBROS (Casos válidos)
+###############################################################################
+
+### ✅ POST - Crear miembro COMPLETO (todos los campos)
+### POST - Crear miembro
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Juan",
+  "surname": "Pérez",
+  "email": "juan12345@example.com",
+  "phone": "1234567890"
+}
+
+### ✅ POST - Crear miembro MÍNIMO (solo requeridos)
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "María",
+  "surname": "González",
+  "email": "maria.gonzalez@example.com"
+}
+
+### ✅ POST - Crear miembro sin teléfono (phone es opcional)
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Carlos",
+  "surname": "López",
+  "email": "carlos.lopez@example.com",
+  "phone": null
+}
+
+### ✅ POST - Crear miembro con estado INACTIVE
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Alejo",
+  "surname": "Borda",
+  "email": "alejo.borda@example.com",
+  "phone": "9876543210",
+  "status": "INACTIVE"
+}
+
+### ✅ POST - Crear miembro con fecha personalizada
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Roberto",
+  "surname": "Sánchez",
+  "email": "roberto.sanchez@example.com",
+  "phone": "5555555555",
+  "joinDate": "2023-06-20T08:00:00Z"
+}
+
+
+###############################################################################
+# 3️⃣ POST - CREAR MIEMBROS (Casos INVÁLIDOS - Deben fallar)
+###############################################################################
+
+### ❌ POST - Nombre muy corto (menos de 2 caracteres)
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "A",
+  "surname": "González",
+  "email": "test1@example.com"
+}
+
+### ❌ POST - Nombre vacío
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "",
+  "surname": "González",
+  "email": "test2@example.com"
+}
+
+### ❌ POST - Apellido muy corto
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Juan",
+  "surname": "G",
+  "email": "test3@example.com"
+}
+
+### ❌ POST - Email inválido
+POST {{baseUrl}}/members
+Content-Type: application/json      
+
+{
+  "name": "Juan",
+  "surname": "García",
+  "email": "email-invalido"
+}
+
+### ❌ POST - Email sin dominio
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Juan",
+  "surname": "García",
+  "email": "juan@"
+}
+
+### ❌ POST - Email duplicado (crear 2 veces el mismo)
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Duplicado",
+  "surname": "Test",
+  "email": "duplicado@example.com"
+}
+
+### ❌ POST - Teléfono con menos de 7 dígitos
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Juan",
+  "surname": "García",
+  "email": "test4@example.com",
+  "phone": "123456"
+}
+
+### ❌ POST - Teléfono con más de 15 dígitos
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Juan",
+  "surname": "García",
+  "email": "test5@example.com",
+  "phone": "12345678901234567890"
+}
+
+### ❌ POST - Teléfono con letras
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Juan",
+  "surname": "García",
+  "email": "test6@example.com",
+  "phone": "1234567ABC"
+}
+
+### ❌ POST - Status inválido
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Juan",
+  "surname": "García",
+  "email": "test7@example.com",
+  "status": "PENDIENTE"
+}
+
+### ❌ POST - Nombre muy largo (más de 100 caracteres)
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan Juan El pepe",
+  "surname": "García",
+  "email": "test1234garcia@example.com"
+}
+
+### ❌ POST - Falta el nombre
+POST {{baseUrl}}/members
+Content-Type: application/json  
+
+{
+  "surname": "García",
+  "email": "test9@example.com"
+}
+
+### ❌ POST - Falta el apellido
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Juan",
+  "email": "test10@example.com"
+}
+
+### ❌ POST - Falta el email
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Juan",
+  "surname": "García"
+}
+
+### ❌ POST - JSON inválido
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Juan"
+  "surname": "García"
+}
+
+### ❌ POST - Campo extra no esperado (debe ignorarse)
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Juan",
+  "surname": "García",
+  "email": "test11@example.com",
+  "edad": 25
+}
+
+
+###############################################################################
+# 4️⃣ GET - OBTENER MIEMBRO POR ID (Casos válidos e inválidos)
+###############################################################################
+
+### ✅ GET - Obtener miembro por ID válido (cambiar ID según necesites)
+GET {{baseUrl}}/members/1
+
+### ✅ GET - Obtener miembro por ID 2
+GET {{baseUrl}}/members/2
+
+### ✅ GET - Obtener miembro por ID 3
+GET {{baseUrl}}/members/3
+
+### ❌ GET - ID que no existe
+GET {{baseUrl}}/members/9999
+
+### ❌ GET - ID con formato inválido (letra)
+GET {{baseUrl}}/members/abc
+
+### ❌ GET - ID con formato inválido (símbolo)
+GET {{baseUrl}}/members/@123
+
+### ❌ GET - ID negativo
+GET {{baseUrl}}/members/-1
+
+### ❌ GET - ID decimal
+GET {{baseUrl}}/members/1.5
+
+### ❌ GET - Sin ID
+GET {{baseUrl}}/members/
+
+
+###############################################################################
+# 5️⃣ PUT - ACTUALIZAR MIEMBROS (Casos válidos)
+###############################################################################
+
+### ✅ PUT - Actualizar solo nombre
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "name": "JuanActualizado"
+}
+
+### ✅ PUT - Actualizar solo email
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "email": "juanuevo@example.com"
+}
+
+### ✅ PUT - Actualizar solo teléfono
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "phone": "9999999999"
+}
+
+### ✅ PUT - Actualizar solo status
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "status": "INACTIVE"
+}
+
+### ✅ PUT - Actualizar múltiples campos
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "name": "JuanCompleto",
+  "surname": "PérezActualizado",
+  "email": "juancompleto@example.com",
+  "phone": "5555555555",
+  "status": "ACTIVE"
+}
+
+### ✅ PUT - Cambiar status a INACTIVE
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "status": "INACTIVE"
+}
+
+### ✅ PUT - Volver a cambiar status a ACTIVE
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "status": "ACTIVE"
+}
+
+### ✅ PUT - Limpiar teléfono (null)
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "phone": null
+}
+
+
+###############################################################################
+# 6️⃣ PUT - ACTUALIZAR MIEMBROS (Casos INVÁLIDOS)
+###############################################################################
+
+### ❌ PUT - Actualizar con email duplicado
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "email": "maria.gonzalez@example.com"
+}
+
+### ❌ PUT - Actualizar nombre a muy corto
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "name": "A"
+}
+
+### ❌ PUT - Actualizar email inválido
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "email": "email-invalido"
+}
+
+### ❌ PUT - Actualizar teléfono inválido
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "phone": "123"
+}
+
+### ❌ PUT - Status inválido
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "status": "PENDIENTE"
+}
+
+### ❌ PUT - ID que no existe
+PUT {{baseUrl}}/members/9999
+Content-Type: application/json
+
+{
+  "name": "NoExiste"
+}
+
+### ❌ PUT - ID inválido
+PUT {{baseUrl}}/members/abc
+Content-Type: application/json
+
+{
+  "name": "Test"
+}
+
+### ❌ PUT - JSON inválido
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "name": "Test"
+  "surname": "Test"
+}
+
+
+###############################################################################
+# 7️⃣ DELETE - ELIMINAR MIEMBROS (Soft Delete)
+###############################################################################
+
+### ✅ DELETE - Eliminar miembro válido
+DELETE {{baseUrl}}/members/1
+
+### ✅ DELETE - Eliminar otro miembro
+DELETE {{baseUrl}}/members/2
+
+### ✅ DELETE - Verificar que está eliminado (soft delete, no desaparece)
+GET {{baseUrl}}/members/1
+
+### ❌ DELETE - Intentar eliminar un ID que no existe
+DELETE {{baseUrl}}/members/9999
+
+### ❌ DELETE - Intentar eliminar con ID inválido
+DELETE {{baseUrl}}/members/abc
+
+### ❌ DELETE - ID negativo
+DELETE {{baseUrl}}/members/-1
+
+
+###############################################################################
+# 8️⃣ PATCH - RESTAURAR MIEMBROS ELIMINADOS
+###############################################################################
+
+### ✅ PATCH - Restaurar miembro eliminado
+PATCH {{baseUrl}}/members/1/restore
+
+### ✅ PATCH - Verificar que está restaurado
+GET {{baseUrl}}/members/1
+
+### ✅ PATCH - Restaurar otro miembro
+PATCH {{baseUrl}}/members/2/restore
+
+### ❌ PATCH - Restaurar un ID que no existe
+PATCH {{baseUrl}}/members/9999/restore
+
+### ❌ PATCH - Restaurar con ID inválido
+PATCH {{baseUrl}}/members/abc/restore
+
+
+###############################################################################
+# 9️⃣ CASOS DE ESTRÉS (Romper el sistema)
+###############################################################################
+
+### ❌ POST - Crear 100 miembros (spam)
+POST {{baseUrl}}/members
+{{@contentType}}
+
+{
+  "name": "Test1",
+  "surname": "Spam",
+  "email": "spam1@example.com"
+}
+
+### ❌ PUT - Actualizar con campos que no existen
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "name": "Test",
+  "fieldoInexistente": "valor"
+}
+
+### ❌ POST - Array en lugar de objeto
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+[
+  {
+    "name": "Test",
+    "surname": "Test",
+    "email": "array@example.com"
+  }
+]
+
+### ❌ POST - Null como body
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+null
+
+### ❌ POST - String en lugar de JSON
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+"esto no es un objeto"
+
+### ❌ POST - Número en lugar de JSON
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+123
+
+### ❌ GET - ID muy grande
+GET {{baseUrl}}/members/99999999999999999999
+
+### ❌ PUT - Cambiar todos los campos a valores mínimos
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "name": "ab",
+  "surname": "cd",
+  "email": "a@b.c"
+}
+
+### ❌ POST - Todos los campos vacíos
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "",
+  "surname": "",
+  "email": "",
+  "phone": ""
+}
+
+
+###############################################################################
+# 🔟 FLUJO COMPLETO (Happy Path)
+###############################################################################
+
+### PASO 1: Crear un miembro nuevo
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "FlowTest",
+  "surname": "Complete",
+  "email": "flowtest@example.com",
+  "phone": "1111111111",
+  "status": "ACTIVE"
+}
+
+### PASO 2: Obtener todos (verificar que está en la lista)
+GET {{baseUrl}}/members
+
+### PASO 3: Obtener el miembro por ID (cambiar ID según la respuesta anterior)
+GET {{baseUrl}}/members/1
+
+### PASO 4: Actualizar el miembro
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "name": "FlowTestUpdated",
+  "phone": "2222222222"
+}
+
+### PASO 5: Verificar la actualización
+GET {{baseUrl}}/members/1
+
+### PASO 6: Cambiar a INACTIVE
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "status": "INACTIVE"
+}
+
+### PASO 7: Cambiar a ACTIVE nuevamente
+PUT {{baseUrl}}/members/1
+Content-Type: application/json  
+
+{
+  "status": "ACTIVE"
+}
+
+### PASO 8: Eliminar (soft delete)
+DELETE {{baseUrl}}/members/1
+
+### PASO 9: Intentar obtener (debería estar marcado como eliminado)
+GET {{baseUrl}}/members/1
+
+### PASO 10: Restaurar
+PATCH {{baseUrl}}/members/1/restore
+
+### PASO 11: Verificar que está restaurado
+GET {{baseUrl}}/members/1

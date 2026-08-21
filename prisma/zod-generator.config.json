@@ -1,0 +1,21 @@
+{
+  "mode": "custom",
+  "pureModels": true,
+  "pureModelsIncludeRelations": false,
+  "variants": {
+    "pure": {
+      "enabled": false
+    },
+    "input": {
+      "enabled": false
+    },
+    "result": {
+      "enabled": false
+    }
+  },
+  "emit": {
+    "objects": false,
+    "crud": false,
+    "results": false
+  }
+}

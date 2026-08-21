@@ -1,0 +1,44 @@
+@baseUrl = http://localhost:3000/api/membership-plans
+
+### 1. Obtener todos los planes de membresía
+GET {{baseUrl}}
+
+### 2. Obtener un plan por ID
+GET {{baseUrl}}/1
+
+### 3. Crear un plan válido
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "Plan Premium",
+  "description": "Acceso a todas las instalaciones",
+  "price": 38000,
+  "durationDays": 30
+}
+
+### 4. Crear un plan INVÁLIDO
+# Debería devolver error 400
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "A",
+  "description": "X",
+  "price": -1000,
+  "durationDays": 0
+  }
+
+### 5. Actualizar un plan existente
+PUT {{baseUrl}}/1
+Content-Type: application/json
+
+{
+  "name": "Plan Básico Plus",
+  "description": "Acceso completo a equipamiento",
+  "price": 35000,
+  "durationDays": 30
+}
+
+### 6. Eliminar un plan
+DELETE {{baseUrl}}/1

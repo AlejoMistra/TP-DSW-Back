@@ -1,0 +1,52 @@
+import { ExerciseRepository } from './exercise.repository.js';
+import { ExerciseProps } from './exercise.entity.js';
+import {
+  CreateExerciseInput,
+  ExerciseResponse,
+  ExerciseResponseSchema,
+  UpdateExerciseInput,
+} from './exercise.schemas.js';
+
+export class ExerciseService {
+  constructor(private exerciseRepository: ExerciseRepository) {}
+
+  //PARA EL FILTRADO DE EJERCICIOS POR GRUPO MUSCULAR
+  // async getAll(filter?: { muscleGroup?: string }): Promise<ExerciseResponse[]> {
+  //  const items = await this.exerciseRepository.find(filter);
+  //  if (!items || items.length === 0) {
+  //     throw new Error('No se encontraron ejercicios');
+  //  }
+  //  return items.map((it) => ExerciseResponseSchema.parse(it)) as ExerciseResponse[];
+  // }
+
+  async getAll(): Promise<ExerciseProps[]> {
+    //Aca va la logica de negocio, validaciones, etc. Por ejemplo ocultar algun dato o agregar algun campo calculado.
+    return await this.exerciseRepository.getAll();
+  }
+
+  async getById(id: number): Promise<ExerciseProps> {
+    //Aca va la logica de negocio, validaciones, etc. Por ejemplo ocultar algun dato o agregar algun campo calculado.
+    const exercise = await this.exerciseRepository.getOne(id);
+    if (!exercise) {
+      throw new Error('Ejercicio no encontrado');
+    }
+    return exercise;
+  }
+
+  async create(props: CreateExerciseInput): Promise<ExerciseProps> {
+    const newExercise = await this.exerciseRepository.add(props);
+    return newExercise;
+  }
+
+  async update(id: number, props: UpdateExerciseInput): Promise<ExerciseProps> {
+    const updatedExercise = await this.exerciseRepository.update(id, props);
+    if (!updatedExercise) {
+      throw new Error('Ejercicio no encontrado');
+    }
+    return updatedExercise;
+  }
+
+  async delete(id: number): Promise<boolean> {
+    return await this.exerciseRepository.delete(id);
+  }
+}
