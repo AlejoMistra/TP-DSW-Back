@@ -1,6 +1,6 @@
 import { prisma } from '../../lib/prisma.js';
 import type { CreateClassBookingInput, UpdateClassBookingInput } from './classBooking.schemas.js';
-import type { ClassBooking } from '../../generated/prisma/client';
+import type { ClassBooking } from '../../generated/prisma/client.js';
 
 export class ClassBookingRepository {
   async getAll(): Promise<ClassBooking[]> {
