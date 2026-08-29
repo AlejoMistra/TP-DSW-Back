@@ -16,6 +16,19 @@ export class MemberRepository {
     return member ?? undefined;
   }
 
+  async getAllWithMembership() {
+    return await prisma.member.findMany({
+      where: { deletedAt: null },
+      include: {
+        membership: {
+          include: {
+            membershipPlan: true,
+          },
+        },
+      },
+    });
+  }
+
   async add(props: CreateMemberInput): Promise<Member> {
     // Validar email único ANTES de insertar
     const existing = await prisma.member.findUnique({
