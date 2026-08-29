@@ -7,6 +7,7 @@ import {
   UpdateMembershipSchema,
 } from './membership.schemas.js';
 import { handleError } from '../../utils/errorHandler.js';
+import { membershipPaymentRouter } from '../payment/payment.routes.js';
 
 export const membershipRouter = Router();
 const service = new MembershipService(membershipRepository);
@@ -78,3 +79,5 @@ membershipRouter.delete('/:id', async (req: Request, res: Response) => {
     handleError(error, res);
   }
 });
+
+membershipRouter.use('/:membershipId/payments', membershipPaymentRouter);

@@ -56,13 +56,12 @@ model Instructor {
 }
 
 model Membership {
-  id                Int              @id @default(autoincrement())
-  startDate         DateTime         @default(now())
-  endDate           DateTime
-  status            MembershipStatus @default(ACTIVE)
-  lastPaymentMethod PaymentMethod?
-  lastPaymentDate   DateTime?
-  lastPaymentAmount Decimal?
+  id        Int              @id @default(autoincrement())
+  /// @zod.custom.use(z.coerce.date())
+  startDate DateTime         @default(now())
+  /// @zod.custom.use(z.coerce.date())
+  endDate   DateTime
+  status    MembershipStatus @default(ACTIVE)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -74,9 +73,36 @@ model Membership {
 
   // MUCHAS MEMBRESÍAS COMPARTEN EL MISMO PLAN (1:N)
   membershipPlan   MembershipPlan @relation(fields: [membershipPlanId], references: [id])
+  /// @zod.positive("El ID del plan debe ser mayor a 0")
   membershipPlanId Int
 
+  payments Payment[]
+
   @@map("memberships")
+}
+
+model Payment {
+  id          Int           @id @default(autoincrement())
+  /// @zod.custom.use(z.coerce.number().positive("El monto del pago debe ser mayor a 0"))
+  amount      Decimal
+  method      PaymentMethod
+  /// @zod.custom.use(z.coerce.date())
+  paymentDate DateTime      @default(now())
+  /// @zod.custom.use(z.coerce.date())
+  periodStart DateTime
+  /// @zod.custom.use(z.coerce.date())
+  periodEnd   DateTime
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  membership   Membership @relation(fields: [membershipId], references: [id])
+  /// @zod.positive("El ID de membresía debe ser mayor a 0")
+  membershipId Int
+
+  @@index([membershipId])
+  @@map("payments")
 }
 
 model MembershipPlan {
@@ -85,9 +111,9 @@ model MembershipPlan {
   name         String
   /// @zod.max(500, "La descripción del plan no puede superar los 500 caracteres")
   description  String?
-  /// @zod.min(0.01, "El precio del plan debe ser mayor a 0")
+  /// @zod.positive("El precio del plan debe ser mayor a 0")
   price        Float
-  /// @zod.min(1, "La duración del plan debe ser mayor a 0")
+  /// @zod.positive("La duración del plan debe ser mayor a 0")
   durationDays Int
 
   createdAt DateTime  @default(now())
@@ -207,8 +233,9 @@ enum DifficultyLevelExercise {
 
 enum MembershipStatus {
   ACTIVE
-  EXPIRED
-  CANCELED
+  SUSPENDED
+  CANCELLED
+  PENDING
 }
 
 enum PaymentMethod {

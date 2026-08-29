@@ -4,6 +4,7 @@ import { memberRouter } from './modules/member/member.router.js';
 import { instructorRouter } from './modules/instructor/instructor.router.js';
 import { membershipRouter } from './modules/membership/membership.router.js';
 import { membershipPlanRouter } from './modules/membershipPlan/membershipPlan.routes.js';
+import { paymentRouter } from './modules/payment/payment.routes.js';
 import { classScheduleRouter } from './modules/classSchedule/classSchedule.router.js';
 import { exerciseRouter } from './modules/exercise/exercise.router.js';
 import { classBookingRouter } from './modules/classBooking/classBooking.router.js';
@@ -26,6 +27,12 @@ const availableEndpoints = {
     'GET: Obtener todos los socios | POST: Crear nuevo socio',
   '/api/members/:id':
     'GET: Obtener un socio | PUT: Actualizar socio | DELETE: Eliminar socio',
+  '/api/memberships':
+    'GET: Obtener todas las membresías | POST: Crear nueva membresía',
+  '/api/memberships/:id':
+    'GET: Obtener una membresía | PUT: Actualizar membresía | DELETE: Eliminar membresía',
+  '/api/memberships/:membershipId/payments':
+    'GET: Obtener todos los pagos de una membresía | POST: Registrar nuevo pago en una membresía',
   '/api/instructors':
     'GET: Obtener todos los instructores | POST: Crear nuevo instructor',
   '/api/instructors/:id':
@@ -48,6 +55,10 @@ const availableEndpoints = {
     'GET: Obtener todos los planes de membresía | POST: Crear nuevo plan de membresía',
   '/api/membership-plans/:id':
     'GET: Obtener un plan de membresía | PUT: Actualizar plan de membresía | DELETE: Eliminar plan de membresía',
+  '/api/payments':
+    'GET: Obtener todos los pagos | POST: Registrar nuevo pago',
+  '/api/payments/:id':
+    'GET: Obtener un pago | PATCH: Actualizar pago | DELETE: Eliminar pago',
   '/api/classBookings':
     'GET: Obtener todas las reservas de clase | POST: Crear nueva reserva de clase',
   '/api/classBookings/:id':
@@ -77,6 +88,7 @@ app.use('/api/members', memberRouter);
 app.use('/api/instructors', instructorRouter);
 app.use('/api/memberships', membershipRouter);
 app.use('/api/membership-plans', membershipPlanRouter);
+app.use('/api/payments', paymentRouter);
 app.use('/api/classSchedules', classScheduleRouter);
 app.use('/api/exercises', exerciseRouter);
 app.use('/api/classBookings', classBookingRouter);

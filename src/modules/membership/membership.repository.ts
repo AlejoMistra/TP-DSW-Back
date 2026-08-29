@@ -21,8 +21,8 @@ export class MembershipRepository {
   }
 
   async getByMemberId(memberId: number): Promise<Membership | null> {
-    return await prisma.membership.findUnique({
-      where: { memberId },
+    return prisma.membership.findFirst({
+      where: { memberId, deletedAt: null },
     });
   }
 
@@ -33,15 +33,7 @@ export class MembershipRepository {
         membershipPlan: { connect: { id: membership.membershipPlanId } },
         startDate: new Date(membership.startDate),
         endDate: new Date(membership.endDate),
-        lastPaymentMethod: membership.lastPaymentMethod ?? undefined,
-        lastPaymentDate: membership.lastPaymentDate
-          ? new Date(membership.lastPaymentDate)
-          : undefined,
-        lastPaymentAmount: membership.lastPaymentAmount ?? undefined,
-      },
-      include: {
-        member: true,
-        membershipPlan: true,
+        status: membership.status,
       },
     });
   }
@@ -63,12 +55,15 @@ export class MembershipRepository {
           ? new Date(membership.startDate)
           : undefined,
         endDate: membership.endDate ? new Date(membership.endDate) : undefined,
-        lastPaymentMethod: membership.lastPaymentMethod,
-        lastPaymentDate: membership.lastPaymentDate
-          ? new Date(membership.lastPaymentDate)
-          : undefined,
-        lastPaymentAmount: membership.lastPaymentAmount ?? undefined,
+        status: membership.status,
       },
+    });
+  }
+
+  async updateEndDate(id: number, endDate: Date): Promise<Membership> {
+    return prisma.membership.update({
+      where: { id },
+      data: { endDate },
     });
   }
 

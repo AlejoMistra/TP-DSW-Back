@@ -1,0 +1,75 @@
+@baseUrl = http://localhost:3000/api/payments
+@membershipsUrl = http://localhost:3000/api/memberships
+@contentType = application/json
+
+@membershipId = 1
+@existingPaymentId = 34
+@nonExistingPaymentId = 999999
+
+### 1. Obtener todos los pagos OK
+GET {{baseUrl}}
+
+### 2. Obtener todos los pagos filtrando por membresía OK
+GET {{baseUrl}}?membershipId={{membershipId}}
+
+### 3. Obtener pagos a través de endpoint anidado OK
+GET {{membershipsUrl}}/{{membershipId}}/payments
+
+### 4. Obtener un pago por ID válido OK
+GET {{baseUrl}}/{{existingPaymentId}}
+
+### 5. Obtener un pago con ID inválido OK
+GET {{baseUrl}}/abc
+
+### 6. Obtener un pago inexistente OK
+GET {{baseUrl}}/{{nonExistingPaymentId}}
+
+### 7. Registrar un nuevo pago (top-level) OK
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "membershipId": {{membershipId}},
+  "amount": 25000.00,
+  "method": "CREDIT_CARD",
+  "periodStart": "2026-09-01T00:00:00.000Z",
+  "periodEnd": "2026-10-01T00:00:00.000Z"
+}
+
+### 8. Registrar un nuevo pago (endpoint anidado) OK
+POST {{membershipsUrl}}/{{membershipId}}/payments
+Content-Type: {{contentType}}
+
+{
+  "amount": 30000,
+  "method": "TRANSFER",
+  "periodStart": "2026-10-01T00:00:00.000Z",
+  "periodEnd": "2026-11-01T00:00:00.000Z"
+}
+
+### 9. Registrar pago inválido (monto negativo)
+POST {{baseUrl}}
+Content-Type: {{contentType}}
+
+{
+  "membershipId": {{membershipId}},
+  "amount": -500,
+  "method": "CASH",
+  "periodStart": "2026-09-01T00:00:00.000Z",
+  "periodEnd": "2026-10-01T00:00:00.000Z"
+}
+
+### 10. Actualizar un pago existente OK
+PATCH {{baseUrl}}/{{existingPaymentId}}
+Content-Type: {{contentType}}
+
+{
+  "amount": 28000,
+  "method": "DEBIT_CARD"
+}
+
+### 11. Eliminar un pago existente OK
+DELETE {{baseUrl}}/{{existingPaymentId}}
+
+### 12. Eliminar un pago inexistente OK
+DELETE {{baseUrl}}/{{nonExistingPaymentId}}
