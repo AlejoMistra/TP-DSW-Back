@@ -18,12 +18,22 @@ export class MemberService {
   }
 
   async getAllWithMembership() {
-    try {
-      const members = await this.memberRepository.getAllWithMembership();
-      return members;
-    } catch (error) {
-      throw error;
-    }
+    const members = await this.memberRepository.getAllWithMembership();
+    const now = new Date();
+    return members.map((member) => {
+      if (!member.membership) return member;
+      let computedStatus = member.membership.status as string;
+      if (member.membership.status === 'ACTIVE' && member.membership.endDate < now) {
+        computedStatus = 'EXPIRED';
+      }
+      return {
+        ...member,
+        membership: {
+          ...member.membership,
+          status: computedStatus,
+        },
+      };
+    });
   }
 
   async create(props: CreateMemberInput): Promise<Member> {

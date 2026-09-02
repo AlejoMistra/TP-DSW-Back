@@ -51,13 +51,7 @@ export class MemberRepository {
     if (existing) {
       throw new Error('Email ya existe');
     }
-    const {
-      membershipPlanId,
-      lastPaymentMethod,
-      lastPaymentDate,
-      lastPaymentAmount,
-      ...memberData
-    } = props;
+    const { membershipPlanId, ...memberData } = props;
     const memberDataFormatted = {
       ...memberData,
       birthDate: new Date(memberData.birthDate + 'T00:00:00'),
@@ -73,9 +67,6 @@ export class MemberRepository {
       data: {
         memberId: member.id,
         membershipPlanId: membershipPlanId,
-        lastPaymentMethod: lastPaymentMethod || null,
-        lastPaymentDate: lastPaymentDate ? new Date(lastPaymentDate) : null,
-        lastPaymentAmount: lastPaymentAmount ? lastPaymentAmount : null,
         startDate: startDate,
         endDate: endDate,
         status: 'ACTIVE',

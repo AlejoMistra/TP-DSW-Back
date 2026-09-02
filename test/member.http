@@ -3,6 +3,9 @@
 ### 1. Obtener todos los socios
 GET {{baseUrl}}
 
+### 1b. Obtener todos los socios con su membresía
+GET {{baseUrl}}/with-membership
+
 ### 2. Obtener un socio por ID
 GET {{baseUrl}}/1
 

@@ -30,11 +30,6 @@ export const CreateMemberSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato inválido de fecha (YYYY-MM-DD)'),
   status: z.enum(['ACTIVE', 'INACTIVE']).default('ACTIVE'), // Por defecto será ACTIVE
   membershipPlanId: z.number().int().positive('Plan es requerido'),
-  lastPaymentMethod: z
-    .enum(['CREDIT_CARD', 'DEBIT_CARD', 'TRANSFER', 'CASH', 'OTHER'])
-    .optional(),
-  lastPaymentDate: z.string().optional(),
-  lastPaymentAmount: z.number().positive().optional(),
 });
 
 // Schema para actualizar (solo name, surname, email, phone)

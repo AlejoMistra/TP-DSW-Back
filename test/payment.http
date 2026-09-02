@@ -2,7 +2,7 @@
 @membershipsUrl = http://localhost:3000/api/memberships
 @contentType = application/json
 
-@membershipId = 1
+@membershipId = 2
 @existingPaymentId = 34
 @nonExistingPaymentId = 999999
 
