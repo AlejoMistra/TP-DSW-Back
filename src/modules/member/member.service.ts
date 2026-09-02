@@ -17,6 +17,15 @@ export class MemberService {
     return member;
   }
 
+  async getAllWithMembership() {
+    try {
+      const members = await this.memberRepository.getAllWithMembership();
+      return members;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async create(props: CreateMemberInput): Promise<Member> {
     return await this.memberRepository.add(props);
   }
