@@ -3,7 +3,7 @@
 @contentType = application/json
 
 @membershipId = 2
-@existingPaymentId = 34
+@existingPaymentId = 55
 @nonExistingPaymentId = 999999
 
 ### 1. Obtener todos los pagos OK
@@ -59,13 +59,15 @@ Content-Type: {{contentType}}
   "periodEnd": "2026-10-01T00:00:00.000Z"
 }
 
-### 10. Actualizar un pago existente OK
+### 10. Actualizar un pago existente y probar el expired en el membership OK
 PATCH {{baseUrl}}/{{existingPaymentId}}
 Content-Type: {{contentType}}
 
 {
   "amount": 28000,
-  "method": "DEBIT_CARD"
+  "method": "DEBIT_CARD",
+  "periodStart": "2026-07-01T00:00:00.000Z",
+  "periodEnd": "2026-08-01T00:00:00.000Z"
 }
 
 ### 11. Eliminar un pago existente OK

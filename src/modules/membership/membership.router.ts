@@ -1,6 +1,5 @@
 import { Router, type Request, type Response } from 'express';
-import { membershipRepository } from '../../shared/instances.js';
-import { MembershipService } from './membership.service.js';
+import { membershipService } from '../../shared/instances.js';
 import {
   CreateMembershipSchema,
   MembershipIdSchema,
@@ -10,7 +9,7 @@ import { handleError } from '../../utils/errorHandler.js';
 import { membershipPaymentRouter } from '../payment/payment.routes.js';
 
 export const membershipRouter = Router();
-const service = new MembershipService(membershipRepository);
+const service = membershipService;
 
 membershipRouter.get('/', async (_req: Request, res: Response) => {
   try {

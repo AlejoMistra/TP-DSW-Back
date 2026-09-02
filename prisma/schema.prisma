@@ -20,12 +20,18 @@ generator zod {
 
 model Member {
   id         Int         @id @default(autoincrement())
+  /// @zod.min(2, "Nombre debe tener al menos 2 caracteres").max(100, "Nombre máximo 100 caracteres")
   name       String
+  /// @zod.min(2, "Apellido debe tener al menos 2 caracteres").max(100, "Apellido máximo 100 caracteres")
   surname    String
+  /// @zod.email("Email inválido")
   email      String      @unique
+  /// @zod.custom.use(z.string().regex(/^\d{7,15}$/, "Teléfono debe tener entre 7 y 15 dígitos"))
   phone      String?
   docType    docType     @default(DNI)
+  /// @zod.length(8, "Formato invalido de documento")
   docNumber  String      @default("")
+  /// @zod.custom.use(z.coerce.date())
   birthDate  DateTime
   membership Membership?
   status     Status      @default(ACTIVE)

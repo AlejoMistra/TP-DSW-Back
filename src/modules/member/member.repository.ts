@@ -3,21 +3,29 @@ import {
   Member,
   Membership,
   MembershipPlan,
+  Prisma,
 } from '../../generated/prisma/client.js';
 import { prisma } from '../../lib/prisma.js';
+
+type DbClient = Prisma.TransactionClient | typeof prisma;
+// El membershipPlanId se resuelve a nivel de servicio (creación de la Membership); el repo de Member no lo conoce.
+type CreateMemberData = Omit<CreateMemberInput, 'membershipPlanId'>;
+
 export class MemberRepository {
   async getAll(): Promise<Member[]> {
-    return await prisma.member.findMany({
+    return prisma.member.findMany({
       where: { deletedAt: null },
-      // orderBy: { createdAt: 'desc' },
     });
   }
 
-  async getOne(id: number): Promise<Member | undefined> {
-    const member = await prisma.member.findFirst({
+  async getOne(id: number): Promise<Member | null> {
+    return prisma.member.findFirst({
       where: { id, deletedAt: null },
     });
-    return member ?? undefined;
+  }
+
+  async findByEmail(email: string): Promise<Member | null> {
+    return prisma.member.findUnique({ where: { email } });
   }
 
   async getAllWithMembership(): Promise<
@@ -25,77 +33,34 @@ export class MemberRepository {
       membership: (Membership & { membershipPlan: MembershipPlan }) | null;
     })[]
   > {
-    try {
-      return await prisma.member.findMany({
-        where: { deletedAt: null },
-        include: {
-          membership: {
-            include: {
-              membershipPlan: true,
-            },
+    return prisma.member.findMany({
+      where: { deletedAt: null },
+      include: {
+        membership: {
+          include: {
+            membershipPlan: true,
           },
         },
-      });
-    } catch (error) {
-      throw new Error(
-        `Error al obtener los socios con membresia: ${error instanceof Error ? error.message : 'desconocido'}`,
-      );
-    }
-  }
-
-  async add(props: CreateMemberInput): Promise<Member> {
-    // Validar email único ANTES de insertar
-    const existing = await prisma.member.findUnique({
-      where: { email: props.email },
-    });
-    if (existing) {
-      throw new Error('Email ya existe');
-    }
-    const { membershipPlanId, ...memberData } = props;
-    const memberDataFormatted = {
-      ...memberData,
-      birthDate: new Date(memberData.birthDate + 'T00:00:00'),
-    };
-    const member = await prisma.member.create({
-      data: memberDataFormatted,
-    });
-
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setMonth(endDate.getMonth() + 1);
-    await prisma.membership.create({
-      data: {
-        memberId: member.id,
-        membershipPlanId: membershipPlanId,
-        startDate: startDate,
-        endDate: endDate,
-        status: 'ACTIVE',
       },
     });
-    return member;
   }
 
-  async update(
-    id: number,
-    props: UpdateMemberInput,
-  ): Promise<Member | undefined> {
-    try {
-      return await prisma.member.update({
-        where: { id },
-        data: {
-          name: props.name,
-          surname: props.surname,
-          email: props.email,
-          birthDate: props.birthDate
-            ? new Date(props.birthDate + 'T00:00:00')
-            : undefined,
-          phone: props.phone ?? null,
-          status: props.status ?? 'ACTIVE',
-        },
-      });
-    } catch (error) {
-      return undefined;
-    }
+  async add(props: CreateMemberData, db: DbClient = prisma): Promise<Member> {
+    return db.member.create({ data: props });
+  }
+
+  async update(id: number, props: UpdateMemberInput): Promise<Member> {
+    return prisma.member.update({
+      where: { id },
+      data: {
+        name: props.name,
+        surname: props.surname,
+        email: props.email,
+        birthDate: props.birthDate,
+        phone: props.phone,
+        status: props.status,
+      },
+    });
   }
 
   async delete(id: number): Promise<void> {

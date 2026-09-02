@@ -3,7 +3,9 @@ import type {
   UpdateMembershipInput,
 } from './membership.schemas.js';
 import { prisma } from '../../lib/prisma.js';
-import type { Membership } from '../../generated/prisma/client.js';
+import type { Membership, Prisma } from '../../generated/prisma/client.js';
+
+type DbClient = Prisma.TransactionClient | typeof prisma;
 
 export class MembershipRepository {
   async getAll(): Promise<Membership[]> {
@@ -26,8 +28,11 @@ export class MembershipRepository {
     });
   }
 
-  async create(membership: CreateMembershipInput): Promise<Membership> {
-    return prisma.membership.create({
+  async create(
+    membership: CreateMembershipInput,
+    db: DbClient = prisma,
+  ): Promise<Membership> {
+    return db.membership.create({
       data: {
         member: { connect: { id: membership.memberId } },
         membershipPlan: { connect: { id: membership.membershipPlanId } },
