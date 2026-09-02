@@ -1,5 +1,9 @@
 import { CreateMemberInput, UpdateMemberInput } from './member.schemas.js';
-import { Member } from '../../generated/prisma/client.js';
+import {
+  Member,
+  Membership,
+  MembershipPlan,
+} from '../../generated/prisma/client.js';
 import { prisma } from '../../lib/prisma.js';
 export class MemberRepository {
   async getAll(): Promise<Member[]> {
@@ -14,6 +18,29 @@ export class MemberRepository {
       where: { id, deletedAt: null },
     });
     return member ?? undefined;
+  }
+
+  async getAllWithMembership(): Promise<
+    (Member & {
+      membership: (Membership & { membershipPlan: MembershipPlan }) | null;
+    })[]
+  > {
+    try {
+      return await prisma.member.findMany({
+        where: { deletedAt: null },
+        include: {
+          membership: {
+            include: {
+              membershipPlan: true,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw new Error(
+        `Error al obtener los socios con membresia: ${error instanceof Error ? error.message : 'desconocido'}`,
+      );
+    }
   }
 
   async add(props: CreateMemberInput): Promise<Member> {

@@ -32,6 +32,15 @@ memberRouter.get('/', async (req: Request, res: Response) => {
   }
 });
 
+memberRouter.get('/with-membership', async (req: Request, res: Response) => {
+  try {
+    const members = await service.getAllWithMembership();
+    res.status(200).json(members);
+  } catch (error) {
+    handleError(error, res);
+  }
+});
+
 //GET /api/members/:id
 memberRouter.get('/:id', async (req: Request, res: Response) => {
   try {
@@ -39,7 +48,6 @@ memberRouter.get('/:id', async (req: Request, res: Response) => {
     const member = await service.getById(validatedId.id);
     res.status(200).json(member);
   } catch (error) {
-
     handleError(error, res);
   }
 });
