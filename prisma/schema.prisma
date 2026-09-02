@@ -20,12 +20,18 @@ generator zod {
 
 model Member {
   id         Int         @id @default(autoincrement())
+  /// @zod.min(2, "Nombre debe tener al menos 2 caracteres").max(100, "Nombre máximo 100 caracteres")
   name       String
+  /// @zod.min(2, "Apellido debe tener al menos 2 caracteres").max(100, "Apellido máximo 100 caracteres")
   surname    String
+  /// @zod.email("Email inválido")
   email      String      @unique
+  /// @zod.custom.use(z.string().regex(/^\d{7,15}$/, "Teléfono debe tener entre 7 y 15 dígitos"))
   phone      String?
   docType    docType     @default(DNI)
+  /// @zod.length(8, "Formato invalido de documento")
   docNumber  String      @default("")
+  /// @zod.custom.use(z.coerce.date())
   birthDate  DateTime
   membership Membership?
   status     Status      @default(ACTIVE)
@@ -56,13 +62,12 @@ model Instructor {
 }
 
 model Membership {
-  id                Int              @id @default(autoincrement())
-  startDate         DateTime         @default(now())
-  endDate           DateTime
-  status            MembershipStatus @default(ACTIVE)
-  lastPaymentMethod PaymentMethod?
-  lastPaymentDate   DateTime?
-  lastPaymentAmount Decimal?
+  id        Int              @id @default(autoincrement())
+  /// @zod.custom.use(z.coerce.date())
+  startDate DateTime         @default(now())
+  /// @zod.custom.use(z.coerce.date())
+  endDate   DateTime
+  status    MembershipStatus @default(ACTIVE)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -70,13 +75,41 @@ model Membership {
 
   // UN SOCIO TIENE SOLO UNA MEMBRESÍA (1:1)
   member   Member @relation(fields: [memberId], references: [id])
+  /// @zod.positive("El ID del socio debe ser mayor a 0")
   memberId Int    @unique
 
   // MUCHAS MEMBRESÍAS COMPARTEN EL MISMO PLAN (1:N)
   membershipPlan   MembershipPlan @relation(fields: [membershipPlanId], references: [id])
+  /// @zod.positive("El ID del plan debe ser mayor a 0")
   membershipPlanId Int
 
+  payments Payment[]
+
   @@map("memberships")
+}
+
+model Payment {
+  id          Int           @id @default(autoincrement())
+  /// @zod.custom.use(z.coerce.number().positive("El monto del pago debe ser mayor a 0"))
+  amount      Decimal
+  method      PaymentMethod
+  /// @zod.custom.use(z.coerce.date())
+  paymentDate DateTime      @default(now())
+  /// @zod.custom.use(z.coerce.date())
+  periodStart DateTime
+  /// @zod.custom.use(z.coerce.date())
+  periodEnd   DateTime
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  membership   Membership @relation(fields: [membershipId], references: [id])
+  /// @zod.positive("El ID de membresía debe ser mayor a 0")
+  membershipId Int
+
+  @@index([membershipId])
+  @@map("payments")
 }
 
 model MembershipPlan {
@@ -85,9 +118,9 @@ model MembershipPlan {
   name         String
   /// @zod.max(500, "La descripción del plan no puede superar los 500 caracteres")
   description  String?
-  /// @zod.min(0.01, "El precio del plan debe ser mayor a 0")
+  /// @zod.positive("El precio del plan debe ser mayor a 0")
   price        Float
-  /// @zod.min(1, "La duración del plan debe ser mayor a 0")
+  /// @zod.positive("La duración del plan debe ser mayor a 0")
   durationDays Int
 
   createdAt DateTime  @default(now())
@@ -207,8 +240,9 @@ enum DifficultyLevelExercise {
 
 enum MembershipStatus {
   ACTIVE
-  EXPIRED
-  CANCELED
+  SUSPENDED
+  CANCELLED
+  PENDING
 }
 
 enum PaymentMethod {

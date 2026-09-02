@@ -3,6 +3,9 @@
 ### 1. Obtener todos los socios
 GET {{baseUrl}}
 
+### 1b. Obtener todos los socios con su membresía
+GET {{baseUrl}}/with-membership
+
 ### 2. Obtener un socio por ID
 GET {{baseUrl}}/1
 
@@ -14,8 +17,10 @@ Content-Type: application/json
   "name": "Juan",
   "surname": "Pérez",
   "email": "juan.perez@ejemplo.com",
+  "docNumber": "12345678",
   "phoneNumber": "12345678",
-  "status": "active"
+  "birthDate": "1990-01-01",
+  "membershipPlanId": 1
 }
 
 ### 4. Crear un socio INVÁLIDO (Para probar las validaciones de Zod)
@@ -32,7 +37,7 @@ Content-Type: application/json
 }
 
 ### 5. Actualizar un socio existente
-PUT {{baseUrl}}/1
+PATCH {{baseUrl}}/1
 Content-Type: application/json
 
 {
