@@ -76,8 +76,8 @@ export class MemberService {
         {
           memberId: newMember.id,
           membershipPlanId,
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
+          startDate,
+          endDate,
           status: 'ACTIVE',
         },
         tx,
@@ -95,7 +95,37 @@ export class MemberService {
       throw new NotFoundError(`Socio con ID ${id} no encontrado`);
     }
 
-    const updatedMember = await this.memberRepository.update(id, input);
+    const { membershipPlanId, ...memberData } = input;
+
+    if (membershipPlanId === undefined) {
+      const updatedMember = await this.memberRepository.update(id, memberData);
+      return this.toResponse(updatedMember);
+    }
+
+    const membershipPlan = await this.membershipPlanRepository.findOne(
+      membershipPlanId,
+    );
+    if (!membershipPlan) {
+      throw new NotFoundError(
+        `Plan de membresía con ID ${membershipPlanId} no encontrado`,
+      );
+    }
+
+    const membership = await this.membershipRepository.getByMemberId(id);
+    if (!membership) {
+      throw new NotFoundError(`Membresía para el socio con ID ${id} no encontrada`);
+    }
+
+    const updatedMember = await prisma.$transaction(async (tx) => {
+      const updated = await this.memberRepository.update(id, memberData, tx);
+      await this.membershipRepository.update(
+        membership.id,
+        { membershipPlanId },
+        tx,
+      );
+      return updated;
+    });
+
     return this.toResponse(updatedMember);
   }
 
@@ -105,7 +135,14 @@ export class MemberService {
       throw new NotFoundError(`Socio con ID ${id} no encontrado`);
     }
 
-    await this.memberRepository.delete(id);
+    const membership = await this.membershipRepository.getByMemberId(id);
+
+    await prisma.$transaction(async (tx) => {
+      if (membership) {
+        await this.membershipRepository.delete(membership.id, tx);
+      }
+      await this.memberRepository.delete(id, tx);
+    });
   }
 
   private toResponse(member: Member): MemberResponse {

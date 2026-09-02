@@ -21,6 +21,6 @@ memberRouter.get('/', findAll);
 memberRouter.get('/with-membership', findAllWithMembership);
 memberRouter.get('/:id', validate(GetMemberByIdRequestSchema), findOne);
 memberRouter.post('/', validate(CreateMemberSchema), create);
-memberRouter.put('/:id', validate(UpdateMemberSchema), update);
+memberRouter.patch('/:id', validate(UpdateMemberSchema), update);
 memberRouter.delete('/:id', validate(DeleteMemberRequestSchema), remove);
 

@@ -75,6 +75,7 @@ model Membership {
 
   // UN SOCIO TIENE SOLO UNA MEMBRESÍA (1:1)
   member   Member @relation(fields: [memberId], references: [id])
+  /// @zod.positive("El ID del socio debe ser mayor a 0")
   memberId Int    @unique
 
   // MUCHAS MEMBRESÍAS COMPARTEN EL MISMO PLAN (1:N)

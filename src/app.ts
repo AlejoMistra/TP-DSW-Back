@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { memberRouter } from './modules/member/member.routes.js';
 import { instructorRouter } from './modules/instructor/instructor.router.js';
-import { membershipRouter } from './modules/membership/membership.router.js';
+import { membershipRouter } from './modules/membership/membership.routes.js';
 import { membershipPlanRouter } from './modules/membershipPlan/membershipPlan.routes.js';
 import { paymentRouter } from './modules/payment/payment.routes.js';
 import { classScheduleRouter } from './modules/classSchedule/classSchedule.router.js';
@@ -26,11 +26,11 @@ const availableEndpoints = {
   '/api/members':
     'GET: Obtener todos los socios | POST: Crear nuevo socio',
   '/api/members/:id':
-    'GET: Obtener un socio | PUT: Actualizar socio | DELETE: Eliminar socio',
+    'GET: Obtener un socio | PATCH: Actualizar socio | DELETE: Eliminar socio',
   '/api/memberships':
     'GET: Obtener todas las membresías | POST: Crear nueva membresía',
   '/api/memberships/:id':
-    'GET: Obtener una membresía | PUT: Actualizar membresía | DELETE: Eliminar membresía',
+    'GET: Obtener una membresía | PATCH: Actualizar membresía | DELETE: Eliminar membresía',
   '/api/memberships/:membershipId/payments':
     'GET: Obtener todos los pagos de una membresía | POST: Registrar nuevo pago en una membresía',
   '/api/instructors':

@@ -49,22 +49,19 @@ export class MemberRepository {
     return db.member.create({ data: props });
   }
 
-  async update(id: number, props: UpdateMemberInput): Promise<Member> {
-    return prisma.member.update({
+  async update(
+    id: number,
+    memberData: Omit<UpdateMemberInput, 'membershipPlanId'>,
+    db: DbClient = prisma,
+  ): Promise<Member> {
+    return db.member.update({
       where: { id },
-      data: {
-        name: props.name,
-        surname: props.surname,
-        email: props.email,
-        birthDate: props.birthDate,
-        phone: props.phone,
-        status: props.status,
-      },
+      data: memberData,
     });
   }
 
-  async delete(id: number): Promise<void> {
-    await prisma.member.update({
+  async delete(id: number, db: DbClient = prisma): Promise<void> {
+    await db.member.update({
       where: { id },
       data: { deletedAt: new Date(), status: 'INACTIVE' },
     });

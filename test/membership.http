@@ -2,7 +2,7 @@
 @contentType = application/json
 
 # Ajustar estos valores a registros reales de tu base de datos.
-@existingMembershipId = 1
+@existingMembershipId = 6
 @nonExistingMembershipId = 999999
 @memberId = 1
 @membershipPlanId = 1
@@ -54,7 +54,7 @@ Content-Type: {{contentType}}
 }
 
 ### 8. Actualizar una membresía existente con datos válidos OK
-PUT {{baseUrl}}/{{existingMembershipId}}
+PATCH {{baseUrl}}/{{existingMembershipId}}
 Content-Type: {{contentType}}
 
 {
@@ -62,7 +62,7 @@ Content-Type: {{contentType}}
 }
 
 ### 9. Actualizar una membresía con ID inválido OK
-PUT {{baseUrl}}/abc
+PATCH {{baseUrl}}/abc
 Content-Type: {{contentType}}
 
 {
@@ -70,7 +70,7 @@ Content-Type: {{contentType}}
 }
 
 ### 10. Actualizar una membresía inexistente OK
-PUT {{baseUrl}}/{{nonExistingMembershipId}}
+PATCH {{baseUrl}}/{{nonExistingMembershipId}}
 Content-Type: {{contentType}}
 
 {
