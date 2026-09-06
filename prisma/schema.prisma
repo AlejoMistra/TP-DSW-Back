@@ -240,9 +240,8 @@ enum DifficultyLevelExercise {
 
 enum MembershipStatus {
   ACTIVE
-  SUSPENDED
   CANCELLED
-  PENDING
+  EXPIRED
 }
 
 enum PaymentMethod {

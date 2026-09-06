@@ -5,9 +5,9 @@ import type {
 } from './payment.schemas.js';
 import { PaymentResponseSchema } from './payment.schemas.js';
 import type { PaymentRepository } from './payment.repository.js';
-import type { MembershipRepository } from '../membership/membership.repository.js';
 import type { Payment } from '../../generated/prisma/client.js';
 import { NotFoundError } from '../../utils/errors.js';
+import type { MembershipRepository } from '../membership/membership.repository.js';
 
 export class PaymentService {
   constructor(
@@ -41,7 +41,14 @@ export class PaymentService {
     }
 
     const newPayment = await this.repository.create(input);
-    await this.syncMembershipEndDate(input.membershipId);
+
+    // Actualizar endDate y status de la membresía con el período del pago reciente.
+    await this.membershipRepository.updateEndDate(
+      newPayment.membershipId,
+      newPayment.periodEnd,
+      'ACTIVE',
+    );
+
     return this.toResponse(newPayment);
   }
 
@@ -60,9 +67,18 @@ export class PaymentService {
 
     const updatedPayment = await this.repository.update(id, input);
 
-    await this.syncMembershipEndDate(updatedPayment.membershipId);
-    if (input.membershipId && input.membershipId !== existingPayment.membershipId) {
-      await this.syncMembershipEndDate(existingPayment.membershipId);
+    // Re-sincronizar si cambió el período o se reasignó a otra membresía.
+    const periodEndChanged = input.periodEnd !== undefined;
+    const membershipChanged =
+      input.membershipId !== undefined &&
+      input.membershipId !== existingPayment.membershipId;
+
+    if (periodEndChanged || membershipChanged) {
+      await this.membershipRepository.updateEndDate(
+        updatedPayment.membershipId,
+        updatedPayment.periodEnd,
+        'ACTIVE',
+      );
     }
 
     return this.toResponse(updatedPayment);
@@ -75,14 +91,6 @@ export class PaymentService {
     }
 
     await this.repository.delete(id);
-    await this.syncMembershipEndDate(existingPayment.membershipId);
-  }
-
-  private async syncMembershipEndDate(membershipId: number): Promise<void> {
-    const latestPayment = await this.repository.findLatestByMembershipId(membershipId);
-    if (latestPayment) {
-      await this.membershipRepository.updateEndDate(membershipId, latestPayment.periodEnd);
-    }
   }
 
   private toResponse(payment: Payment): PaymentResponse {

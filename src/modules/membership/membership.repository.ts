@@ -3,7 +3,7 @@ import type {
   UpdateMembershipInput,
 } from './membership.schemas.js';
 import { prisma } from '../../lib/prisma.js';
-import type { Membership, Prisma } from '../../generated/prisma/client.js';
+import type { Membership, MembershipStatus, Prisma } from '../../generated/prisma/client.js';
 
 type DbClient = Prisma.TransactionClient | typeof prisma;
 
@@ -72,10 +72,14 @@ export class MembershipRepository {
     });
   }
 
-  async updateEndDate(id: number, endDate: Date): Promise<Membership> {
+  async updateEndDate(
+    id: number,
+    endDate: Date,
+    status?: MembershipStatus,
+  ): Promise<Membership> {
     return prisma.membership.update({
       where: { id },
-      data: { endDate },
+      data: { endDate, status },
     });
   }
 

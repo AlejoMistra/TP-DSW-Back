@@ -7,9 +7,9 @@ GET {{baseUrl}}
 GET {{baseUrl}}/with-membership
 
 ### 2. Obtener un socio por ID
-GET {{baseUrl}}/1
+GET {{baseUrl}}/7
 
-### 3. Crear un socio válido
+### 3. Crear un socio válido (sin pago -> membresía queda PENDING)
 POST {{baseUrl}}
 Content-Type: application/json
 
@@ -21,6 +21,24 @@ Content-Type: application/json
   "phoneNumber": "12345678",
   "birthDate": "1990-01-01",
   "membershipPlanId": 1
+}
+
+### 3b. Crear un socio con pago inicial (membresía queda ACTIVE y se crea el Payment)
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "Ana",
+  "surname": "Gómez",
+  "email": "ana.gomez@ejemplo.com",
+  "docNumber": "87654321",
+  "phoneNumber": "12345678",
+  "birthDate": "1992-05-10",
+  "membershipPlanId": 1,
+  "payment": {
+    "amount": 15000,
+    "method": "CREDIT_CARD"
+  }
 }
 
 ### 4. Crear un socio INVÁLIDO (Para probar las validaciones de Zod)

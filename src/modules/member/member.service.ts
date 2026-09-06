@@ -3,7 +3,10 @@ import type { Member } from '../../generated/prisma/client.js';
 import { MemberRepository } from './member.repository.js';
 import { MembershipRepository } from '../membership/membership.repository.js';
 import { MembershipService } from '../membership/membership.service.js';
+import { MembershipResponse } from '../membership/membership.schemas.js';
 import { MembershipPlanRepository } from '../membershipPlan/membershipPlan.repository.js';
+import { PaymentRepository } from '../payment/payment.repository.js';
+import { PaymentResponse, PaymentResponseSchema } from '../payment/payment.schemas.js';
 import {
   CreateMemberInput,
   MemberResponse,
@@ -11,6 +14,12 @@ import {
   UpdateMemberInput,
 } from './member.schemas.js';
 import { ConflictError, NotFoundError } from '../../utils/errors.js';
+import { FREE_TRIAL_DAYS } from '../../shared/constants.js';
+
+export type MemberWithMembershipAndPayment = MemberResponse & {
+  membership: MembershipResponse;
+  payment: PaymentResponse | null;
+};
 
 export class MemberService {
   constructor(
@@ -18,6 +27,7 @@ export class MemberService {
     private readonly membershipRepository: MembershipRepository,
     private readonly membershipService: MembershipService,
     private readonly membershipPlanRepository: MembershipPlanRepository,
+    private readonly paymentRepository: PaymentRepository,
   ) {}
 
   async getAll(): Promise<MemberResponse[]> {
@@ -51,28 +61,32 @@ export class MemberService {
     });
   }
 
-  async create(input: CreateMemberInput): Promise<MemberResponse> {
+  async create(input: CreateMemberInput): Promise<MemberWithMembershipAndPayment> {
     const existing = await this.memberRepository.findByEmail(input.email);
     if (existing) {
       throw new ConflictError('El email ingresado ya existe');
     }
 
-    const { membershipPlanId, ...memberData } = input;
+    const { membershipPlanId, payment, ...memberData } = input;
 
     const membershipPlan = await this.membershipPlanRepository.findOne(membershipPlanId);
     if (!membershipPlan) {
       throw new NotFoundError(`Plan de membresía con ID ${membershipPlanId} no encontrado`);
     }
 
-    // Member + Membership inicial se crean atómicamente para no dejar socios sin membresía.
-    const member = await prisma.$transaction(async (tx) => {
+    // Member + Membership se crean atómicamente.
+    // Sin pago: membresía ACTIVE con free trial de FREE_TRIAL_DAYS días.
+    // Con pago: membresía ACTIVE con duración completa del plan.
+    const { member, membership, createdPayment } = await prisma.$transaction(async (tx) => {
       const newMember = await this.memberRepository.add(memberData, tx);
 
       const startDate = new Date();
       const endDate = new Date(startDate);
-      endDate.setDate(endDate.getDate() + membershipPlan.durationDays);
+      endDate.setDate(
+        endDate.getDate() + (payment ? membershipPlan.durationDays : FREE_TRIAL_DAYS),
+      );
 
-      await this.membershipRepository.create(
+      const newMembership = await this.membershipRepository.create(
         {
           memberId: newMember.id,
           membershipPlanId,
@@ -83,10 +97,28 @@ export class MemberService {
         tx,
       );
 
-      return newMember;
+      const newPayment = payment
+        ? await this.paymentRepository.create(
+            {
+              membershipId: newMembership.id,
+              amount: payment.amount,
+              method: payment.method,
+              paymentDate: payment.paymentDate,
+              periodStart: startDate,
+              periodEnd: endDate,
+            },
+            tx,
+          )
+        : null;
+
+      return { member: newMember, membership: newMembership, createdPayment: newPayment };
     });
 
-    return this.toResponse(member);
+    return {
+      ...this.toResponse(member),
+      membership: this.membershipService.toResponse(membership),
+      payment: createdPayment ? PaymentResponseSchema.parse(createdPayment) : null,
+    };
   }
 
   async update(id: number, input: UpdateMemberInput): Promise<MemberResponse> {
@@ -95,16 +127,15 @@ export class MemberService {
       throw new NotFoundError(`Socio con ID ${id} no encontrado`);
     }
 
-    const { membershipPlanId, ...memberData } = input;
+    const { membershipPlanId, payment, ...memberData } = input;
 
     if (membershipPlanId === undefined) {
+      // Sin cambio de plan: actualizar solo datos del socio.
       const updatedMember = await this.memberRepository.update(id, memberData);
       return this.toResponse(updatedMember);
     }
 
-    const membershipPlan = await this.membershipPlanRepository.findOne(
-      membershipPlanId,
-    );
+    const membershipPlan = await this.membershipPlanRepository.findOne(membershipPlanId);
     if (!membershipPlan) {
       throw new NotFoundError(
         `Plan de membresía con ID ${membershipPlanId} no encontrado`,
@@ -116,13 +147,37 @@ export class MemberService {
       throw new NotFoundError(`Membresía para el socio con ID ${id} no encontrada`);
     }
 
+    // Cambio de plan: el período se reinicia desde hoy.
+    // Sin pago: free trial de FREE_TRIAL_DAYS días.
+    // Con pago: duración completa del nuevo plan.
+    const startDate = new Date();
+    const endDate = new Date(startDate);
+    endDate.setDate(
+      endDate.getDate() + (payment ? membershipPlan.durationDays : FREE_TRIAL_DAYS),
+    );
+
     const updatedMember = await prisma.$transaction(async (tx) => {
       const updated = await this.memberRepository.update(id, memberData, tx);
       await this.membershipRepository.update(
         membership.id,
-        { membershipPlanId },
+        { membershipPlanId, startDate, endDate, status: 'ACTIVE' },
         tx,
       );
+
+      if (payment) {
+        await this.paymentRepository.create(
+          {
+            membershipId: membership.id,
+            amount: payment.amount,
+            method: payment.method,
+            paymentDate: payment.paymentDate,
+            periodStart: startDate,
+            periodEnd: endDate,
+          },
+          tx,
+        );
+      }
+
       return updated;
     });
 

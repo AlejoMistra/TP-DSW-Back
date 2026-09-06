@@ -2,7 +2,7 @@
 @membershipsUrl = http://localhost:3000/api/memberships
 @contentType = application/json
 
-@membershipId = 2
+@membershipId = 7
 @existingPaymentId = 55
 @nonExistingPaymentId = 999999
 
@@ -30,9 +30,9 @@ Content-Type: {{contentType}}
 
 {
   "membershipId": {{membershipId}},
-  "amount": 25000.00,
+  "amount": 28501,
   "method": "CREDIT_CARD",
-  "periodStart": "2026-09-01T00:00:00.000Z",
+  "periodStart": "2026-09-05T00:00:00.000Z",
   "periodEnd": "2026-10-01T00:00:00.000Z"
 }
 

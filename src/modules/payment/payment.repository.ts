@@ -3,7 +3,9 @@ import type {
   UpdatePaymentInput,
 } from './payment.schemas.js';
 import { prisma } from '../../lib/prisma.js';
-import type { Payment } from '../../generated/prisma/client.js';
+import type { Payment, Prisma } from '../../generated/prisma/client.js';
+
+type DbClient = Prisma.TransactionClient | typeof prisma;
 
 export class PaymentRepository {
   async findAll(membershipId?: number): Promise<Payment[]> {
@@ -39,8 +41,8 @@ export class PaymentRepository {
     });
   }
 
-  async create(payment: CreatePaymentInput): Promise<Payment> {
-    return prisma.payment.create({
+  async create(payment: CreatePaymentInput, db: DbClient = prisma): Promise<Payment> {
+    return db.payment.create({
       data: {
         membership: { connect: { id: payment.membershipId } },
         amount: payment.amount,

@@ -22,7 +22,8 @@ export const exerciseRepository = new ExerciseRepository();
 export const paymentRepository = new PaymentRepository();
 
 export const membershipService = new MembershipService(
-  membershipRepository
+  membershipRepository,
+  membershipPlanRepository,
 );
 
 export const paymentService = new PaymentService(
@@ -35,4 +36,5 @@ export const memberService = new MemberService(
   membershipRepository,
   membershipService,
   membershipPlanRepository,
+  paymentRepository,
 );

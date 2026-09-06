@@ -5,11 +5,16 @@ import {
   UpdateMembershipInput,
 } from './membership.schemas.js';
 import { MembershipRepository } from './membership.repository.js';
+import { MembershipPlanRepository } from '../membershipPlan/membershipPlan.repository.js';
 import type { Membership } from '../../generated/prisma/client.js';
 import { NotFoundError } from '../../utils/errors.js';
+import { FREE_TRIAL_DAYS } from '../../shared/constants.js';
 
 export class MembershipService {
-  constructor(private readonly repository: MembershipRepository) {}
+  constructor(
+    private readonly repository: MembershipRepository,
+    private readonly membershipPlanRepository: MembershipPlanRepository,
+  ) {}
 
   async getAll(): Promise<MembershipResponse[]> {
     const memberships = await this.repository.getAll();
@@ -49,7 +54,32 @@ export class MembershipService {
       throw new NotFoundError(`Membresía con ID ${id} no encontrada`);
     }
 
-    const membership = await this.repository.update(id, input);
+    // Si cambia el plan, recalcular startDate/endDate desde hoy.
+    // Si el body ya trae fechas explícitas, se usan tal cual (override manual admin).
+    let updateData = { ...input };
+
+    if (
+      input.membershipPlanId !== undefined &&
+      input.membershipPlanId !== existingMembership.membershipPlanId &&
+      input.startDate === undefined &&
+      input.endDate === undefined
+    ) {
+      const plan = await this.membershipPlanRepository.findOne(input.membershipPlanId);
+      if (!plan) {
+        throw new NotFoundError(
+          `Plan de membresía con ID ${input.membershipPlanId} no encontrado`,
+        );
+      }
+
+      const startDate = new Date();
+      const endDate = new Date(startDate);
+      // Sin pago asociado en este endpoint: free trial. Con fechas manuales: las del plan.
+      endDate.setDate(startDate.getDate() + FREE_TRIAL_DAYS);
+
+      updateData = { ...updateData, startDate, endDate, status: 'ACTIVE' };
+    }
+
+    const membership = await this.repository.update(id, updateData);
     return this.toResponse(membership);
   }
 
