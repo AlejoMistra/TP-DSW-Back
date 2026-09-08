@@ -33,6 +33,9 @@ const membershipPlans = [
   },
 ];
 
+const now = new Date();
+const daysToMs = (days: number) => days * 24 * 60 * 60 * 1000;
+
 const members = [
   {
     name: "Juan",
@@ -42,7 +45,21 @@ const members = [
     docNumber: "30111222",
     birthDate: new Date("1990-05-12"),
     planName: "Básico",
-    lastPaymentMethod: "CASH" as const,
+    status: "ACTIVE" as const,
+    paymentsHistory: [
+      {
+        periodStart: new Date(now.getTime() - daysToMs(60)),
+        periodEnd: new Date(now.getTime() - daysToMs(30)),
+        paymentDate: new Date(now.getTime() - daysToMs(60)),
+        method: "CASH" as const,
+      },
+      {
+        periodStart: new Date(now.getTime() - daysToMs(30)),
+        periodEnd: new Date(now.getTime() + daysToMs(30)),
+        paymentDate: new Date(now.getTime() - daysToMs(30)),
+        method: "TRANSFER" as const,
+      },
+    ],
   },
   {
     name: "María",
@@ -52,7 +69,27 @@ const members = [
     docNumber: "32222333",
     birthDate: new Date("1988-11-03"),
     planName: "Plus",
-    lastPaymentMethod: "CREDIT_CARD" as const,
+    status: "ACTIVE" as const,
+    paymentsHistory: [
+      {
+        periodStart: new Date(now.getTime() - daysToMs(90)),
+        periodEnd: new Date(now.getTime() - daysToMs(60)),
+        paymentDate: new Date(now.getTime() - daysToMs(90)),
+        method: "CREDIT_CARD" as const,
+      },
+      {
+        periodStart: new Date(now.getTime() - daysToMs(60)),
+        periodEnd: new Date(now.getTime() - daysToMs(30)),
+        paymentDate: new Date(now.getTime() - daysToMs(60)),
+        method: "CREDIT_CARD" as const,
+      },
+      {
+        periodStart: new Date(now.getTime() - daysToMs(30)),
+        periodEnd: new Date(now.getTime() + daysToMs(30)),
+        paymentDate: new Date(now.getTime() - daysToMs(30)),
+        method: "CREDIT_CARD" as const,
+      },
+    ],
   },
   {
     name: "Carlos",
@@ -62,7 +99,15 @@ const members = [
     docNumber: "28333444",
     birthDate: new Date("1995-02-20"),
     planName: "Premium",
-    lastPaymentMethod: "TRANSFER" as const,
+    status: "ACTIVE" as const,
+    paymentsHistory: [
+      {
+        periodStart: new Date(now.getTime() - daysToMs(15)),
+        periodEnd: new Date(now.getTime() + daysToMs(15)),
+        paymentDate: new Date(now.getTime() - daysToMs(15)),
+        method: "TRANSFER" as const,
+      },
+    ],
   },
   {
     name: "Lucía",
@@ -72,7 +117,21 @@ const members = [
     docNumber: "35444555",
     birthDate: new Date("1999-07-08"),
     planName: "Plus",
-    lastPaymentMethod: "DEBIT_CARD" as const,
+    status: "SUSPENDED" as const,
+    paymentsHistory: [
+      {
+        periodStart: new Date(now.getTime() - daysToMs(60)),
+        periodEnd: new Date(now.getTime() - daysToMs(30)),
+        paymentDate: new Date(now.getTime() - daysToMs(60)),
+        method: "DEBIT_CARD" as const,
+      },
+      {
+        periodStart: new Date(now.getTime() - daysToMs(30)),
+        periodEnd: new Date(now.getTime() + daysToMs(30)),
+        paymentDate: new Date(now.getTime() - daysToMs(30)),
+        method: "DEBIT_CARD" as const,
+      },
+    ],
   },
   {
     name: "Diego",
@@ -82,57 +141,111 @@ const members = [
     docNumber: "29555666",
     birthDate: new Date("1992-09-30"),
     planName: "Básico",
-    lastPaymentMethod: "CASH" as const,
+    status: "ACTIVE" as const,
+    paymentsHistory: [
+      {
+        periodStart: new Date(now.getTime() - daysToMs(90)),
+        periodEnd: new Date(now.getTime() - daysToMs(60)),
+        paymentDate: new Date(now.getTime() - daysToMs(90)),
+        method: "CASH" as const,
+      },
+      {
+        periodStart: new Date(now.getTime() - daysToMs(60)),
+        periodEnd: new Date(now.getTime() - daysToMs(30)),
+        paymentDate: new Date(now.getTime() - daysToMs(60)),
+        method: "CASH" as const,
+      },
+    ],
   },
 ];
 
 async function main() {
   console.log("Seeding database...");
 
-  const plansByName = new Map<string, number>();
+  const plansByName = new Map<string, { id: number; price: number }>();
   for (const plan of membershipPlans) {
     const existing = await prisma.membershipPlan.findFirst({
       where: { name: plan.name },
     });
     const created =
       existing ?? (await prisma.membershipPlan.create({ data: plan }));
-    plansByName.set(created.name, created.id);
+    plansByName.set(created.name, { id: created.id, price: created.price });
   }
 
-  for (const member of members) {
-    const planId = plansByName.get(member.planName);
-    if (!planId) {
-      throw new Error(`Plan not found: ${member.planName}`);
+  for (const memberData of members) {
+    const planInfo = plansByName.get(memberData.planName);
+    if (!planInfo) {
+      throw new Error(`Plan not found: ${memberData.planName}`);
     }
 
-    const startDate = new Date();
-    const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + 30);
+    const sortedPayments = [...memberData.paymentsHistory].sort(
+      (a, b) => a.periodStart.getTime() - b.periodStart.getTime(),
+    );
+    const startDate = sortedPayments[0].periodStart;
+    const endDate = sortedPayments[sortedPayments.length - 1].periodEnd;
 
-    await prisma.member.upsert({
-      where: { email: member.email },
-      update: {},
-      create: {
-        name: member.name,
-        surname: member.surname,
-        email: member.email,
-        phone: member.phone,
-        docNumber: member.docNumber,
-        birthDate: member.birthDate,
-        membership: {
-          create: {
+    const existingMember = await prisma.member.findUnique({
+      where: { email: memberData.email },
+      include: { membership: true },
+    });
+
+    if (existingMember) {
+      if (existingMember.membership) {
+        await prisma.payment.deleteMany({
+          where: { membershipId: existingMember.membership.id },
+        });
+
+        await prisma.membership.update({
+          where: { id: existingMember.membership.id },
+          data: {
             startDate,
             endDate,
-            lastPaymentMethod: member.lastPaymentMethod,
-            lastPaymentDate: startDate,
-            membershipPlanId: planId,
+            status: memberData.status,
+            membershipPlanId: planInfo.id,
+            payments: {
+              create: sortedPayments.map((p) => ({
+                amount: planInfo.price,
+                method: p.method,
+                paymentDate: p.paymentDate,
+                periodStart: p.periodStart,
+                periodEnd: p.periodEnd,
+              })),
+            },
+          },
+        });
+      }
+    } else {
+      await prisma.member.create({
+        data: {
+          name: memberData.name,
+          surname: memberData.surname,
+          email: memberData.email,
+          phone: memberData.phone,
+          docNumber: memberData.docNumber,
+          birthDate: memberData.birthDate,
+          membership: {
+            create: {
+              startDate,
+              endDate,
+              status: memberData.status,
+              membershipPlanId: planInfo.id,
+              payments: {
+                create: sortedPayments.map((p) => ({
+                  amount: planInfo.price,
+                  method: p.method,
+                  paymentDate: p.paymentDate,
+                  periodStart: p.periodStart,
+                  periodEnd: p.periodEnd,
+                })),
+              },
+            },
           },
         },
-      },
-    });
+      });
+    }
   }
 
-  console.log("Seed completed.");
+  console.log("Seed completed successfully.");
 }
 
 main()

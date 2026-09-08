@@ -25,11 +25,14 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
     return;
   }
   
-  // para errores no manejados: loguea server-side y responde con 500, no expone detalles al cliente
-  console.error(err);
-  res.status(500).json({
-    statusCode: 500,
-    code: 'INTERNAL_ERROR',
-    error: 'Error interno del servidor',
-  });
+  //para errores no manejados: si no estamos en development, loguea server-side y responde con 500, no expone detalles al cliente
+  if (process.env.NODE_ENV === 'development') {
+    console.error(err);
+  } else{
+    res.status(500).json({
+        statusCode: 500,
+        code: 'INTERNAL_ERROR',
+        error: 'Error interno del servidor',
+      });
+  }
 }
