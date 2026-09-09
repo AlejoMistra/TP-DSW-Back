@@ -3,15 +3,18 @@ import {
   type ClassSessionResponse,
   type CreateClassSessionInput,
   type UpdateClassSessionInput,
-} from './classSession.schema.js';
+} from './classSession.schemas.js';
 import { ClassSessionRepository } from './classSession.repository.js';
-import { ClassSession } from '../../generated/prisma/client.js';
+import { ClassSession, ClassSchedule } from '../../generated/prisma/client.js';
 import { ClassScheduleRepository } from '../classSchedule/classSchedule.repository.js';
+import { InstructorRepository } from '../instructor/instructor.repository.js';
+import { calculateEndTime, doIntervalsOverlap } from '../../utils/timeUtils.js';
 
 export class ClassSessionService {
   constructor(
     private readonly repository: ClassSessionRepository,
     private readonly classScheduleRepository: ClassScheduleRepository,
+    private readonly instructorRepository: InstructorRepository,
   ) {}
 
   async getAll(): Promise<ClassSessionResponse[]> {
@@ -25,29 +28,68 @@ export class ClassSessionService {
     return this.toResponse(session);
   }
 
-async create(input: CreateClassSessionInput): Promise<ClassSessionResponse> {
-  const schedule = await this.classScheduleRepository.getById(input.classScheduleId);
-  if (!schedule) throw new Error(`ClassSchedule con ID ${input.classScheduleId} no encontrado`);
+  async getByInstructor(instructorId: number): Promise<ClassSessionResponse[]> {
+    const sessions = await this.repository.getByInstructor(instructorId);
+    return sessions.map((s) => this.toResponse(s));
+  }
 
-  const session = await this.repository.create({
-    classScheduleId: input.classScheduleId,
-    date: input.date,
-    startTime: input.startTime,
-    endTime: input.endTime,
-    status: input.status,
-    remainingCapacity: schedule.maxCapacity,
-  });
+  async getBySchedule(classScheduleId: number): Promise<ClassSessionResponse[]> {
+    const sessions = await this.repository.getBySchedule(classScheduleId);
+    return sessions.map((s) => this.toResponse(s));
+  }
 
-  return this.toResponse(session);
-}
+  private async checkInstructorOverlap(instructorId: number, date: Date, startTime: string, durationMinutes: number, excludeSessionId?: number) {
+    const activeSessions = await this.repository.findActiveSessionsByInstructorAndDate(instructorId, date);
+    
+    for (const session of activeSessions) {
+      if (excludeSessionId && session.id === excludeSessionId) continue;
+      
+      const overlap = doIntervalsOverlap(
+        startTime,
+        durationMinutes,
+        session.startTime,
+        session.classSchedule.durationMinutes
+      );
+      
+      if (overlap) {
+        throw new Error(`El instructor ya tiene una clase asignada que se solapa a las ${session.startTime}`);
+      }
+    }
+  }
+
+  async create(input: CreateClassSessionInput): Promise<ClassSessionResponse> {
+    const schedule = await this.classScheduleRepository.getById(input.classScheduleId);
+    if (!schedule) throw new Error(`ClassSchedule con ID ${input.classScheduleId} no encontrado`);
+
+    if (input.instructorId) {
+      const instructor = await this.instructorRepository.getById(input.instructorId);
+      if (!instructor) throw new Error(`Instructor con ID ${input.instructorId} no encontrado`);
+      
+      await this.checkInstructorOverlap(input.instructorId, input.date, input.startTime, schedule.durationMinutes);
+    }
+
+    const session = await this.repository.create(input, schedule.maxCapacity);
+    return this.toResponse(session);
+  }
 
   async update(id: number, input: UpdateClassSessionInput): Promise<ClassSessionResponse> {
     const existing = await this.repository.getById(id);
     if (!existing) throw new Error(`Sesion de clase con ID ${id} no encontrada`);
 
-    if (input.classScheduleId !== undefined) {
-      const schedule = await this.classScheduleRepository.getById(input.classScheduleId);
-      if (!schedule) throw new Error(`ClassSchedule con ID ${input.classScheduleId} no encontrado`);
+    const scheduleId = input.classScheduleId ?? existing.classScheduleId;
+    const schedule = await this.classScheduleRepository.getById(scheduleId);
+    if (!schedule) throw new Error(`ClassSchedule con ID ${scheduleId} no encontrado`);
+
+    const instructorId = input.instructorId !== undefined ? input.instructorId : existing.instructorId;
+    
+    if (instructorId) {
+      const instructor = await this.instructorRepository.getById(instructorId);
+      if (!instructor) throw new Error(`Instructor con ID ${instructorId} no encontrado`);
+      
+      const dateToCheck = input.date ?? existing.date;
+      const startTimeToCheck = input.startTime ?? existing.startTime;
+      
+      await this.checkInstructorOverlap(instructorId, dateToCheck, startTimeToCheck, schedule.durationMinutes, id);
     }
 
     const updated = await this.repository.update(id, input);
@@ -60,13 +102,15 @@ async create(input: CreateClassSessionInput): Promise<ClassSessionResponse> {
     await this.repository.delete(id);
   }
 
-  private toResponse(session: ClassSession): ClassSessionResponse {
+  private toResponse(session: ClassSession & { classSchedule: ClassSchedule }): ClassSessionResponse {
+    const endTime = calculateEndTime(session.startTime, session.classSchedule.durationMinutes);
     return ClassSessionResponseSchema.parse({
       id: session.id,
       classScheduleId: session.classScheduleId,
-      date: session.date.toISOString(),
+      instructorId: session.instructorId,
+      date: session.date,
       startTime: session.startTime,
-      endTime: session.endTime,
+      endTime,
       remainingCapacity: session.remainingCapacity,
       status: session.status,
       createdAt: session.createdAt,
@@ -74,4 +118,4 @@ async create(input: CreateClassSessionInput): Promise<ClassSessionResponse> {
       deletedAt: session.deletedAt,
     });
   }
-}  
+}

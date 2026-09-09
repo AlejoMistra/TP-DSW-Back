@@ -13,12 +13,9 @@ Content-Type: application/json
 {
   "name": "Crossfit",
   "description": "Clase de crossfit para todos los niveles",
-  "category": "Crossfit",
-  "dayOfWeek": "Monday",
-  "startTime": "09:00",
+  "category": "CROSSFIT",
   "durationMinutes": 60,
-  "instructorId": 4,
-  "maxNumber": 20
+  "maxCapacity": 20
 }
 
 ### 4. Crear un horario INVÁLIDO
@@ -27,13 +24,11 @@ POST {{baseUrl}}
 Content-Type: application/json
 
 {
-  "name": "A",
+  "name": "",
   "description": "Clase inválida",
   "category": "invalida",
-  "dayOfWeek": "xyz",
-  "instructorId": -1,
   "durationMinutes": 0,
-  "maxNumber": -5
+  "maxCapacity": -5
 }
 
 ### 5. Actualizar un horario existente
@@ -42,21 +37,13 @@ Content-Type: application/json
 
 {
   "name": "Crossfit Avanzado",
-  "category": "Crossfit",
-  "dayOfWeek": "Tuesday",
+  "category": "CROSSFIT",
   "durationMinutes": 90,
-  "instructorId": 2,
-  "maxNumber": 15
+  "maxCapacity": 15
 }
 
 ### 6. Eliminar un horario de clase
 DELETE {{baseUrl}}/1
 
-### 7. Obtener clases por instructor (método especial)
-GET {{baseUrl}}/instructor/4
-
-### 8. Obtener clases por categoría (método especial)
-GET {{baseUrl}}/category/Crossfit
-
-### 9. Obtener clases por día de la semana (método especial)
-GET {{baseUrl}}/day/Tuesday
+### 7. Obtener clases por categoría (método especial)
+GET {{baseUrl}}/category/CROSSFIT

@@ -4,7 +4,7 @@ import {
   ClassBookingResponse,
   ClassBookingResponseSchema,
 } from './classBooking.schemas.js';
-import { Prisma, type ClassBooking } from '../../generated/prisma/client.js'; // <- cambiar import
+import { Prisma, type ClassBooking } from '../../generated/prisma/client.js';
 import { ClassBookingRepository } from './classBooking.repository.js';
 import { prisma } from '../../lib/prisma.js';
 
