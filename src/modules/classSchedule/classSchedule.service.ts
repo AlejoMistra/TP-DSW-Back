@@ -7,6 +7,7 @@ import {
 } from './classSchedule.schemas.js';
 import { ClassScheduleRepository } from './classSchedule.repository.js';
 import { ClassCategory } from '../../generated/prisma/client.js';
+import { NotFoundError } from '../../utils/errors.js';
 
 export class ClassScheduleService {
   constructor(
@@ -20,7 +21,7 @@ export class ClassScheduleService {
 
   async getById(id: number): Promise<ClassScheduleResponse> {
     const classById = await this.classScheduleRepository.getById(id);
-    if (!classById) throw new Error(`ClassSchedule with ID ${id} not found`);
+    if (!classById) throw new NotFoundError(`Tipo de clase con ID ${id} no encontrado`);
     return this.toResponse(classById);
   }
 
@@ -39,7 +40,7 @@ export class ClassScheduleService {
     input: UpdateClassScheduleInput,
   ): Promise<ClassScheduleResponse> {
     const existing = await this.classScheduleRepository.getById(id);
-    if (!existing) throw new Error(`ClassSchedule with ID ${id} not found`);
+    if (!existing) throw new NotFoundError(`Tipo de clase con ID ${id} no encontrado`);
 
     const updated = await this.classScheduleRepository.update(id, input);
     return this.toResponse(updated);
@@ -47,7 +48,7 @@ export class ClassScheduleService {
 
   async delete(id: number): Promise<void> {
     const existing = await this.classScheduleRepository.getById(id);
-    if (!existing) throw new Error(`ClassSchedule with ID ${id} not found`);
+    if (!existing) throw new NotFoundError(`Tipo de clase con ID ${id} no encontrado`);
 
     await this.classScheduleRepository.delete(id);
   }

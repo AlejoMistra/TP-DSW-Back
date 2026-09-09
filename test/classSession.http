@@ -11,10 +11,10 @@ POST {{baseUrl}}
 Content-Type: application/json
 
 {
-  "classScheduleId": 1,
-  "date": "2026-10-15T00:00:00.000Z",
+  "classScheduleId": 2,
+  "date": "2026-10-15",
   "startTime": "10:00",
-  "instructorId": 4,
+  "instructorId": 1,
   "status": "SCHEDULED"
 }
 
@@ -24,14 +24,14 @@ Content-Type: application/json
 
 {
   "startTime": "11:00",
-  "instructorId": 2
+  "instructorId": 1
 }
 
 ### 5. Eliminar una sesión de clase
 DELETE {{baseUrl}}/1
 
 ### 6. Obtener sesiones por instructor
-GET {{baseUrl}}/instructor/4
+GET {{baseUrl}}/instructor/1
 
 ### 7. Obtener sesiones por clase
-GET {{baseUrl}}/schedule/1
+GET {{baseUrl}}/schedule/2

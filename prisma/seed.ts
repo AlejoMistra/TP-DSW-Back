@@ -44,8 +44,9 @@ const members = [
     phone: "1123456789",
     docNumber: "30111222",
     birthDate: new Date("1990-05-12"),
+    memberStatus: "ACTIVE" as const,
     planName: "Básico",
-    status: "ACTIVE" as const,
+    membershipStatus: "ACTIVE" as const,
     paymentsHistory: [
       {
         periodStart: new Date(now.getTime() - daysToMs(60)),
@@ -68,8 +69,9 @@ const members = [
     phone: "1134567890",
     docNumber: "32222333",
     birthDate: new Date("1988-11-03"),
+    memberStatus: "ACTIVE" as const,
     planName: "Plus",
-    status: "ACTIVE" as const,
+    membershipStatus: "ACTIVE" as const,
     paymentsHistory: [
       {
         periodStart: new Date(now.getTime() - daysToMs(90)),
@@ -98,8 +100,9 @@ const members = [
     phone: "1145678901",
     docNumber: "28333444",
     birthDate: new Date("1995-02-20"),
+    memberStatus: "ACTIVE" as const,
     planName: "Premium",
-    status: "ACTIVE" as const,
+    membershipStatus: "ACTIVE" as const,
     paymentsHistory: [
       {
         periodStart: new Date(now.getTime() - daysToMs(15)),
@@ -116,8 +119,9 @@ const members = [
     phone: "1156789012",
     docNumber: "35444555",
     birthDate: new Date("1999-07-08"),
+    memberStatus: "INACTIVE" as const,
     planName: "Plus",
-    status: "SUSPENDED" as const,
+    membershipStatus: "CANCELLED" as const,
     paymentsHistory: [
       {
         periodStart: new Date(now.getTime() - daysToMs(60)),
@@ -140,8 +144,9 @@ const members = [
     phone: "1167890123",
     docNumber: "29555666",
     birthDate: new Date("1992-09-30"),
+    memberStatus: "ACTIVE" as const,
     planName: "Básico",
-    status: "ACTIVE" as const,
+    membershipStatus: "EXPIRED" as const,
     paymentsHistory: [
       {
         periodStart: new Date(now.getTime() - daysToMs(90)),
@@ -159,9 +164,137 @@ const members = [
   },
 ];
 
+const classSchedules = [
+  {
+    name: "Spinning Interval",
+    description: "Entrenamiento cardiovascular sobre bicicleta fija con intervalos de alta intensidad.",
+    category: "SPINNING" as const,
+    maxCapacity: 15,
+    durationMinutes: 45,
+  },
+  {
+    name: "Crossfit WOD",
+    description: "Entrenamiento funcional de alta intensidad combinando fuerza y acondicionamiento.",
+    category: "CROSSFIT" as const,
+    maxCapacity: 20,
+    durationMinutes: 60,
+  },
+  {
+    name: "Yoga Vinyasa",
+    description: "Secuencias dinámicas de posturas coordinadas con la respiración y flexibilidad.",
+    category: "YOGA" as const,
+    maxCapacity: 12,
+    durationMinutes: 60,
+  },
+  {
+    name: "Pilates Mat",
+    description: "Fortalecimiento del core y reeducación postural mediante ejercicios en colchoneta.",
+    category: "PILATES" as const,
+    maxCapacity: 10,
+    durationMinutes: 50,
+  },
+  {
+    name: "Entrenamiento Funcional",
+    description: "Circuitos de fuerza, coordinación y agilidad adaptados a movimientos naturales.",
+    category: "FUNCTIONAL" as const,
+    maxCapacity: 18,
+    durationMinutes: 55,
+  },
+  {
+    name: "HIIT Cardio",
+    description: "Intervalos intensos con descansos cortos para acelerar el metabolismo y quemar grasa.",
+    category: "HIIT" as const,
+    maxCapacity: 16,
+    durationMinutes: 45,
+  },
+];
+
+const getSessionDate = (dayOffset: number) => {
+  const date = new Date(now);
+  date.setDate(date.getDate() + dayOffset);
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+const classSessionsData = [
+  {
+    scheduleName: "Spinning Interval",
+    date: getSessionDate(1),
+    startTime: "08:00",
+    status: "SCHEDULED" as const,
+    bookings: [
+      { memberEmail: "juan.perez@example.com", status: "CONFIRMED" as const },
+      { memberEmail: "maria.gomez@example.com", status: "CONFIRMED" as const },
+    ],
+  },
+  {
+    scheduleName: "Crossfit WOD",
+    date: getSessionDate(1),
+    startTime: "18:00",
+    status: "SCHEDULED" as const,
+    bookings: [
+      { memberEmail: "carlos.fernandez@example.com", status: "CONFIRMED" as const },
+      { memberEmail: "maria.gomez@example.com", status: "CONFIRMED" as const },
+    ],
+  },
+  {
+    scheduleName: "Yoga Vinyasa",
+    date: getSessionDate(1),
+    startTime: "19:30",
+    status: "SCHEDULED" as const,
+    bookings: [
+      { memberEmail: "juan.perez@example.com", status: "CONFIRMED" as const },
+      { memberEmail: "carlos.fernandez@example.com", status: "CANCELLED" as const },
+    ],
+  },
+  {
+    scheduleName: "Entrenamiento Funcional",
+    date: getSessionDate(2),
+    startTime: "09:00",
+    status: "SCHEDULED" as const,
+    bookings: [
+      { memberEmail: "carlos.fernandez@example.com", status: "CONFIRMED" as const },
+    ],
+  },
+  {
+    scheduleName: "Pilates Mat",
+    date: getSessionDate(2),
+    startTime: "17:00",
+    status: "SCHEDULED" as const,
+    bookings: [],
+  },
+  {
+    scheduleName: "HIIT Cardio",
+    date: getSessionDate(2),
+    startTime: "19:00",
+    status: "SCHEDULED" as const,
+    bookings: [
+      { memberEmail: "juan.perez@example.com", status: "CONFIRMED" as const },
+    ],
+  },
+  {
+    scheduleName: "Spinning Interval",
+    date: getSessionDate(3),
+    startTime: "08:30",
+    status: "SCHEDULED" as const,
+    bookings: [
+      { memberEmail: "maria.gomez@example.com", status: "CONFIRMED" as const },
+    ],
+  },
+  {
+    scheduleName: "Crossfit WOD",
+    date: getSessionDate(3),
+    startTime: "20:00",
+    status: "CANCELLED" as const,
+    bookings: [],
+  },
+];
+
 async function main() {
   console.log("Seeding database...");
 
+  // 1. Membership Plans
+  console.log("Seeding membership plans...");
   const plansByName = new Map<string, { id: number; price: number }>();
   for (const plan of membershipPlans) {
     const existing = await prisma.membershipPlan.findFirst({
@@ -171,6 +304,10 @@ async function main() {
       existing ?? (await prisma.membershipPlan.create({ data: plan }));
     plansByName.set(created.name, { id: created.id, price: created.price });
   }
+
+  // 2. Members, Memberships & Payments
+  console.log("Seeding members, memberships and payments...");
+  const membersByEmail = new Map<string, number>();
 
   for (const memberData of members) {
     const planInfo = plansByName.get(memberData.planName);
@@ -189,7 +326,22 @@ async function main() {
       include: { membership: true },
     });
 
+    let memberId: number;
+
     if (existingMember) {
+      memberId = existingMember.id;
+      await prisma.member.update({
+        where: { id: existingMember.id },
+        data: {
+          name: memberData.name,
+          surname: memberData.surname,
+          phone: memberData.phone,
+          docNumber: memberData.docNumber,
+          birthDate: memberData.birthDate,
+          status: memberData.memberStatus,
+        },
+      });
+
       if (existingMember.membership) {
         await prisma.payment.deleteMany({
           where: { membershipId: existingMember.membership.id },
@@ -200,7 +352,26 @@ async function main() {
           data: {
             startDate,
             endDate,
-            status: memberData.status,
+            status: memberData.membershipStatus,
+            membershipPlanId: planInfo.id,
+            payments: {
+              create: sortedPayments.map((p) => ({
+                amount: planInfo.price,
+                method: p.method,
+                paymentDate: p.paymentDate,
+                periodStart: p.periodStart,
+                periodEnd: p.periodEnd,
+              })),
+            },
+          },
+        });
+      } else {
+        await prisma.membership.create({
+          data: {
+            memberId: existingMember.id,
+            startDate,
+            endDate,
+            status: memberData.membershipStatus,
             membershipPlanId: planInfo.id,
             payments: {
               create: sortedPayments.map((p) => ({
@@ -215,7 +386,7 @@ async function main() {
         });
       }
     } else {
-      await prisma.member.create({
+      const createdMember = await prisma.member.create({
         data: {
           name: memberData.name,
           surname: memberData.surname,
@@ -223,11 +394,12 @@ async function main() {
           phone: memberData.phone,
           docNumber: memberData.docNumber,
           birthDate: memberData.birthDate,
+          status: memberData.memberStatus,
           membership: {
             create: {
               startDate,
               endDate,
-              status: memberData.status,
+              status: memberData.membershipStatus,
               membershipPlanId: planInfo.id,
               payments: {
                 create: sortedPayments.map((p) => ({
@@ -240,6 +412,98 @@ async function main() {
               },
             },
           },
+        },
+      });
+      memberId = createdMember.id;
+    }
+
+    membersByEmail.set(memberData.email, memberId);
+  }
+
+  // 3. Class Schedules
+  console.log("Seeding class schedules...");
+  const schedulesByName = new Map<
+    string,
+    { id: number; maxCapacity: number }
+  >();
+
+  for (const schedule of classSchedules) {
+    const existing = await prisma.classSchedule.findFirst({
+      where: { name: schedule.name },
+    });
+
+    const created = existing
+      ? await prisma.classSchedule.update({
+          where: { id: existing.id },
+          data: {
+            ...schedule,
+            deletedAt: null,
+          },
+        })
+      : await prisma.classSchedule.create({ data: schedule });
+
+    schedulesByName.set(created.name, {
+      id: created.id,
+      maxCapacity: created.maxCapacity,
+    });
+  }
+
+  // 4. Class Sessions & Bookings
+  console.log("Seeding class sessions and bookings...");
+  const seededScheduleIds = Array.from(schedulesByName.values()).map(
+    (s) => s.id,
+  );
+
+  // Clean previous bookings and sessions belonging to these schedules to keep seed fresh & idempotent
+  await prisma.classBooking.deleteMany({
+    where: {
+      classSession: {
+        classScheduleId: { in: seededScheduleIds },
+      },
+    },
+  });
+
+  await prisma.classSession.deleteMany({
+    where: {
+      classScheduleId: { in: seededScheduleIds },
+    },
+  });
+
+  for (const sessionData of classSessionsData) {
+    const scheduleInfo = schedulesByName.get(sessionData.scheduleName);
+    if (!scheduleInfo) {
+      throw new Error(`Schedule not found: ${sessionData.scheduleName}`);
+    }
+
+    const confirmedCount = sessionData.bookings.filter(
+      (b) => b.status === "CONFIRMED",
+    ).length;
+    const remainingCapacity = scheduleInfo.maxCapacity - confirmedCount;
+
+    // Note: instructorId is deliberately omitted/null because instructor module is currently legacy
+    const createdSession = await prisma.classSession.create({
+      data: {
+        classScheduleId: scheduleInfo.id,
+        instructorId: null,
+        date: sessionData.date,
+        startTime: sessionData.startTime,
+        remainingCapacity,
+        status: sessionData.status,
+      },
+    });
+
+    for (const booking of sessionData.bookings) {
+      const memberId = membersByEmail.get(booking.memberEmail);
+      if (!memberId) {
+        throw new Error(`Member not found: ${booking.memberEmail}`);
+      }
+
+      await prisma.classBooking.create({
+        data: {
+          memberId,
+          classSessionId: createdSession.id,
+          status: booking.status,
+          bookingDate: new Date(sessionData.date.getTime() - daysToMs(1)),
         },
       });
     }

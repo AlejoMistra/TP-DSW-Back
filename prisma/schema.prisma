@@ -56,7 +56,7 @@ model Instructor {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  classSchedules ClassSchedule[]
+  classSessions ClassSession[]
 
   @@map("instructors")
 }
@@ -137,29 +137,28 @@ model ClassSchedule {
   name            String
   description     String?
   category        ClassCategory
+  /// @zod.min(1, "La capacidad máxima debe ser al menos 1")
   maxCapacity     Int
+  /// @zod.min(1, "La duración en minutos debe ser al menos 1")
   durationMinutes Int
-
-  instructorId Int
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  instructor Instructor     @relation(fields: [instructorId], references: [id])
-  sessions   ClassSession[]
+  sessions ClassSession[]
 
-  @@unique([name, instructorId]) //sin este unique se pueden crear varios schedules iguales
-  @@index([instructorId])
   @@map("class_schedules")
 }
 
 model ClassSession {
   id                Int         @id @default(autoincrement())
   classScheduleId   Int
+  instructorId      Int?
+  /// @zod.custom.use(z.coerce.date())
   date              DateTime
+  /// @zod.regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "El formato de hora debe ser HH:mm")
   startTime         String
-  endTime           String
   remainingCapacity Int
   status            ClassStatus @default(SCHEDULED)
 
@@ -167,17 +166,20 @@ model ClassSession {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
+  instructor    Instructor?    @relation(fields: [instructorId], references: [id])
   classSchedule ClassSchedule  @relation(fields: [classScheduleId], references: [id])
   bookings      ClassBooking[]
 
-  @@unique([classScheduleId, date, startTime])
+  @@unique([instructorId, date, startTime]) // mismo instructor no puede estar en dos sesiones al mismo tiempo
   @@index([classScheduleId])
   @@map("class_sessions")
 }
 
 model ClassBooking {
   id             Int                @id @default(autoincrement())
+  /// @zod.min(1, "El ID de socio debe ser un entero positivo")
   memberId       Int
+  /// @zod.min(1, "El ID de la sesión de clase debe ser un entero positivo")
   classSessionId Int
   bookingDate    DateTime           @default(now())
   status         ClassBookingStatus @default(CONFIRMED)

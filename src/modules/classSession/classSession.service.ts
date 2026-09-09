@@ -9,6 +9,7 @@ import { ClassSession, ClassSchedule } from '../../generated/prisma/client.js';
 import { ClassScheduleRepository } from '../classSchedule/classSchedule.repository.js';
 import { InstructorRepository } from '../instructor/instructor.repository.js';
 import { calculateEndTime, doIntervalsOverlap } from '../../utils/timeUtils.js';
+import { NotFoundError, ConflictError} from '../../utils/errors.js';
 
 export class ClassSessionService {
   constructor(
@@ -24,7 +25,7 @@ export class ClassSessionService {
 
   async getById(id: number): Promise<ClassSessionResponse> {
     const session = await this.repository.getById(id);
-    if (!session) throw new Error(`Sesion de clase con ID ${id} no encontrada`);
+    if (!session) throw new NotFoundError(`Sesión de clase con ID ${id} no encontrada`);
     return this.toResponse(session);
   }
 
@@ -52,18 +53,18 @@ export class ClassSessionService {
       );
       
       if (overlap) {
-        throw new Error(`El instructor ya tiene una clase asignada que se solapa a las ${session.startTime}`);
+        throw new ConflictError(`El instructor ya tiene una clase asignada que se solapa a las ${session.startTime}`);
       }
     }
   }
 
   async create(input: CreateClassSessionInput): Promise<ClassSessionResponse> {
     const schedule = await this.classScheduleRepository.getById(input.classScheduleId);
-    if (!schedule) throw new Error(`ClassSchedule con ID ${input.classScheduleId} no encontrado`);
+    if (!schedule) throw new NotFoundError(`Tipo de clase con ID ${input.classScheduleId} no encontrado`);
 
     if (input.instructorId) {
       const instructor = await this.instructorRepository.getById(input.instructorId);
-      if (!instructor) throw new Error(`Instructor con ID ${input.instructorId} no encontrado`);
+      if (!instructor) throw new NotFoundError(`Instructor con ID ${input.instructorId} no encontrado`);
       
       await this.checkInstructorOverlap(input.instructorId, input.date, input.startTime, schedule.durationMinutes);
     }
@@ -74,17 +75,17 @@ export class ClassSessionService {
 
   async update(id: number, input: UpdateClassSessionInput): Promise<ClassSessionResponse> {
     const existing = await this.repository.getById(id);
-    if (!existing) throw new Error(`Sesion de clase con ID ${id} no encontrada`);
+    if (!existing) throw new NotFoundError(`Sesión de clase con ID ${id} no encontrada`);
 
     const scheduleId = input.classScheduleId ?? existing.classScheduleId;
     const schedule = await this.classScheduleRepository.getById(scheduleId);
-    if (!schedule) throw new Error(`ClassSchedule con ID ${scheduleId} no encontrado`);
+    if (!schedule) throw new NotFoundError(`Tipo de clase con ID ${scheduleId} no encontrado`);
 
     const instructorId = input.instructorId !== undefined ? input.instructorId : existing.instructorId;
     
     if (instructorId) {
       const instructor = await this.instructorRepository.getById(instructorId);
-      if (!instructor) throw new Error(`Instructor con ID ${instructorId} no encontrado`);
+      if (!instructor) throw new NotFoundError(`Instructor con ID ${instructorId} no encontrado`);
       
       const dateToCheck = input.date ?? existing.date;
       const startTimeToCheck = input.startTime ?? existing.startTime;
@@ -98,7 +99,7 @@ export class ClassSessionService {
   
   async delete(id: number): Promise<void> {
     const existing = await this.repository.getById(id);
-    if (!existing) throw new Error(`Sesion de clase con ID ${id} no encontrada`);
+    if (!existing) throw new NotFoundError(`Sesión de clase con ID ${id} no encontrada`);
     await this.repository.delete(id);
   }
 

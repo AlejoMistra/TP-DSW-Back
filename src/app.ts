@@ -5,10 +5,10 @@ import { instructorRouter } from './modules/instructor/instructor.router.js';
 import { membershipRouter } from './modules/membership/membership.routes.js';
 import { membershipPlanRouter } from './modules/membershipPlan/membershipPlan.routes.js';
 import { paymentRouter } from './modules/payment/payment.routes.js';
-import { classScheduleRouter } from './modules/classSchedule/classSchedule.router.js';
+import { classScheduleRouter } from './modules/classSchedule/classSchedule.routes.js';
 import { exerciseRouter } from './modules/exercise/exercise.router.js';
-import { classBookingRouter } from './modules/classBooking/classBooking.router.js';
-import { classSessionRouter } from './modules/classSession/classSession.router.js';
+import { classBookingRouter } from './modules/classBooking/classBooking.routes.js';
+import { classSessionRouter } from './modules/classSession/classSession.routes.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
 
 const app = express();
