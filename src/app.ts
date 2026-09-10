@@ -10,6 +10,8 @@ import { exerciseRouter } from './modules/exercise/exercise.router.js';
 import { classBookingRouter } from './modules/classBooking/classBooking.routes.js';
 import { classSessionRouter } from './modules/classSession/classSession.routes.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
+import { routineRouter } from './modules/routine/routine.routes.js';
+import { routineExerciseRouter } from './modules/routineExercise/routineExercise.routes.js'
 
 const app = express();
 
@@ -93,6 +95,8 @@ app.use('/api/classSchedules', classScheduleRouter);
 app.use('/api/exercises', exerciseRouter);
 app.use('/api/classBookings', classBookingRouter);
 app.use('/api/classSessions', classSessionRouter);
+app.use('/api/routines', routineRouter);
+app.use('/api/routineExercise', routineExerciseRouter)
 
 app.use(errorHandler);
 

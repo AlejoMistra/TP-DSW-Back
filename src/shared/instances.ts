@@ -7,6 +7,8 @@ import { ClassSessionRepository } from '../modules/classSession/classSession.rep
 import { ClassSessionService } from '../modules/classSession/classSession.service.js';
 import { ClassSessionController } from '../modules/classSession/classSession.controller.js';
 import { ClassBookingRepository } from '../modules/classBooking/classBooking.repository.js';
+import { RoutineExerciseRepository } from '../modules/routineExercise/routineExercise.repository.js'
+import { RoutineRepository } from '../modules/routine/routine.repository.js';
 import { ClassBookingService } from '../modules/classBooking/classBooking.service.js';
 import { ClassBookingController } from '../modules/classBooking/classBooking.controller.js';
 import { MembershipPlanRepository } from '../modules/membershipPlan/membershipPlan.repository.js';
@@ -38,6 +40,9 @@ export const classSessionController = new ClassSessionController(classSessionSer
 
 // Class Booking
 export const classBookingRepository = new ClassBookingRepository();
+export const exerciseRepository = new ExerciseRepository();
+export const routineExerciseRepository = new RoutineExerciseRepository();
+export const routineRepository = new RoutineRepository();
 export const classBookingService = new ClassBookingService(classBookingRepository);
 export const classBookingController = new ClassBookingController(classBookingService);
 

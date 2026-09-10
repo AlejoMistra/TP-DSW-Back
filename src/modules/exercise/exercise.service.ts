@@ -1,52 +1,59 @@
-import { ExerciseRepository } from './exercise.repository.js';
-import { ExerciseProps } from './exercise.entity.js';
+// name=src/modules/exercise/exercise.service.ts
 import {
-  CreateExerciseInput,
-  ExerciseResponse,
+  type CreateExerciseInput,
+  type UpdateExerciseInput,
+  type ExerciseResponse,
   ExerciseResponseSchema,
-  UpdateExerciseInput,
 } from './exercise.schemas.js';
+import type { Exercise } from '../../generated/prisma/client.js';
+import type { ExerciseRepository } from './exercise.repository.js';
+import { NotFoundError } from '../../utils/errors.js';
 
 export class ExerciseService {
-  constructor(private exerciseRepository: ExerciseRepository) {}
+  constructor(private readonly repository: ExerciseRepository) {}
 
-  //PARA EL FILTRADO DE EJERCICIOS POR GRUPO MUSCULAR
-  // async getAll(filter?: { muscleGroup?: string }): Promise<ExerciseResponse[]> {
-  //  const items = await this.exerciseRepository.find(filter);
-  //  if (!items || items.length === 0) {
-  //     throw new Error('No se encontraron ejercicios');
-  //  }
-  //  return items.map((it) => ExerciseResponseSchema.parse(it)) as ExerciseResponse[];
-  // }
+  async findAll(params?: {
+    filter?: { muscleGroup?: string; difficultyLevel?: string; name?: string };
+    page?: number;
+    limit?: number;
+  }): Promise<{ items: ExerciseResponse[]; total: number; page?: number; limit?: number }> {
+    const { filter, page, limit } = params ?? {};
+    const items = await this.repository.findAll({ filter, page, limit });
+    const total = await this.repository.count(filter);
 
-  async getAll(): Promise<ExerciseProps[]> {
-    //Aca va la logica de negocio, validaciones, etc. Por ejemplo ocultar algun dato o agregar algun campo calculado.
-    return await this.exerciseRepository.getAll();
+    return {
+      items: items.map((e) => this.toResponse(e)),
+      total,
+      page,
+      limit,
+    };
   }
 
-  async getById(id: number): Promise<ExerciseProps> {
-    //Aca va la logica de negocio, validaciones, etc. Por ejemplo ocultar algun dato o agregar algun campo calculado.
-    const exercise = await this.exerciseRepository.getOne(id);
-    if (!exercise) {
-      throw new Error('Ejercicio no encontrado');
-    }
-    return exercise;
+  async findOne(id: number): Promise<ExerciseResponse> {
+    const exercise = await this.repository.findOne(id);
+    if (!exercise) throw new NotFoundError(`Ejercicio con ID ${id} no encontrado`);
+    return this.toResponse(exercise);
   }
 
-  async create(props: CreateExerciseInput): Promise<ExerciseProps> {
-    const newExercise = await this.exerciseRepository.add(props);
-    return newExercise;
+  async create(payload: CreateExerciseInput): Promise<ExerciseResponse> {
+    const newExercise = await this.repository.create(payload);
+    return this.toResponse(newExercise);
   }
 
-  async update(id: number, props: UpdateExerciseInput): Promise<ExerciseProps> {
-    const updatedExercise = await this.exerciseRepository.update(id, props);
-    if (!updatedExercise) {
-      throw new Error('Ejercicio no encontrado');
-    }
-    return updatedExercise;
+  async update(id: number, payload: UpdateExerciseInput): Promise<ExerciseResponse> {
+    const existing = await this.repository.findOne(id);
+    if (!existing) throw new NotFoundError(`Ejercicio con ID ${id} no encontrado`);
+    const updated = await this.repository.update(id, payload);
+    return this.toResponse(updated);
   }
 
-  async delete(id: number): Promise<boolean> {
-    return await this.exerciseRepository.delete(id);
+  async remove(id: number): Promise<void> {
+    const existing = await this.repository.findOne(id);
+    if (!existing) throw new NotFoundError(`Ejercicio con ID ${id} no encontrado`);
+    await this.repository.remove(id);
+  }
+
+  private toResponse(e: Exercise): ExerciseResponse {
+    return ExerciseResponseSchema.parse(e);
   }
 }
