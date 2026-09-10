@@ -1,34 +1,35 @@
 import { z } from 'zod';
+import { ClassBookingSchema } from '../../generated/zod/schemas/models/ClassBooking.schema.js';
+import { IdSchema } from '../../shared/common.schemas.js';
 
-export const ClassBookingIdSchema = z.object({
-  id: z.string().regex(/^\d+$/, 'ID debe ser un número').transform(Number),
+const classBookingBaseSchema = ClassBookingSchema.pick({
+  memberId: true,
+  classSessionId: true,
 });
 
 export const CreateClassBookingSchema = z.object({
-  memberId: z.number().int().positive(),
-  classSessionId: z.number().int().positive(),
+  body: classBookingBaseSchema,
 });
 
-// UPDATE SOLO STATUS
-export const UpdateClassBookingSchema = z
-  .object({
-    status: z.enum(['CONFIRMED', 'CANCELLED']),
-  })
-  .refine((data) => Object.keys(data).length > 0, {
-    message: 'Debe enviar al menos un campo para actualizar',
-  });
-
-export const ClassBookingResponseSchema = z.object({
-  id: z.number(),
-  memberId: z.number().int().positive(),
-  classSessionId: z.number().int().positive(),
-  bookingDate: z.coerce.date(),
-  status: z.enum(['CONFIRMED', 'CANCELLED']),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
-  deletedAt: z.coerce.date().nullable(),
+export const GetClassBookingByIdRequestSchema = z.object({
+  params: IdSchema,
 });
 
-export type CreateClassBookingInput = z.infer<typeof CreateClassBookingSchema>;
-export type UpdateClassBookingInput = z.infer<typeof UpdateClassBookingSchema>;
+export const UpdateClassBookingSchema = z.object({
+  params: IdSchema,
+  body: ClassBookingSchema.pick({
+    status: true,
+  }),
+});
+
+export const DeleteClassBookingRequestSchema = z.object({
+  params: IdSchema,
+});
+
+export const ClassBookingResponseSchema = ClassBookingSchema.omit({
+  deletedAt: true,
+});
+
+export type CreateClassBookingInput = z.infer<typeof CreateClassBookingSchema>['body'];
+export type UpdateClassBookingInput = z.infer<typeof UpdateClassBookingSchema>['body'];
 export type ClassBookingResponse = z.infer<typeof ClassBookingResponseSchema>;

@@ -30,3 +30,4 @@ Thumbs.db
 /src/generated/zod
 
 /generated/prisma
+/serverLauncher.bat
