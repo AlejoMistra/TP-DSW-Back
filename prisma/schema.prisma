@@ -51,6 +51,7 @@ model Instructor {
   deletedAt DateTime?
 
   classSchedules ClassSchedule[]
+  routines Routine[]
 
   @@map("instructors")
 }
@@ -164,16 +165,64 @@ model ClassBooking {
 
 model Exercise {
   id              Int                     @id @default(autoincrement())
+  /// @zod.min(1, "El nombre del ejercicio no puede estar vacío").max(200, "El nombre no puede superar los 200 caracteres")
   name            String
+  /// @zod.max(1000, "La descripción del ejercicio no puede superar los 1000 caracteres")
   description     String?
+  /// @zod.min(1, "El grupo muscular no puede estar vacío").max(100, "El grupo muscular no puede superar los 100 caracteres")
   muscleGroup     String
   difficultyLevel DifficultyLevelExercise
+
+  routineExercises RoutineExercise[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
+  @@unique([name, muscleGroup])
   @@map("exercises")
+}
+
+model Routine {
+  id          Int               @id @default(autoincrement())
+  /// @zod.min(1, "El nombre de la rutina no puede estar vacío").max(200, "El nombre no puede superar los 200 caracteres")
+  name        String
+  /// @zod.max(1000, "La descripción de la rutina no puede superar los 1000 caracteres")
+  description String?
+  difficulty  DifficultyLevelExercise
+  instructor  Instructor        @relation(fields: [instructorId], references: [id])
+  instructorId Int
+
+  routineExercises RoutineExercise[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@map("routines")
+}
+
+model RoutineExercise {
+  id         Int     @id @default(autoincrement())
+  routine    Routine @relation(fields: [routineId], references: [id])
+  routineId  Int
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+  exerciseId Int
+
+  /// @zod.min(0, "El orden debe ser 0 o mayor")
+  order Int?
+  /// @zod.min(0, "Las repeticiones deben ser 0 o mayores")
+  reps  Int?
+  /// @zod.min(0, "Las series deben ser 0 o mayores")
+  sets  Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@index([routineId])
+  @@index([exerciseId])
+  @@map("routine_exercises")
 }
 
 enum ClassBookingStatus {

@@ -1,0 +1,295 @@
+# requests.http - Pruebas para Instructors, Exercises y Routines
+# Ejecuta secuencialmente desde arriba.
+# Reemplaza {{INSTRUCTOR_ID}}, {{EX1_ID}}, {{EX2_ID}}, {{ROUTINE_ID}} con los valores devueltos por las respuestas.
+
+@baseUrl = http://localhost:3000
+
+################################################################
+# 1) Crear instructor (si ya existe usa su id en las siguientes)
+################################################################
+### Create instructor
+POST {{baseUrl}}/api/instructors
+Content-Type: application/json
+
+{
+  "name": "Iael",
+  "surname": "Alodi",
+  "email": "Alodiael@example.com",
+  "phone": "67691218"
+}
+
+# Esperado: 201, body contiene "id" -> usar ese id como {{INSTRUCTOR_ID}}
+
+################################################################
+# 2) Obtener instructor (verifica creado)
+################################################################
+### Get instructor
+GET {{baseUrl}}/api/instructors/7
+Accept: application/json
+
+# Esperado: 200 y objeto instructor
+
+################################################################
+# 3) Crear ejercicios (dos)
+################################################################
+### Create exercise 1
+POST {{baseUrl}}/api/exercises
+Content-Type: application/json
+
+{
+  "name": "Vuelos Laterales",
+  "description": "Ejercicio para fortalecer hombros",
+  "muscleGroup": "Hombros",
+  "difficultyLevel": "BEGINNER"
+}
+
+# Esperado: 201, usar id devuelto como {{EX1_ID}}
+
+### Create exercise 2
+POST {{baseUrl}}/api/exercises
+Content-Type: application/json
+
+{
+  "name": "Movimientos Pelvicos",
+  "description": "Ejercicio para fortalecer la pelvis",
+  "muscleGroup": "Pelvis",
+  "difficultyLevel": "BEGINNER"
+}
+
+# Esperado: 201, usar id devuelto como {{EX2_ID}}
+
+################################################################
+# 4) Crear rutina (caso nominal: con instructorId y exercises)
+################################################################
+### Create routine (valid)
+POST {{baseUrl}}/api/routines
+Content-Type: application/json
+
+{
+  "name": "Pelvis y Hombros",
+  "description": "Rutina para quienes empiezan",
+  "difficulty": "BEGINNER",
+  "instructorId": 4,
+  "exercises": [
+    { "exerciseId": 6, "order": 1, "reps": 12, "sets": 3 },
+    { "exerciseId": 7, "order": 2, "reps": 15, "sets": 3 }
+  ]
+}
+
+# Esperado: 201, body contiene la rutina creada (anotar id como {{ROUTINE_ID}}).
+# Si tu service devuelve rutina con routineExercises incluidos, verificá que exercise esté anidado.
+
+################################################################
+# 5) Obtener rutina creada
+################################################################
+### Get routine by id
+GET {{baseUrl}}/api/routines/23
+Accept: application/json
+
+# Esperado: 200 y la rutina (con routineExercises si el service lo incluye)
+
+################################################################
+# 6) Listar rutinas (sin paginación y con paginación)
+################################################################
+### List routines (no pagination)
+GET {{baseUrl}}/api/routines
+Accept: application/json
+
+# Esperado: 200 y array de rutinas
+
+### List routines (page=1&limit=1)
+GET {{baseUrl}}/api/routines?page=2&limit=5
+Accept: application/json
+
+# Esperado: 200 (si tu repo devolvía meta: items+total+page...; si no, array con 1 item)
+
+################################################################
+# 7) Casos de error al crear rutina
+################################################################
+### Create routine - missing instructorId (bad request)
+POST {{baseUrl}}/api/routines
+Content-Type: application/json
+
+{
+  "name": "Sin instructor",
+  "description": "Debe fallar",
+  "difficulty": "BEGINNER",
+  "exercises": [
+    { "exerciseId": 1, "order": 1 }
+  ]
+}
+
+# Esperado: 400 (InstructorId obligatorio mientras no haya auth)
+
+### Create routine - non-existent exercise (404)
+POST {{baseUrl}}/api/routines
+Content-Type: application/json
+
+{
+  "name": "Con exercise inexistente",
+  "description": "Debe fallar por exercise no existente",
+  "difficulty": "BEGINNER",
+  "instructorId": 4,
+  "exercises": [
+    { "exerciseId": 999999, "order": 1 }
+  ]
+}
+
+# Esperado: 404 (Exercise no encontrado)
+
+### Create routine - invalid difficulty (validation error)
+POST {{baseUrl}}/api/routines
+Content-Type: application/json
+
+{
+  "name": "Rutina inválida",
+  "description": "Valor de difficulty inválido",
+  "difficulty": "EASY",
+  "instructorId": 4
+}
+
+# Esperado: 400 (Zod validation - difficulty debe ser BEGINNER|INTERMEDIATE|ADVANCED)
+
+################################################################
+# 8) Actualizar rutina - cambiar campos y reemplazar exercises
+################################################################
+### Update routine - replace exercises
+PATCH {{baseUrl}}/api/routines/12
+Content-Type: application/json
+
+{
+  "name": "Full Body - actualizada",
+  "exercises": [
+    { "exerciseId": 1, "order": 1, "reps": 8, "sets": 4 }
+  ],
+  "instructorId": 4
+}
+
+# Esperado: 200 y rutina actualizada con nueva lista de routineExercises (reemplazo)
+
+################################################################
+# 9) Intentar actualizar rutina como otro instructor (should 403)
+################################################################
+### Update routine - wrong instructor (una Id que NO sea la del creador)
+PATCH {{baseUrl}}/api/routines/23
+Content-Type: application/json
+
+{
+  "name": "Intento ilegítimo",
+  "instructorId": 4
+}
+
+# Esperado: 401/403 (UnauthorizedError / No sos propietario de la rutina)
+
+################################################################
+# 10) Borrar rutina (temporal: enviar instructorId en body)
+################################################################
+### Delete routine
+DELETE {{baseUrl}}/api/routines/16
+Content-Type: application/json
+
+{
+  "instructorId": 4
+}
+
+# Esperado: 204
+# Verificar: GET /api/routines/{{ROUTINE_ID}} -> 404 (si borrado físico) o no aparece en list
+
+################################################################
+# 11) Crear rutina sin exercises (solo metadata)
+################################################################
+### Create routine - no exercises
+POST {{baseUrl}}/api/routines
+Content-Type: application/json
+
+{
+  "name": "Solo metadata",
+  "description": "Sin exercises",
+  "difficulty": "BEGINNER",
+  "instructorId": 5
+}
+
+# Esperado: 201, rutina creada sin routineExercises
+
+################################################################
+# 12) (Opcional) Limpieza: borrar instructor y exercises creados (si tienes endpoints)
+################################################################
+### Delete exercise 1
+DELETE {{baseUrl}}/api/exercises/1
+Content-Type: application/json
+
+# Esperado: 204
+
+### Delete exercise 2
+DELETE {{baseUrl}}/api/exercises/2
+Content-Type: application/json
+
+# Esperado: 204
+
+### Delete instructor
+DELETE {{baseUrl}}/api/instructors/5
+Content-Type: application/json
+
+# Esperado: 204
+
+@baseUrl = http://localhost:3000
+
+###
+# GET routine by id — devuelve la rutina incluyendo sus routineExercises y el exercise anidado.
+# Usa el ROUTINE_ID que obtuviste al crear la rutina.
+###
+GET {{baseUrl}}/api/routines/21
+Accept: application/json
+
+###
+# Alternativa (si tu proyecto tiene este endpoint): listar solo los routineExercises de una rutina
+# (devuelve rows de la tabla intermedia con reps/sets/order y, si está implementado, el exercise anidado)
+###
+GET {{baseUrl}}/api/routineExercises?routineId=21
+Accept: application/json
+
+###
+# Ejemplo de respuesta esperada para GET /api/routines/{{ROUTINE_ID}}
+# (si tu service/controller hace `include: { routineExercises: { include: { exercise: true } } }`)
+###
+# HTTP/1.1 200 OK
+# Content-Type: application/json
+#
+# {
+#   "id": 21,
+#   "name": "Full Body Principiantes",
+#   "description": "Rutina para quienes empiezan",
+#   "difficulty": "BEGINNER",
+#   "instructorId": 4,
+#   "createdAt": "2026-09-10T20:41:16.866Z",
+#   "updatedAt": "2026-09-10T20:41:16.866Z",
+#   "routineExercises": [
+#     {
+#       "id": 10,
+#       "routineId": 21,
+#       "exerciseId": 1,
+#       "order": 1,
+#       "reps": 12,
+#       "sets": 3,
+#       "exercise": {
+#         "id": 1,
+#         "name": "Sentadilla",
+#         "description": "...",
+#         ...
+#       }
+#     },
+#     {
+#       "id": 11,
+#       "routineId": 21,
+#       "exerciseId": 2,
+#       "order": 2,
+#       "reps": 10,
+#       "sets": 3,
+#       "exercise": {
+#         "id": 2,
+#         "name": "Press de banca",
+#         ...
+#       }
+#     }
+#   ]
+# }

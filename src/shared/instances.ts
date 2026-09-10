@@ -6,6 +6,8 @@ import { MembershipRepository } from '../modules/membership/membership.repositor
 import { ExerciseRepository } from '../modules/exercise/exercise.repository.js';
 import { ClassSessionRepository } from '../modules/classSession/classSession.repository.js';
 import { ClassBookingRepository } from '../modules/classBooking/classBooking.repository.js';
+import { RoutineExerciseRepository } from '../modules/routineExercise/routineExercise.repository.js'
+import { RoutineRepository } from '../modules/routine/routine.repository.js';
 
 export const memberRepository = new MemberRepository();
 export const instructorRepository = new InstructorRepository();
@@ -15,3 +17,5 @@ export const classScheduleRepository = new ClassScheduleRepository();
 export const classSessionRepository = new ClassSessionRepository();
 export const classBookingRepository = new ClassBookingRepository();
 export const exerciseRepository = new ExerciseRepository();
+export const routineExerciseRepository = new RoutineExerciseRepository();
+export const routineRepository = new RoutineRepository();
