@@ -1,0 +1,35 @@
+@baseUrl = http://localhost:3000/api/classBookings
+
+### 1. Obtener todas las reservas de clase
+GET {{baseUrl}}
+
+### 2. Obtener una reserva por ID
+GET {{baseUrl}}/1
+
+### 3. Crear una reserva de clase válida
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "memberId": 1,
+  "classSessionId": 1
+}
+
+### 4. Actualizar estado de una reserva existente (PATCH)
+PATCH {{baseUrl}}/1
+Content-Type: application/json
+
+{
+  "status": "CANCELLED"
+}
+
+### 5. Actualizar estado de una reserva existente (PUT)
+PUT {{baseUrl}}/1
+Content-Type: application/json
+
+{
+  "status": "CONFIRMED"
+}
+
+### 6. Cancelar / Eliminar una reserva (soft-delete)
+DELETE {{baseUrl}}/1
