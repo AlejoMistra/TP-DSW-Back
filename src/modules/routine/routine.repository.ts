@@ -6,6 +6,13 @@ export class RoutineRepository {
   async findAll(page?: number, limit?: number): Promise<Routine[]> {
     const options: any = {
       orderBy: { createdAt: 'desc' },
+      include: {
+        routineExercises: {
+          where: { deletedAt: null },
+          orderBy: { order: 'asc' },
+          include: { exercise: true },
+        },
+      },
     };
     if (typeof page === 'number' && typeof limit === 'number') {
       const take = Math.max(1, limit);
@@ -17,6 +24,7 @@ export class RoutineRepository {
     }
     return prisma.routine.findMany(options);
   }
+
 
   async findOne(id: number): Promise<Routine | null> {
     return prisma.routine.findUnique({

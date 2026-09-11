@@ -12,10 +12,10 @@ POST {{baseUrl}}/api/instructors
 Content-Type: application/json
 
 {
-  "name": "Iael",
+  "name": "Ramiro",
   "surname": "Alodi",
-  "email": "Alodiael@example.com",
-  "phone": "67691218"
+  "email": "ramiroiael@example.com",
+  "phone": "545645896"
 }
 
 # Esperado: 201, body contiene "id" -> usar ese id como {{INSTRUCTOR_ID}}
