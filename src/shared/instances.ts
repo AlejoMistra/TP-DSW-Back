@@ -7,7 +7,7 @@ import { ClassSessionRepository } from '../modules/classSession/classSession.rep
 import { ClassSessionService } from '../modules/classSession/classSession.service.js';
 import { ClassSessionController } from '../modules/classSession/classSession.controller.js';
 import { ClassBookingRepository } from '../modules/classBooking/classBooking.repository.js';
-import { RoutineExerciseRepository } from '../modules/routineExercise/routineExercise.repository.js'
+import { RoutineExerciseRepository } from '../modules/routineExercise/routineExercise.repository.js';
 import { RoutineRepository } from '../modules/routine/routine.repository.js';
 import { ClassBookingService } from '../modules/classBooking/classBooking.service.js';
 import { ClassBookingController } from '../modules/classBooking/classBooking.controller.js';
@@ -26,8 +26,12 @@ export const exerciseRepository = new ExerciseRepository();
 // 2. Class Management Domain
 // Class Schedule
 export const classScheduleRepository = new ClassScheduleRepository();
-export const classScheduleService = new ClassScheduleService(classScheduleRepository);
-export const classScheduleController = new ClassScheduleController(classScheduleService);
+export const classScheduleService = new ClassScheduleService(
+  classScheduleRepository,
+);
+export const classScheduleController = new ClassScheduleController(
+  classScheduleService,
+);
 
 // Class Session
 export const classSessionRepository = new ClassSessionRepository();
@@ -36,15 +40,20 @@ export const classSessionService = new ClassSessionService(
   classScheduleRepository,
   instructorRepository,
 );
-export const classSessionController = new ClassSessionController(classSessionService);
+export const classSessionController = new ClassSessionController(
+  classSessionService,
+);
 
 // Class Booking
 export const classBookingRepository = new ClassBookingRepository();
-export const exerciseRepository = new ExerciseRepository();
 export const routineExerciseRepository = new RoutineExerciseRepository();
 export const routineRepository = new RoutineRepository();
-export const classBookingService = new ClassBookingService(classBookingRepository);
-export const classBookingController = new ClassBookingController(classBookingService);
+export const classBookingService = new ClassBookingService(
+  classBookingRepository,
+);
+export const classBookingController = new ClassBookingController(
+  classBookingService,
+);
 
 // 3. Membership & Payments Domain
 // Membership Plan

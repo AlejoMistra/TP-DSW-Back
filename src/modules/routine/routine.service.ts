@@ -12,13 +12,13 @@ import { prisma } from '../../lib/prisma.js';
 import { NotFoundError, UnauthorizedError } from '../../utils/errors.js';
 
 export class RoutineService {
-  constructor(private readonly repository: RoutineRepository) {}
+  constructor(private readonly repository: RoutineRepository) { }
 
-  async findAll(page?: number, limit?: number): Promise<RoutineResponse[]> {
+  async findAll(page?: number, limit?: number): Promise<(RoutineResponse | RoutineDetailResponse)[]> {
     const routines = await this.repository.findAll(page, limit);
-    // No incluimos ejercicios en el listado para evitar N+1; si necesitás incluirlos, lo cambiamos
-    return routines.map((r) => RoutineResponseSchema.parse(r));
+    return routines.map((r) => RoutineDetailResponseSchema.parse(r));
   }
+
 
   // Devuelve la rutina con routineExercises y el exercise anidado
   async findOne(id: number): Promise<RoutineResponse | RoutineDetailResponse> {
@@ -77,7 +77,10 @@ export class RoutineService {
           order: e.order ?? null,
           reps: e.reps ?? null,
           sets: e.sets ?? null,
+          weight: e.weight ?? null,
+          notes: e.notes ?? null,
         }));
+
         // createMany no retorna rows; re-fetch abajo
         await tx.routineExercise.createMany({ data: toCreate });
       }
@@ -103,7 +106,7 @@ export class RoutineService {
     if (!existing) throw new NotFoundError(`Routine con ID ${id} no encontrada`);
 
     if (!user || user.role !== 'instructor') throw new UnauthorizedError('Solo instructores pueden modificar rutinas');
-    if (existing.instructorId !== user.id) throw new UnauthorizedError('No sos propietario de la rutina');
+    //if (existing.instructorId !== user.id) throw new UnauthorizedError('No sos propietario de la rutina');
 
     const exercises = (input as any).exercises as Array<any> | undefined;
     if (exercises && exercises.length > 0) {
@@ -135,7 +138,10 @@ export class RoutineService {
             order: e.order ?? null,
             reps: e.reps ?? null,
             sets: e.sets ?? null,
+            weight: e.weight ?? null,
+            notes: e.notes ?? null,
           }));
+
           await tx.routineExercise.createMany({ data: toCreate });
         }
       }
@@ -161,7 +167,7 @@ export class RoutineService {
     if (!existing) throw new NotFoundError(`Routine con ID ${id} no encontrada`);
 
     if (!user || user.role !== 'instructor') throw new UnauthorizedError('Solo instructores pueden eliminar rutinas');
-    if (existing.instructorId !== user.id) throw new UnauthorizedError('No sos propietario de la rutina');
+    //if (existing.instructorId !== user.id) throw new UnauthorizedError('No sos propietario de la rutina');
 
     // Borrado en transacción: eliminar routineExercises y luego la rutina
     await prisma.$transaction([
