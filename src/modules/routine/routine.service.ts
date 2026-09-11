@@ -12,7 +12,7 @@ import { prisma } from '../../lib/prisma.js';
 import { NotFoundError, UnauthorizedError } from '../../utils/errors.js';
 
 export class RoutineService {
-  constructor(private readonly repository: RoutineRepository) {}
+  constructor(private readonly repository: RoutineRepository) { }
 
   async findAll(page?: number, limit?: number): Promise<RoutineResponse[]> {
     const routines = await this.repository.findAll(page, limit);
@@ -77,7 +77,10 @@ export class RoutineService {
           order: e.order ?? null,
           reps: e.reps ?? null,
           sets: e.sets ?? null,
+          weight: e.weight ?? null,
+          notes: e.notes ?? null,
         }));
+
         // createMany no retorna rows; re-fetch abajo
         await tx.routineExercise.createMany({ data: toCreate });
       }
@@ -135,7 +138,10 @@ export class RoutineService {
             order: e.order ?? null,
             reps: e.reps ?? null,
             sets: e.sets ?? null,
+            weight: e.weight ?? null,
+            notes: e.notes ?? null,
           }));
+
           await tx.routineExercise.createMany({ data: toCreate });
         }
       }

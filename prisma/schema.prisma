@@ -245,11 +245,15 @@ model RoutineExercise {
   exerciseId Int
 
   /// @zod.min(0, "El orden debe ser 0 o mayor")
-  order Int?
+  order  Int?
   /// @zod.min(0, "Las repeticiones deben ser 0 o mayores")
-  reps  Int?
+  reps   Int?
   /// @zod.min(0, "Las series deben ser 0 o mayores")
-  sets  Int?
+  sets   Int?
+  /// @zod.min(0, "El peso debe ser 0 o mayor")
+  weight Float?
+  /// @zod.max(500, "Las notas no pueden superar 500 caracteres")
+  notes  String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -259,6 +263,7 @@ model RoutineExercise {
   @@index([exerciseId])
   @@map("routine_exercises")
 }
+
 
 enum ClassBookingStatus {
   CONFIRMED

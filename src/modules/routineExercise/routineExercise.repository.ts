@@ -33,7 +33,7 @@ export class RoutineExerciseRepository {
   }
 
   async create(payload: CreateRoutineExerciseInput): Promise<RoutineExercise> {
-    const { routineId, exerciseId, order = null, reps = null, sets = null } = payload;
+    const { routineId, exerciseId, order = null, reps = null, sets = null, weight = null, notes = null } = payload;
     try {
       return await prisma.$transaction(async (tx) => {
         // Comprueba duplicado activo (opcional: evita agregar same exercise twice)
@@ -56,6 +56,8 @@ export class RoutineExerciseRepository {
             order,
             reps,
             sets,
+            weight,
+            notes,
           },
         });
       });
@@ -72,6 +74,9 @@ export class RoutineExerciseRepository {
     if (payload.order !== undefined) data.order = payload.order;
     if (payload.reps !== undefined) data.reps = payload.reps;
     if (payload.sets !== undefined) data.sets = payload.sets;
+    if (payload.weight !== undefined) data.weight = payload.weight;
+    if (payload.notes !== undefined) data.notes = payload.notes;
+
     // No permitimos cambiar routineId/exerciseId aquí por simplicidad; si lo quisieras, agregar checks
     return prisma.routineExercise.update({
       where: { id },

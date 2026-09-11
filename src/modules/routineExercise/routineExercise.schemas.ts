@@ -7,7 +7,7 @@ export const RoutineExerciseResponseSchema = RoutineExerciseSchema
   .omit({ deletedAt: true })
   .extend({
     exercise: ExerciseResponseSchema.optional(),
-});
+  });
 
 // Param id coercionado
 const IdParam = z.object({ id: z.coerce.number().int().positive() });
@@ -24,7 +24,10 @@ const RoutineExerciseBodyBase = z.object({
   order: z.number().int().nonnegative().optional().nullable(),
   reps: z.number().int().nonnegative().optional().nullable(),
   sets: z.number().int().nonnegative().optional().nullable(),
+  weight: z.number().nonnegative().optional().nullable(),
+  notes: z.string().max(500).optional().nullable(),
 });
+
 
 export const CreateRoutineExerciseSchema = z.object({
   body: RoutineExerciseBodyBase,

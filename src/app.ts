@@ -6,12 +6,12 @@ import { membershipRouter } from './modules/membership/membership.routes.js';
 import { membershipPlanRouter } from './modules/membershipPlan/membershipPlan.routes.js';
 import { paymentRouter } from './modules/payment/payment.routes.js';
 import { classScheduleRouter } from './modules/classSchedule/classSchedule.routes.js';
-import { exerciseRouter } from './modules/exercise/exercise.router.js';
+import { exerciseRouter } from './modules/exercise/exercise.routes.js';
 import { classBookingRouter } from './modules/classBooking/classBooking.routes.js';
 import { classSessionRouter } from './modules/classSession/classSession.routes.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
 import { routineRouter } from './modules/routine/routine.routes.js';
-import { routineExerciseRouter } from './modules/routineExercise/routineExercise.routes.js'
+import { routineExerciseRouter } from './modules/routineExercise/routineExercise.routes.js';
 
 const app = express();
 
@@ -25,8 +25,7 @@ const corsOptions = {
 const availableEndpoints = {
   '/': 'GET: Resumen de la API',
   '/health': 'GET: Verificar el estado del servidor',
-  '/api/members':
-    'GET: Obtener todos los socios | POST: Crear nuevo socio',
+  '/api/members': 'GET: Obtener todos los socios | POST: Crear nuevo socio',
   '/api/members/:id':
     'GET: Obtener un socio | PATCH: Actualizar socio | DELETE: Eliminar socio',
   '/api/memberships':
@@ -57,8 +56,7 @@ const availableEndpoints = {
     'GET: Obtener todos los planes de membresía | POST: Crear nuevo plan de membresía',
   '/api/membership-plans/:id':
     'GET: Obtener un plan de membresía | PUT: Actualizar plan de membresía | DELETE: Eliminar plan de membresía',
-  '/api/payments':
-    'GET: Obtener todos los pagos | POST: Registrar nuevo pago',
+  '/api/payments': 'GET: Obtener todos los pagos | POST: Registrar nuevo pago',
   '/api/payments/:id':
     'GET: Obtener un pago | PATCH: Actualizar pago | DELETE: Eliminar pago',
   '/api/classBookings':
@@ -96,7 +94,7 @@ app.use('/api/exercises', exerciseRouter);
 app.use('/api/classBookings', classBookingRouter);
 app.use('/api/classSessions', classSessionRouter);
 app.use('/api/routines', routineRouter);
-app.use('/api/routineExercise', routineExerciseRouter)
+app.use('/api/routineExercise', routineExerciseRouter);
 
 app.use(errorHandler);
 

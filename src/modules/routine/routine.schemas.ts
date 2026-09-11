@@ -24,6 +24,8 @@ export const RoutineExerciseInput = z.object({
   order: z.number().int().nonnegative().optional().nullable(),
   reps: z.number().int().nonnegative().optional().nullable(),
   sets: z.number().int().nonnegative().optional().nullable(),
+  weight: z.number().positive().optional().nullable(),
+  notes: z.string().max(500).optional(),
 });
 
 // Create: campos en body (IDs como number)
