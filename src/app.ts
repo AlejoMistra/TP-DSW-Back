@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { memberRouter } from './modules/member/member.routes.js';
-import { instructorRouter } from './modules/instructor/instructor.router.js';
+import { instructorRouter } from './modules/instructor/instructor.routes.js';
 import { membershipRouter } from './modules/membership/membership.routes.js';
 import { membershipPlanRouter } from './modules/membershipPlan/membershipPlan.routes.js';
 import { paymentRouter } from './modules/payment/payment.routes.js';
