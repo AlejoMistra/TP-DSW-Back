@@ -56,6 +56,7 @@ export const classBookingController = new ClassBookingController(
 );
 
 // 3. Membership & Payments Domain
+export const memberRepository = new MemberRepository();
 // Membership Plan
 export const membershipPlanRepository = new MembershipPlanRepository();
 
@@ -64,6 +65,7 @@ export const membershipRepository = new MembershipRepository();
 export const membershipService = new MembershipService(
   membershipRepository,
   membershipPlanRepository,
+  memberRepository,
 );
 
 // Payment
@@ -74,7 +76,6 @@ export const paymentService = new PaymentService(
 );
 
 // 4. Members Domain
-export const memberRepository = new MemberRepository();
 export const memberService = new MemberService(
   memberRepository,
   membershipRepository,
