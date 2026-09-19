@@ -1,3 +1,4 @@
+/// <reference types="node" />  // Para ignorar el error de "Cannot find name 'process'" en TypeScript, ya que la seed esta fuera del src
 import "dotenv/config";
 import { PrismaClient } from "../src/generated/prisma/client.js";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
@@ -30,6 +31,28 @@ const membershipPlans = [
     description: "Todos los beneficios más seguimiento personalizado",
     price: 49000,
     durationDays: 30,
+  },
+];
+
+// Dejo algunos instructores precargados 
+const instructors = [
+  {
+    name: "Gabriel",
+    surname: "Martínez",
+    email: "gabriel.martinez@example.com",
+    phone: "1122334455",
+  },
+  {
+    name: "Martín",
+    surname: "González",
+    email: "martin.gonzalez@example.com",
+    phone: "1133445566",
+  },
+  {
+    name: "Milton",
+    surname: "Ramírez",
+    email: "milton.ramirez@example.com",
+    phone: "1144556677",
   },
 ];
 
@@ -292,6 +315,24 @@ const classSessionsData = [
 
 async function main() {
   console.log("Seeding database...");
+
+  // 0. Instructors
+   console.log("Seeding instructors...");
+
+  for (const instructor of instructors) {
+    await prisma.instructor.upsert({
+      where: {
+        email: instructor.email,
+      },
+      update: {
+        name: instructor.name,
+        surname: instructor.surname,
+        phone: instructor.phone,
+        deletedAt: null,
+      },
+      create: instructor,
+    });
+  }
 
   // 1. Membership Plans
   console.log("Seeding membership plans...");
