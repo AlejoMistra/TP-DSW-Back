@@ -37,16 +37,15 @@ export class ClassBookingService {
 
         if (!session) throw new NotFoundError('Sesión de clase no encontrada o no disponible');
 
-        // 2) Duplicado ANTES de cupo
+        // 2) Buscar reserva previa (incluso cancelada o con soft-delete)
         const existingBooking = await tx.classBooking.findFirst({
           where: {
             memberId: input.memberId,
             classSessionId: input.classSessionId,
-            deletedAt: null,
           },
         });
 
-        if (existingBooking) {
+        if (existingBooking && existingBooking.status === 'CONFIRMED' && existingBooking.deletedAt === null) {
           throw new ConflictError('El socio ya tiene una reserva para esta clase');
         }
 
@@ -55,12 +54,32 @@ export class ClassBookingService {
           throw new ConflictError('No hay cupos disponibles');
         }
 
-        // 4) Crear + descontar
+        // 4) Si ya existía cancelada o soft-deleted, reactivarla
+        if (existingBooking) {
+          const reactivated = await tx.classBooking.update({
+            where: { id: existingBooking.id },
+            data: {
+              status: 'CONFIRMED',
+              deletedAt: null,
+              bookingDate: new Date(),
+            },
+          });
+
+          await tx.classSession.update({
+            where: { id: input.classSessionId },
+            data: { remainingCapacity: { decrement: 1 } },
+          });
+
+          return reactivated;
+        }
+
+        // 5) Crear nueva reserva + descontar cupo
         const booking = await tx.classBooking.create({
           data: {
             memberId: input.memberId,
             classSessionId: input.classSessionId,
             status: 'CONFIRMED',
+            bookingDate: new Date(),
           },
         });
 
@@ -88,27 +107,33 @@ export class ClassBookingService {
   async update(id: number, input: UpdateClassBookingInput): Promise<ClassBookingResponse> {
     const updated = await prisma.$transaction(async (tx) => {
       const existing = await tx.classBooking.findFirst({
-        where: { id, deletedAt: null },
+        where: { id },
       });
       if (!existing) throw new NotFoundError(`Asistencia a clase con ID ${id} no encontrada`);
 
-      if (existing.status === input.status) return existing;
+      // Si no hay cambio de estado y no está soft-deleted, devolver existente
+      if (existing.status === input.status && existing.deletedAt === null) return existing;
 
-      if (existing.status === 'CONFIRMED' && input.status === 'CANCELLED') {
-        const booking = await tx.classBooking.update({
-          where: { id },
-          data: { status: 'CANCELLED' },
-        });
+      if (input.status === 'CANCELLED') {
+        if (existing.status === 'CONFIRMED') {
+          const booking = await tx.classBooking.update({
+            where: { id },
+            data: { status: 'CANCELLED' },
+          });
 
-        await tx.classSession.update({
-          where: { id: existing.classSessionId },
-          data: { remainingCapacity: { increment: 1 } },
-        });
+          await tx.classSession.update({
+            where: { id: existing.classSessionId },
+            data: { remainingCapacity: { increment: 1 } },
+          });
 
-        return booking;
+          return booking;
+        }
+
+        return existing;
       }
 
-      if (existing.status === 'CANCELLED' && input.status === 'CONFIRMED') {
+      if (input.status === 'CONFIRMED') {
+        // Reactivación si estaba cancelada o soft-deleted
         const session = await tx.classSession.findFirst({
           where: { id: existing.classSessionId, deletedAt: null, status: 'SCHEDULED' },
         });
@@ -117,7 +142,11 @@ export class ClassBookingService {
 
         const booking = await tx.classBooking.update({
           where: { id },
-          data: { status: 'CONFIRMED' },
+          data: {
+            status: 'CONFIRMED',
+            deletedAt: null,
+            bookingDate: new Date(),
+          },
         });
 
         await tx.classSession.update({
