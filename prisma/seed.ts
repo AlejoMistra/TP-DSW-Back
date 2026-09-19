@@ -34,27 +34,6 @@ const membershipPlans = [
   },
 ];
 
-// Dejo algunos instructores precargados 
-const instructors = [
-  {
-    name: "Gabriel",
-    surname: "Martínez",
-    email: "gabriel.martinez@example.com",
-    phone: "1122334455",
-  },
-  {
-    name: "Martín",
-    surname: "González",
-    email: "martin.gonzalez@example.com",
-    phone: "1133445566",
-  },
-  {
-    name: "Milton",
-    surname: "Ramírez",
-    email: "milton.ramirez@example.com",
-    phone: "1144556677",
-  },
-];
 
 const now = new Date();
 const daysToMs = (days: number) => days * 24 * 60 * 60 * 1000;
@@ -661,24 +640,6 @@ const routineTemplates = [
 
 async function main() {
   console.log("Seeding database...");
-
-  // 0. Instructors
-   console.log("Seeding instructors...");
-
-  for (const instructor of instructors) {
-    await prisma.instructor.upsert({
-      where: {
-        email: instructor.email,
-      },
-      update: {
-        name: instructor.name,
-        surname: instructor.surname,
-        phone: instructor.phone,
-        deletedAt: null,
-      },
-      create: instructor,
-    });
-  }
 
   // 1. Membership Plans
   console.log("Seeding membership plans...");
