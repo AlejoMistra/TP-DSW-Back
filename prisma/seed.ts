@@ -290,6 +290,352 @@ const classSessionsData = [
   },
 ];
 
+const instructors = [
+  {
+    name: "Gabriel",
+    surname: "Martínez",
+    email: "gabrielmartinez@gmail.com",
+    phone: "1155443322",
+  },
+  {
+    name: "Martín",
+    surname: "González",
+    email: "martingonzales2004@gmail.com",
+    phone: "1166778899",
+  },
+  {
+    name: "Milton",
+    surname: "Ramírez",
+    email: "mramirez@hotmail.com",
+    phone: "1144332211",
+  },
+];
+
+const exercisesData = [
+  // Pecho
+  {
+    name: "Press de Banca Plano con Barra",
+    description:
+      "Ejercicio multiarticular básico para el desarrollo de la fuerza y volumen del pectoral mayor, deltoides anterior y tríceps.",
+    muscleGroup: "Pecho",
+    difficultyLevel: "INTERMEDIATE" as const,
+  },
+  {
+    name: "Flexiones de Brazos (Lagartijas)",
+    description:
+      "Ejercicio de peso corporal enfocado en el fortalecimiento del pecho, la cintura escapular y los tríceps.",
+    muscleGroup: "Pecho",
+    difficultyLevel: "BEGINNER" as const,
+  },
+  {
+    name: "Aperturas con Mancuernas en Banco Plano",
+    description:
+      "Aislamiento del pectoral que proporciona un estiramiento profundo de las fibras musculares.",
+    muscleGroup: "Pecho",
+    difficultyLevel: "BEGINNER" as const,
+  },
+  {
+    name: "Press Inclinado con Mancuernas",
+    description:
+      "Variante en banco a 30-45 grados para enfatizar la porción superior (clavicular) del pecho.",
+    muscleGroup: "Pecho",
+    difficultyLevel: "INTERMEDIATE" as const,
+  },
+
+  // Espalda
+  {
+    name: "Jalón al Pecho en Polea Alta",
+    description:
+      "Tracción vertical guiada para construir amplitud en el dorsal ancho y fuerza en la espalda alta.",
+    muscleGroup: "Espalda",
+    difficultyLevel: "BEGINNER" as const,
+  },
+  {
+    name: "Remo con Barra",
+    description:
+      "Ejercicio compuesto para ganar grosor y densidad en la espalda media, dorsal, trapecios y romboides.",
+    muscleGroup: "Espalda",
+    difficultyLevel: "INTERMEDIATE" as const,
+  },
+  {
+    name: "Remo Unilateral con Mancuerna",
+    description:
+      "Ejercicio de tracción a una mano con apoyo para aislar el dorsal y corregir desbalances de fuerza.",
+    muscleGroup: "Espalda",
+    difficultyLevel: "BEGINNER" as const,
+  },
+  {
+    name: "Dominadas en Barra Fija",
+    description:
+      "Tracción vertical de autocarga exigente para dorsal ancho, redondo mayor y flexores de codo.",
+    muscleGroup: "Espalda",
+    difficultyLevel: "ADVANCED" as const,
+  },
+
+  // Piernas
+  {
+    name: "Sentadilla Goblet con Mancuerna",
+    description:
+      "Variante de sentadilla frontal con peso al pecho, ideal para aprender el patrón motor y ganar movilidad.",
+    muscleGroup: "Piernas",
+    difficultyLevel: "BEGINNER" as const,
+  },
+  {
+    name: "Sentadilla Trasera con Barra",
+    description:
+      "Movimiento clave para hipertrofia y fuerza máxima de cuádriceps, glúteos, aductores y core.",
+    muscleGroup: "Piernas",
+    difficultyLevel: "INTERMEDIATE" as const,
+  },
+  {
+    name: "Prensa de Piernas 45°",
+    description:
+      "Trabajo en máquina guiada para cuádriceps y glúteos, permitiendo manejar cargas elevadas con seguridad.",
+    muscleGroup: "Piernas",
+    difficultyLevel: "BEGINNER" as const,
+  },
+  {
+    name: "Peso Muerto Rumano con Barra",
+    description:
+      "Ejercicio de bisagra de cadera indispensable para isquiotibiales, glúteos y erectores espinales.",
+    muscleGroup: "Piernas",
+    difficultyLevel: "INTERMEDIATE" as const,
+  },
+  {
+    name: "Hip Thrust con Barra",
+    description:
+      "Empuje de cadera sobre banco enfocado en la máxima activación y desarrollo del glúteo mayor.",
+    muscleGroup: "Piernas",
+    difficultyLevel: "INTERMEDIATE" as const,
+  },
+  {
+    name: "Elevación de Gemelos de Pie",
+    description:
+      "Ejercicio específico de flexión plantar para fortalecer y desarrollar las pantorrillas (gastrocnemios y sóleo).",
+    muscleGroup: "Piernas",
+    difficultyLevel: "BEGINNER" as const,
+  },
+
+  // Hombros
+  {
+    name: "Press Militar con Barra",
+    description:
+      "Empuje vertical estricto para hombros fuertes y estabilidad general del cinturón escapular.",
+    muscleGroup: "Hombros",
+    difficultyLevel: "INTERMEDIATE" as const,
+  },
+  {
+    name: "Elevaciones Laterales con Mancuernas",
+    description:
+      "Aislamiento de la cabeza lateral del deltoides para otorgar amplitud y forma redondeada a los hombros.",
+    muscleGroup: "Hombros",
+    difficultyLevel: "BEGINNER" as const,
+  },
+  {
+    name: "Pájaros con Mancuernas (Deltoides Posterior)",
+    description:
+      "Ejercicio en inclinación para activar el deltoides posterior y mejorar la postura escapular.",
+    muscleGroup: "Hombros",
+    difficultyLevel: "BEGINNER" as const,
+  },
+
+  // Brazos
+  {
+    name: "Curl de Bíceps con Barra Z",
+    description:
+      "Flexión de brazos con barra ondulada para proteger las muñecas y potenciar los bíceps braquiales.",
+    muscleGroup: "Brazos",
+    difficultyLevel: "BEGINNER" as const,
+  },
+  {
+    name: "Extensión de Tríceps en Polea Alta",
+    description:
+      "Aislamiento de tríceps con cuerda o barra recta para bombeo y definición del brazo.",
+    muscleGroup: "Brazos",
+    difficultyLevel: "BEGINNER" as const,
+  },
+  {
+    name: "Fondos en Barras Paralelas",
+    description:
+      "Ejercicio de peso corporal de alta intensidad para tríceps, hombros y pectoral inferior.",
+    muscleGroup: "Brazos",
+    difficultyLevel: "ADVANCED" as const,
+  },
+
+  // Core
+  {
+    name: "Plancha Abdominal Isométrica",
+    description:
+      "Sostén estático para desarrollar resistencia en el transverso del abdomen, oblicuos y zona lumbar.",
+    muscleGroup: "Core",
+    difficultyLevel: "BEGINNER" as const,
+  },
+  {
+    name: "Elevaciones de Piernas Colgado",
+    description:
+      "Movimiento gimnástico avanzado para fortalecer la porción baja del recto abdominal y flexores de cadera.",
+    muscleGroup: "Core",
+    difficultyLevel: "ADVANCED" as const,
+  },
+  {
+    name: "Rueda Abdominal (Ab Wheel Rollout)",
+    description:
+      "Desafío supremo de anti-extensión lumbar para construir un abdomen fuerte y blindado.",
+    muscleGroup: "Core",
+    difficultyLevel: "ADVANCED" as const,
+  },
+];
+
+const routineTemplates = [
+  {
+    name: "Full Body Principiante",
+    description:
+      "Rutina de cuerpo completo para principiantes. Estimula los principales grupos musculares con movimientos seguros y efectivos (3 días no consecutivos por semana).",
+    difficulty: "BEGINNER" as const,
+    instructorEmail: "gabrielmartinez@gmail.com",
+    exercises: [
+      {
+        exerciseName: "Sentadilla Goblet con Mancuerna",
+        order: 1,
+        sets: 3,
+        reps: 12,
+        weight: 12,
+        notes: "Mantener pecho erguido y descender con talones bien apoyados en el suelo",
+      },
+      {
+        exerciseName: "Jalón al Pecho en Polea Alta",
+        order: 2,
+        sets: 3,
+        reps: 12,
+        weight: 35,
+        notes: "Llevar la barra a la parte superior del pecho con control, sin balancear el tronco",
+      },
+      {
+        exerciseName: "Flexiones de Brazos (Lagartijas)",
+        order: 3,
+        sets: 3,
+        reps: 10,
+        weight: 0,
+        notes: "Apoyar las rodillas si no se llega a 10 repeticiones completas manteniendo buena forma",
+      },
+      {
+        exerciseName: "Elevaciones Laterales con Mancuernas",
+        order: 4,
+        sets: 3,
+        reps: 15,
+        weight: 5,
+        notes: "Codos semiflexionados, subir hasta la altura de los hombros de forma controlada",
+      },
+      {
+        exerciseName: "Plancha Abdominal Isométrica",
+        order: 5,
+        sets: 3,
+        reps: 40,
+        weight: 0,
+        notes: "Sostener la posición 40 segundos manteniendo cuerpo recto y core activado",
+      },
+    ],
+  },
+  {
+    name: "Torso Hipertrofia Intermedio",
+    description:
+      "Rutina modelo de tren superior para fuerza e hipertrofia en pecho, espalda, hombros y brazos mediante sobrecarga progresiva. Para nivel intermedio.",
+    difficulty: "INTERMEDIATE" as const,
+    instructorEmail: "martingonzales2004@gmail.com",
+    exercises: [
+      {
+        exerciseName: "Press de Banca Plano con Barra",
+        order: 1,
+        sets: 4,
+        reps: 8,
+        weight: 60,
+        notes: "Retraer escápulas activamente y controlar la bajada hasta rozar el pecho",
+      },
+      {
+        exerciseName: "Remo con Barra",
+        order: 2,
+        sets: 4,
+        reps: 10,
+        weight: 50,
+        notes: "Tronco inclinado a 45 grados, traccionar llevando los codos hacia la cadera",
+      },
+      {
+        exerciseName: "Press Militar con Barra",
+        order: 3,
+        sets: 4,
+        reps: 8,
+        weight: 35,
+        notes: "Core y glúteos firmes en todo momento, evitar arquear la zona lumbar",
+      },
+      {
+        exerciseName: "Curl de Bíceps con Barra Z",
+        order: 4,
+        sets: 3,
+        reps: 12,
+        weight: 25,
+        notes: "Codos pegados a los costados, controlar la bajada en 2 segundos",
+      },
+      {
+        exerciseName: "Extensión de Tríceps en Polea Alta",
+        order: 5,
+        sets: 3,
+        reps: 12,
+        weight: 25,
+        notes: "Abrir la cuerda al final de la extensión para mayor contracción del tríceps",
+      },
+    ],
+  },
+  {
+    name: "Pierna y Potencia Avanzado",
+    description:
+      "Rutina avanzada para tren inferior y cadena posterior. Enfocada en atletas que buscan máxima fuerza, densidad muscular y potencia funcional en movimientos pesados.",
+    difficulty: "ADVANCED" as const,
+    instructorEmail: "mramirez@hotmail.com",
+    exercises: [
+      {
+        exerciseName: "Sentadilla Trasera con Barra",
+        order: 1,
+        sets: 5,
+        reps: 5,
+        weight: 100,
+        notes: "Sentadilla profunda controlada con técnica estricta. Descanso de 2 a 3 minutos entre series",
+      },
+      {
+        exerciseName: "Peso Muerto Rumano con Barra",
+        order: 2,
+        sets: 4,
+        reps: 8,
+        weight: 80,
+        notes: "Bisagra de cadera estirando los isquiotibiales con espalda completamente neutra",
+      },
+      {
+        exerciseName: "Hip Thrust con Barra",
+        order: 3,
+        sets: 4,
+        reps: 10,
+        weight: 90,
+        notes: "Pausa isométrica de 1 segundo arriba contrayendo glúteos fuertemente",
+      },
+      {
+        exerciseName: "Prensa de Piernas 45°",
+        order: 4,
+        sets: 3,
+        reps: 12,
+        weight: 160,
+        notes: "Bajar profundo sin despegar la zona lumbar del respaldo, no bloquear rodillas arriba",
+      },
+      {
+        exerciseName: "Elevaciones de Piernas Colgado",
+        order: 5,
+        sets: 3,
+        reps: 12,
+        weight: 0,
+        notes: "Subir piernas extendidas hasta la horizontal sin impulsarse con el cuerpo",
+      },
+    ],
+  },
+];
+
 async function main() {
   console.log("Seeding database...");
 
@@ -504,6 +850,124 @@ async function main() {
           classSessionId: createdSession.id,
           status: booking.status,
           bookingDate: new Date(sessionData.date.getTime() - daysToMs(1)),
+        },
+      });
+    }
+  }
+
+  // 5. Instructors
+  console.log("Seeding instructors...");
+  const instructorsByEmail = new Map<string, number>();
+
+  for (const instructorData of instructors) {
+    const existing = await prisma.instructor.findUnique({
+      where: { email: instructorData.email },
+    });
+
+    const savedInstructor = existing
+      ? await prisma.instructor.update({
+          where: { id: existing.id },
+          data: {
+            name: instructorData.name,
+            surname: instructorData.surname,
+            phone: instructorData.phone,
+            deletedAt: null,
+          },
+        })
+      : await prisma.instructor.create({
+          data: instructorData,
+        });
+
+    instructorsByEmail.set(savedInstructor.email, savedInstructor.id);
+  }
+
+  // 6. Exercises
+  console.log("Seeding exercises...");
+  const exercisesByName = new Map<string, number>();
+
+  for (const exerciseData of exercisesData) {
+    const existing = await prisma.exercise.findFirst({
+      where: {
+        name: exerciseData.name,
+        muscleGroup: exerciseData.muscleGroup,
+      },
+    });
+
+    const savedExercise = existing
+      ? await prisma.exercise.update({
+          where: { id: existing.id },
+          data: {
+            description: exerciseData.description,
+            difficultyLevel: exerciseData.difficultyLevel,
+            deletedAt: null,
+          },
+        })
+      : await prisma.exercise.create({
+          data: exerciseData,
+        });
+
+    exercisesByName.set(savedExercise.name, savedExercise.id);
+  }
+
+  // 7. Routine Templates & Exercises
+  console.log("Seeding routine templates and exercises...");
+  for (const template of routineTemplates) {
+    const instructorId = instructorsByEmail.get(template.instructorEmail);
+    if (!instructorId) {
+      throw new Error(
+        `Instructor not found for template: ${template.instructorEmail}`,
+      );
+    }
+
+    const existingRoutine = await prisma.routine.findFirst({
+      where: { name: template.name },
+    });
+
+    let routineId: number;
+
+    if (existingRoutine) {
+      routineId = existingRoutine.id;
+      await prisma.routine.update({
+        where: { id: routineId },
+        data: {
+          description: template.description,
+          difficulty: template.difficulty,
+          instructorId,
+          deletedAt: null,
+        },
+      });
+
+      // Clear previous routine exercises to keep seed idempotent
+      await prisma.routineExercise.deleteMany({
+        where: { routineId },
+      });
+    } else {
+      const createdRoutine = await prisma.routine.create({
+        data: {
+          name: template.name,
+          description: template.description,
+          difficulty: template.difficulty,
+          instructorId,
+        },
+      });
+      routineId = createdRoutine.id;
+    }
+
+    for (const ex of template.exercises) {
+      const exerciseId = exercisesByName.get(ex.exerciseName);
+      if (!exerciseId) {
+        throw new Error(`Exercise not found: ${ex.exerciseName}`);
+      }
+
+      await prisma.routineExercise.create({
+        data: {
+          routineId,
+          exerciseId,
+          order: ex.order,
+          reps: ex.reps,
+          sets: ex.sets,
+          weight: ex.weight,
+          notes: ex.notes,
         },
       });
     }
