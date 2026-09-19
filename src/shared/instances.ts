@@ -22,7 +22,6 @@ import { MemberRepository } from '../modules/member/member.repository.js';
 import { MemberService } from '../modules/member/member.service.js';
 
 // 1. Instructors & Exercises
-// 1. Instructors & Exercises
 export const instructorRepository = new InstructorRepository();
 export const exerciseRepository = new ExerciseRepository();
 

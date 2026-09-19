@@ -39,7 +39,7 @@ instructorRouter.delete(
   instructorController.delete,
 );
 
-// Compatibilidad temporal con clientes que todavía usan PUT.
+// Hay que actualizar a PATCH en el front, pero por ahora para que siga funcionando dejamos el put tambien
 instructorRouter.put(
   '/:id',
   validate(UpdateInstructorSchema),
