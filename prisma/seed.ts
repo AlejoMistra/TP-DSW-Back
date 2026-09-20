@@ -1,3 +1,4 @@
+/// <reference types="node" />  // Para ignorar el error de "Cannot find name 'process'" en TypeScript, ya que la seed esta fuera del src
 import "dotenv/config";
 import { PrismaClient } from "../src/generated/prisma/client.js";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
@@ -32,6 +33,7 @@ const membershipPlans = [
     durationDays: 30,
   },
 ];
+
 
 const now = new Date();
 const daysToMs = (days: number) => days * 24 * 60 * 60 * 1000;

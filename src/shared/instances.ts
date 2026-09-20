@@ -1,4 +1,6 @@
 import { InstructorRepository } from '../modules/instructor/instructor.repository.js';
+import { InstructorService } from '../modules/instructor/instructor.service.js';
+import { InstructorController } from '../modules/instructor/instructor.controller.js';
 import { ExerciseRepository } from '../modules/exercise/exercise.repository.js';
 import { ClassScheduleRepository } from '../modules/classSchedule/classSchedule.repository.js';
 import { ClassScheduleService } from '../modules/classSchedule/classSchedule.service.js';
@@ -22,6 +24,15 @@ import { MemberService } from '../modules/member/member.service.js';
 // 1. Instructors & Exercises
 export const instructorRepository = new InstructorRepository();
 export const exerciseRepository = new ExerciseRepository();
+
+export const instructorService = new InstructorService(
+  instructorRepository,
+);
+
+export const instructorController = new InstructorController(
+  instructorService,
+);
+
 
 // 2. Class Management Domain
 // Class Schedule
