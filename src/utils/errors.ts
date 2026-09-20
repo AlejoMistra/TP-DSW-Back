@@ -26,3 +26,9 @@ export class UnauthorizedError extends AppError {
     super(message, 401, 'UNAUTHORIZED');
   }
 }
+
+export class BadRequestError extends AppError {
+  constructor(message = 'Solicitud inválida') {
+    super(message, 400, 'BAD_REQUEST');
+  }
+}
