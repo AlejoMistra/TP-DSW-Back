@@ -9,11 +9,13 @@ import { MembershipPlanRepository } from '../membershipPlan/membershipPlan.repos
 import type { Membership } from '../../generated/prisma/client.js';
 import { NotFoundError } from '../../utils/errors.js';
 import { FREE_TRIAL_DAYS } from '../../shared/constants.js';
+import { MemberRepository } from '../member/member.repository.js';
 
 export class MembershipService {
   constructor(
     private readonly repository: MembershipRepository,
     private readonly membershipPlanRepository: MembershipPlanRepository,
+    private readonly memberRepository?: MemberRepository,
   ) {}
 
   async getAll(): Promise<MembershipResponse[]> {
@@ -64,7 +66,9 @@ export class MembershipService {
       input.startDate === undefined &&
       input.endDate === undefined
     ) {
-      const plan = await this.membershipPlanRepository.findOne(input.membershipPlanId);
+      const plan = await this.membershipPlanRepository.findOne(
+        input.membershipPlanId,
+      );
       if (!plan) {
         throw new NotFoundError(
           `Plan de membresía con ID ${input.membershipPlanId} no encontrado`,
@@ -80,6 +84,18 @@ export class MembershipService {
     }
 
     const membership = await this.repository.update(id, updateData);
+
+    if (this.memberRepository && input.status) {
+      if (input.status === 'CANCELLED') {
+        await this.memberRepository.update(membership.memberId, {
+          status: 'INACTIVE',
+        });
+      } else if (input.status === 'ACTIVE') {
+        await this.memberRepository.update(membership.memberId, {
+          status: 'ACTIVE',
+        });
+      }
+    }
     return this.toResponse(membership);
   }
 
