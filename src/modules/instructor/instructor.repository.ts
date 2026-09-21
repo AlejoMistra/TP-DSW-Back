@@ -1,57 +1,70 @@
 import { prisma } from '../../lib/prisma.js';
-import type { Instructor } from '../../generated/prisma/client.js';
+import type { Instructor, Prisma, User } from '../../generated/prisma/client.js';
 import type {
   CreateInstructorInput,
   UpdateInstructorInput,
 } from './instructor.schemas.js';
 
+type DbClient = Prisma.TransactionClient | typeof prisma;
+
+export type InstructorWithUser = Instructor & { user: User };
+export type CreateInstructorData = Omit<CreateInstructorInput, 'email'> & {
+  userId: number;
+};
+export type UpdateInstructorData = Omit<UpdateInstructorInput, 'email'>;
+
 export class InstructorRepository {
-  async getAll(): Promise<Instructor[]> {
+  async getAll(): Promise<InstructorWithUser[]> {
     return prisma.instructor.findMany({
       where: { deletedAt: null },
+      include: { user: true },
     });
   }
 
-  async getById(id: number): Promise<Instructor | null> {
+  async getById(id: number): Promise<InstructorWithUser | null> {
     return prisma.instructor.findFirst({
       where: {
         id,
         deletedAt: null,
       },
+      include: { user: true },
     });
   }
 
-  async findByEmail(email: string): Promise<Instructor | null> {
-    return prisma.instructor.findUnique({
-      where: { email },
+  async findByEmail(email: string): Promise<InstructorWithUser | null> {
+    return prisma.instructor.findFirst({
+      where: {
+        deletedAt: null,
+        user: { email },
+      },
+      include: { user: true },
     });
   }
 
-  async create(input: CreateInstructorInput): Promise<Instructor> {
-    return prisma.instructor.create({
+  async create(
+    input: CreateInstructorData,
+    db: DbClient = prisma,
+  ): Promise<InstructorWithUser> {
+    return db.instructor.create({
       data: input,
+      include: { user: true },
     });
   }
 
   async update(
     id: number,
-    input: UpdateInstructorInput,
-  ): Promise<Instructor> {
-    const data = {
-      ...(input.name !== undefined && { name: input.name }),
-      ...(input.surname !== undefined && { surname: input.surname }),
-      ...(input.email !== undefined && { email: input.email }),
-      ...(input.phone !== undefined && { phone: input.phone }),
-    };
-
-    return prisma.instructor.update({
+    input: UpdateInstructorData,
+    db: DbClient = prisma,
+  ): Promise<InstructorWithUser> {
+    return db.instructor.update({
       where: { id },
-      data,
+      data: input,
+      include: { user: true },
     });
   }
 
-  async delete(id: number): Promise<void> {
-    await prisma.instructor.update({
+  async delete(id: number, db: DbClient = prisma): Promise<void> {
+    await db.instructor.update({
       where: { id },
       data: {
         deletedAt: new Date(),

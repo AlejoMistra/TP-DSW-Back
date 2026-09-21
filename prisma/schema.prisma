@@ -19,11 +19,19 @@ generator zod {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique //TODO: Revisar que member y instructor tambien tienen email y puede generar inconsistencias, decidir que hacer, se puede eliminar de member e instructor y dejarlo derivado o sincronizado por servicio
-  passwordHash String
-  role         UserRole
-  isActive     Boolean  @default(true)
+  id Int @id @default(autoincrement())
+
+  /// @zod.email("Email inválido")
+  email String @unique
+
+  /// @zod.min(8, "La contraseña debe tener al menos 8 caracteres")
+  passwordHash String?
+
+  /// @zod.enum(AccountStatus, "Estado de cuenta inválido")
+  accountStatus AccountStatus @default(PENDING_ACTIVATION)
+  /// @zod.enum(UserRole, "Rol inválido")
+  role          UserRole
+  isActive      Boolean       @default(true)
 
   failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime?
@@ -46,8 +54,6 @@ model Member {
   name       String
   /// @zod.min(2, "Apellido debe tener al menos 2 caracteres").max(100, "Apellido máximo 100 caracteres")
   surname    String
-  /// @zod.email("Email inválido")
-  email      String      @unique
   /// @zod.custom.use(z.string().regex(/^\d{7,15}$/, "Teléfono debe tener entre 7 y 15 dígitos"))
   phone      String?
   docType    docType     @default(DNI)
@@ -60,8 +66,8 @@ model Member {
 
   classBookings ClassBooking[]
 
-  user   User? @relation(fields: [userId], references: [id]) //TODO: Cambiar a required cuando se implemente el registro de usuarios
-  userId Int?  @unique
+  user   User @relation(fields: [userId], references: [id])
+  userId Int  @unique
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -71,22 +77,22 @@ model Member {
 }
 
 model Instructor {
-  id       Int      @id @default(autoincrement())
-  name     String
-  surname  String
-  email    String   @unique
-  phone    String?
-  joinDate DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  name      String
+  surname   String
+  phone     String?
+  docType   docType  @default(DNI)
+  docNumber String   @default("")
+  joinDate  DateTime @default(now())
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  classSchedules ClassSchedule[]
-  user           User?           @relation(fields: [userId], references: [id]) //TODO: Cambiar a required cuando se implemente el registro de usuarios
-  userId         Int             @unique
-  routines       Routine[]
-  classSessions  ClassSession[]
+  user          User           @relation(fields: [userId], references: [id])
+  userId        Int            @unique
+  routines      Routine[]
+  classSessions ClassSession[]
 
   @@map("instructors")
 }
@@ -176,9 +182,7 @@ model ClassSchedule {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  sessions     ClassSession[]
-  instructor   Instructor?    @relation(fields: [instructorId], references: [id])
-  instructorId Int?
+  sessions ClassSession[]
 
   @@map("class_schedules")
 }
@@ -295,6 +299,12 @@ model RoutineExercise {
   @@map("routine_exercises")
 }
 
+enum AccountStatus {
+  PENDING_ACTIVATION
+  ACTIVE
+  SUSPENDED
+}
+
 enum ClassBookingStatus {
   CONFIRMED
   CANCELLED
@@ -324,6 +334,11 @@ enum DifficultyLevelExercise {
   ADVANCED
 }
 
+enum docType {
+  DNI
+  PASAPORTE
+}
+
 enum MembershipStatus {
   ACTIVE
   CANCELLED
@@ -347,9 +362,4 @@ enum UserRole {
   ADMIN
   INSTRUCTOR
   MEMBER
-}
-
-enum docType {
-  DNI
-  PASAPORTE
 }

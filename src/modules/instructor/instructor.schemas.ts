@@ -5,12 +5,15 @@ import { IdSchema } from '../../shared/common.schemas.js';
 const instructorBaseSchema = InstructorSchema.pick({
   name: true,
   surname: true,
-  email: true,
   phone: true,
+  docType: true,
+  docNumber: true,
 });
 
 export const CreateInstructorSchema = z.object({
-  body: instructorBaseSchema,
+  body: instructorBaseSchema.extend({
+    email: z.string().email('Email inválido'),
+  }),
 });
 
 export const GetInstructorByIdRequestSchema = z.object({
@@ -19,7 +22,9 @@ export const GetInstructorByIdRequestSchema = z.object({
 
 export const UpdateInstructorSchema = z.object({
   params: IdSchema,
-  body: instructorBaseSchema.partial(),
+  body: instructorBaseSchema.partial().extend({
+    email: z.string().email('Email inválido').optional(),
+  }),
 });
 
 export const DeleteInstructorRequestSchema = z.object({
@@ -28,6 +33,8 @@ export const DeleteInstructorRequestSchema = z.object({
 
 export const InstructorResponseSchema = InstructorSchema.omit({
   deletedAt: true,
+}).extend({
+  email: z.string().email(),
 });
 
 export type CreateInstructorInput = z.infer<

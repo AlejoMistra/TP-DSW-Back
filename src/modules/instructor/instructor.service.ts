@@ -1,6 +1,10 @@
-import type { Instructor } from '../../generated/prisma/client.js';
+import { prisma } from '../../lib/prisma.js';
 import { ConflictError, NotFoundError } from '../../utils/errors.js';
-import { InstructorRepository } from './instructor.repository.js';
+import {
+  InstructorRepository,
+  InstructorWithUser,
+} from './instructor.repository.js';
+import { UserRepository } from '../user/user.repository.js';
 import {
   CreateInstructorInput,
   InstructorResponse,
@@ -11,6 +15,7 @@ import {
 export class InstructorService {
   constructor(
     private readonly repository: InstructorRepository,
+    private readonly userRepository: UserRepository,
   ) {}
 
   async getAll(): Promise<InstructorResponse[]> {
@@ -36,15 +41,36 @@ export class InstructorService {
   async create(
     input: CreateInstructorInput,
   ): Promise<InstructorResponse> {
-    const existing = await this.repository.findByEmail(input.email);
+    const existing = await this.userRepository.findByEmail(input.email);
 
     if (existing) {
       throw new ConflictError('Email ya registrado');
     }
 
-    const instructor = await this.repository.create(input);
+    const { email, ...instructorData } = input;
 
-    return this.toResponse(instructor);
+    const createdInstructor = await prisma.$transaction(async (tx) => {
+      const newUser = await this.userRepository.add(
+        {
+          email,
+          passwordHash: null,
+          accountStatus: 'PENDING_ACTIVATION',
+          role: 'INSTRUCTOR',
+          isActive: true,
+        },
+        tx,
+      );
+
+      return this.repository.create(
+        {
+          ...instructorData,
+          userId: newUser.id,
+        },
+        tx,
+      );
+    });
+
+    return this.toResponse(createdInstructor);
   }
 
   async update(
@@ -59,19 +85,24 @@ export class InstructorService {
       );
     }
 
-    if (
-      input.email !== undefined &&
-      input.email !== existing.email
-    ) {
+    const { email, ...instructorData } = input;
+
+    if (email !== undefined && email !== existing.user.email) {
       const instructorWithEmail =
-        await this.repository.findByEmail(input.email);
+        await this.userRepository.findByEmail(email);
 
       if (instructorWithEmail) {
         throw new ConflictError('Email ya registrado');
       }
     }
 
-    const updatedInstructor = await this.repository.update(id, input);
+    const updatedInstructor = await prisma.$transaction(async (tx) => {
+      if (email !== undefined && email !== existing.user.email) {
+        await this.userRepository.update(existing.userId, { email }, tx);
+      }
+
+      return this.repository.update(id, instructorData, tx);
+    });
 
     return this.toResponse(updatedInstructor);
   }
@@ -85,12 +116,19 @@ export class InstructorService {
       );
     }
 
-    await this.repository.delete(id);
+    await prisma.$transaction(async (tx) => {
+      await this.repository.delete(id, tx);
+      await this.userRepository.delete(existing.userId, tx);
+    });
   }
 
   private toResponse(
-    instructor: Instructor,
+    instructor: InstructorWithUser,
   ): InstructorResponse {
-    return InstructorResponseSchema.parse(instructor);
+    const { user, ...instructorFields } = instructor;
+    return InstructorResponseSchema.parse({
+      ...instructorFields,
+      email: user.email,
+    });
   }
 }
