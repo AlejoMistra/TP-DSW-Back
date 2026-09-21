@@ -12,6 +12,8 @@ import { classSessionRouter } from './modules/classSession/classSession.routes.j
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
 import { routineRouter } from './modules/routine/routine.routes.js';
 import { routineExerciseRouter } from './modules/routineExercise/routineExercise.routes.js';
+import { authRouter } from './modules/auth/auth.router.js';
+import { userRouter } from './modules/user/user.routes.js';
 
 const app = express();
 
@@ -25,6 +27,10 @@ const corsOptions = {
 const availableEndpoints = {
   '/': 'GET: Resumen de la API',
   '/health': 'GET: Verificar el estado del servidor',
+  '/api/auth/login': 'POST: Iniciar sesión',
+  '/api/auth/activate-account': 'POST: Activar cuenta con verificación de identidad',
+  '/api/users': 'GET: Obtener usuarios | POST: Crear usuario',
+  '/api/users/:id': 'GET: Obtener usuario | PATCH: Actualizar usuario | DELETE: Eliminar usuario',
   '/api/members': 'GET: Obtener todos los socios | POST: Crear nuevo socio',
   '/api/members/:id':
     'GET: Obtener un socio | PATCH: Actualizar socio | DELETE: Eliminar socio',
@@ -84,6 +90,8 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
 });
 
+app.use('/api/auth', authRouter);
+app.use('/api/users', userRouter);
 app.use('/api/members', memberRouter);
 app.use('/api/instructors', instructorRouter);
 app.use('/api/memberships', membershipRouter);

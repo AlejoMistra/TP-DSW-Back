@@ -1,0 +1,86 @@
+@baseUrl = http://localhost:3000/api/auth
+
+### 1. Iniciar sesión antes de activar (debe fallar con 403 Forbidden)
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "juan.perez@example.com",
+  "password": "password123"
+}
+
+### 2. Activar cuenta con datos de identidad incorrectos (debe fallar con error genérico 400)
+POST {{baseUrl}}/activate-account
+Content-Type: application/json
+
+{
+  "email": "juan.perez@example.com",
+  "name": "Juan",
+  "surname": "Pérez",
+  "docNumber": "99999999",
+  "newPassword": "miPasswordSeguro123"
+}
+
+### 3. Activar cuenta con email inexistente (debe fallar con el MISMO error genérico 400)
+POST {{baseUrl}}/activate-account
+Content-Type: application/json
+
+{
+  "email": "noexiste@example.com",
+  "name": "Juan",
+  "surname": "Pérez",
+  "docNumber": "30111222",
+  "newPassword": "miPasswordSeguro123"
+}
+
+### 4. Activar cuenta exitosa (Socio Juan Pérez - DNI 30111222)
+POST {{baseUrl}}/activate-account
+Content-Type: application/json
+
+{
+  "email": "juan.perez@example.com",
+  "name": "Juan",
+  "surname": "Pérez",
+  "docNumber": "30111222",
+  "newPassword": "miPasswordSeguro123"
+}
+
+### 5. Reintentar activar cuenta ya activada (debe fallar con 400: Account already activated)
+POST {{baseUrl}}/activate-account
+Content-Type: application/json
+
+{
+  "email": "juan.perez@example.com",
+  "name": "Juan",
+  "surname": "Pérez",
+  "docNumber": "30111222",
+  "newPassword": "miPasswordSeguro123"
+}
+
+### 6. Iniciar sesión con contraseña incorrecta (401 Unauthorized)
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "juan.perez@example.com",
+  "password": "passwordIncorrecto"
+}
+
+### 7. Iniciar sesión exitoso (Socio activado)
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "juan.perez@example.com",
+  "password": "miPasswordSeguro123"
+}
+
+### 8. Iniciar sesión como Administrador (admin@gym.com / admin1234)
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "admin@gym.com",
+  "password": "admin1234"
+}
+

@@ -20,21 +20,35 @@ import { PaymentRepository } from '../modules/payment/payment.repository.js';
 import { PaymentService } from '../modules/payment/payment.service.js';
 import { MemberRepository } from '../modules/member/member.repository.js';
 import { MemberService } from '../modules/member/member.service.js';
+import { UserRepository } from '../modules/user/user.repository.js';
+import { UserService } from '../modules/user/user.service.js';
+import { AuthRepository } from '../modules/auth/auth.repository.js';
+import { AuthService } from '../modules/auth/auth.service.js';
+import { AuthController } from '../modules/auth/auth.controller.js';
 
-// 1. Instructors & Exercises
+// Users
+export const userRepository = new UserRepository();
+export const userService = new UserService(userRepository);
+
+// Auth
+export const authRepository = new AuthRepository();
+export const authService = new AuthService(authRepository);
+export const authController = new AuthController(authService);
+
+// Instructors & Exercises
 export const instructorRepository = new InstructorRepository();
 export const exerciseRepository = new ExerciseRepository();
 
 export const instructorService = new InstructorService(
   instructorRepository,
+  userRepository,
 );
 
 export const instructorController = new InstructorController(
   instructorService,
 );
 
-
-// 2. Class Management Domain
+// Class Management Domain
 // Class Schedule
 export const classScheduleRepository = new ClassScheduleRepository();
 export const classScheduleService = new ClassScheduleService(
@@ -66,7 +80,7 @@ export const classBookingController = new ClassBookingController(
   classBookingService,
 );
 
-// 3. Membership & Payments Domain
+// Membership & Payments Domain
 export const memberRepository = new MemberRepository();
 // Membership Plan
 export const membershipPlanRepository = new MembershipPlanRepository();
@@ -86,11 +100,12 @@ export const paymentService = new PaymentService(
   membershipRepository,
 );
 
-// 4. Members Domain
+// Members Domain
 export const memberService = new MemberService(
   memberRepository,
   membershipRepository,
   membershipService,
   membershipPlanRepository,
   paymentRepository,
+  userRepository,
 );
