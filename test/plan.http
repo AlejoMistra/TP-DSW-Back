@@ -11,9 +11,9 @@ POST {{baseUrl}}
 Content-Type: application/json
 
 {
-  "name": "Plan Básico",
-  "description": "Acceso a equipamiento básico",
-  "price": 28000,
+  "name": "Plan Premium",
+  "description": "Acceso a todas las instalaciones",
+  "price": 38000,
   "durationDays": 30
 }
 

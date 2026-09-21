@@ -1,6 +1,11 @@
-import type { CreateMembershipInput, UpdateMembershipInput } from './membership.schemas.js';
+import type {
+  CreateMembershipInput,
+  UpdateMembershipInput,
+} from './membership.schemas.js';
 import { prisma } from '../../lib/prisma.js';
-import type { Membership } from '../../generated/prisma/client';
+import type { Membership, MembershipStatus, Prisma } from '../../generated/prisma/client.js';
+
+type DbClient = Prisma.TransactionClient | typeof prisma;
 
 export class MembershipRepository {
   async getAll(): Promise<Membership[]> {
@@ -10,48 +15,76 @@ export class MembershipRepository {
       },
     });
   }
-  
+
   async getById(id: number): Promise<Membership | null> {
     return prisma.membership.findFirst({
       where: { id, deletedAt: null },
     });
   }
 
-  async create(membership: CreateMembershipInput): Promise<Membership> {
-    return prisma.membership.create({
+  async getByMemberId(memberId: number): Promise<Membership | null> {
+    return prisma.membership.findFirst({
+      where: { memberId, deletedAt: null },
+    });
+  }
+
+  async create(
+    membership: CreateMembershipInput,
+    db: DbClient = prisma,
+  ): Promise<Membership> {
+    return db.membership.create({
       data: {
         member: { connect: { id: membership.memberId } },
         membershipPlan: { connect: { id: membership.membershipPlanId } },
-        startDate: new Date(membership.startDate),
-        endDate: new Date(membership.endDate),
-        lastPaymentMethod: membership.lastPaymentMethod ?? undefined,
-        lastPaymentDate: membership.lastPaymentDate ? new Date(membership.lastPaymentDate) : undefined,
-        lastPaymentAmount: membership.lastPaymentAmount ?? undefined,
-      },
-      include: {
-        member: true,
-        membershipPlan: true,
+        startDate: membership.startDate,
+        endDate: membership.endDate,
+        status: membership.status,
       },
     });
   }
 
-  async update(id: number, membership: UpdateMembershipInput): Promise<Membership> {
+  async update(
+    id: number,
+    membership: UpdateMembershipInput,
+    db: DbClient = prisma,
+  ): Promise<Membership> {
+    const data: Prisma.MembershipUpdateInput = {};
+
+    if (membership.memberId !== undefined) {
+      data.member = { connect: { id: membership.memberId } };
+    }
+    if (membership.membershipPlanId !== undefined) {
+      data.membershipPlan = { connect: { id: membership.membershipPlanId } };
+    }
+    if (membership.startDate !== undefined) {
+      data.startDate = membership.startDate;
+    }
+    if (membership.endDate !== undefined) {
+      data.endDate = membership.endDate;
+    }
+    if (membership.status !== undefined) {
+      data.status = membership.status;
+    }
+
+    return db.membership.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async updateEndDate(
+    id: number,
+    endDate: Date,
+    status?: MembershipStatus,
+  ): Promise<Membership> {
     return prisma.membership.update({
       where: { id },
-      data: {
-        member: membership.memberId ? { connect: { id: membership.memberId } } : undefined,
-        membershipPlan: membership.membershipPlanId ? { connect: { id: membership.membershipPlanId } } : undefined,
-        startDate: membership.startDate ? new Date(membership.startDate) : undefined,
-        endDate: membership.endDate ? new Date(membership.endDate) : undefined,
-        lastPaymentMethod: membership.lastPaymentMethod,
-        lastPaymentDate: membership.lastPaymentDate ? new Date(membership.lastPaymentDate) : undefined,
-        lastPaymentAmount: membership.lastPaymentAmount ?? undefined,
-      },
+      data: { endDate, status },
     });
   }
 
-  async delete(id: number): Promise<Membership> {
-    return prisma.membership.update({
+  async delete(id: number, db: DbClient = prisma): Promise<Membership> {
+    return db.membership.update({
       where: { id },
       data: {
         deletedAt: new Date(),

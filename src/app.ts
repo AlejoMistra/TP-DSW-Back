@@ -1,11 +1,17 @@
 import express from 'express';
-import { memberRouter } from './modules/member/member.router.js';
-import { instructorRouter } from './modules/instructor/instructor.router.js';
-import { membershipRouter } from './modules/membership/membership.router.js';
-import { membershipPlanRouter } from './modules/membershipPlan/membershipPlan.router.js';
-import { classScheduleRouter } from './modules/classSchedule/classSchedule.router.js';
-import { exerciseRouter } from './modules/exercise/exercise.router.js';
 import cors from 'cors';
+import { memberRouter } from './modules/member/member.routes.js';
+import { instructorRouter } from './modules/instructor/instructor.routes.js';
+import { membershipRouter } from './modules/membership/membership.routes.js';
+import { membershipPlanRouter } from './modules/membershipPlan/membershipPlan.routes.js';
+import { paymentRouter } from './modules/payment/payment.routes.js';
+import { classScheduleRouter } from './modules/classSchedule/classSchedule.routes.js';
+import { exerciseRouter } from './modules/exercise/exercise.routes.js';
+import { classBookingRouter } from './modules/classBooking/classBooking.routes.js';
+import { classSessionRouter } from './modules/classSession/classSession.routes.js';
+import { errorHandler } from './middlewares/errorHandler.middleware.js';
+import { routineRouter } from './modules/routine/routine.routes.js';
+import { routineExerciseRouter } from './modules/routineExercise/routineExercise.routes.js';
 
 const app = express();
 
@@ -19,10 +25,15 @@ const corsOptions = {
 const availableEndpoints = {
   '/': 'GET: Resumen de la API',
   '/health': 'GET: Verificar el estado del servidor',
-  '/api/members':
-    'GET: Obtener todos los socios | POST: Crear nuevo socio',
+  '/api/members': 'GET: Obtener todos los socios | POST: Crear nuevo socio',
   '/api/members/:id':
-    'GET: Obtener un socio | PUT: Actualizar socio | DELETE: Eliminar socio',
+    'GET: Obtener un socio | PATCH: Actualizar socio | DELETE: Eliminar socio',
+  '/api/memberships':
+    'GET: Obtener todas las membresías | POST: Crear nueva membresía',
+  '/api/memberships/:id':
+    'GET: Obtener una membresía | PATCH: Actualizar membresía | DELETE: Eliminar membresía',
+  '/api/memberships/:membershipId/payments':
+    'GET: Obtener todos los pagos de una membresía | POST: Registrar nuevo pago en una membresía',
   '/api/instructors':
     'GET: Obtener todos los instructores | POST: Crear nuevo instructor',
   '/api/instructors/:id':
@@ -45,6 +56,17 @@ const availableEndpoints = {
     'GET: Obtener todos los planes de membresía | POST: Crear nuevo plan de membresía',
   '/api/membership-plans/:id':
     'GET: Obtener un plan de membresía | PUT: Actualizar plan de membresía | DELETE: Eliminar plan de membresía',
+  '/api/payments': 'GET: Obtener todos los pagos | POST: Registrar nuevo pago',
+  '/api/payments/:id':
+    'GET: Obtener un pago | PATCH: Actualizar pago | DELETE: Eliminar pago',
+  '/api/classBookings':
+    'GET: Obtener todas las reservas de clase | POST: Crear nueva reserva de clase',
+  '/api/classBookings/:id':
+    'GET: Obtener una reserva de clase | PUT: Actualizar reserva de clase | DELETE: Eliminar reserva de clase',
+  '/api/classSessions':
+    'GET: Obtener todas las sesiones de clase | POST: Crear nueva sesión de clase',
+  '/api/classSessions/:id':
+    'GET: Obtener una sesión de clase | PUT: Actualizar sesión de clase | DELETE: Eliminar sesión de clase',
 } as const;
 
 app.use(cors(corsOptions));
@@ -66,7 +88,14 @@ app.use('/api/members', memberRouter);
 app.use('/api/instructors', instructorRouter);
 app.use('/api/memberships', membershipRouter);
 app.use('/api/membership-plans', membershipPlanRouter);
+app.use('/api/payments', paymentRouter);
 app.use('/api/classSchedules', classScheduleRouter);
 app.use('/api/exercises', exerciseRouter);
+app.use('/api/classBookings', classBookingRouter);
+app.use('/api/classSessions', classSessionRouter);
+app.use('/api/routines', routineRouter);
+app.use('/api/routineExercise', routineExerciseRouter);
+
+app.use(errorHandler);
 
 export { app };

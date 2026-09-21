@@ -1,24 +1,35 @@
 import { z } from 'zod';
+import { MembershipPlanSchema } from '../../generated/zod/schemas/models/MembershipPlan.schema.js';
+import { IdSchema } from '../../shared/common.schemas.js';
 
-export const PlanIdSchema = z.object({
-  id: z.string().regex(/^\d+$/, 'ID debe ser un número').transform(Number),
+const membershipPlanBaseSchema = MembershipPlanSchema.pick({
+  name: true,
+  description: true,
+  price: true,
+  durationDays: true,
 });
 
-export const CreatePlanSchema = z.object({
-  name: z.string().min(2, 'Nombre debe tener al menos 2 caracteres').max(100),
-  description: z
-    .string()
-    .max(500),
-  price: z.number().positive('Precio debe ser un número positivo'),
-  durationDays: z.number().int().positive('Duración debe ser un número entero positivo'),
+export const CreateMembershipPlanSchema = z.object({
+  body: membershipPlanBaseSchema,
 });
 
-export const UpdatePlanSchema = CreatePlanSchema.partial();
-
-export const PlanResponseSchema = CreatePlanSchema.extend({
-  id: z.number(),
+export const GetMembershipPlanByIdRequestSchema = z.object({
+  params: IdSchema,
 });
 
-export type CreatePlanInput = z.infer<typeof CreatePlanSchema>;
-export type UpdatePlanInput = z.infer<typeof UpdatePlanSchema>;
-export type PlanResponse = z.infer<typeof PlanResponseSchema>;
+export const UpdateMembershipPlanSchema = z.object({
+  params: IdSchema,
+  body: membershipPlanBaseSchema.partial(),
+});
+
+export const DeleteMembershipPlanRequestSchema = z.object({ 
+  params: IdSchema,
+});
+
+export const MembershipPlanResponseSchema = MembershipPlanSchema.omit({
+  deletedAt: true,
+});
+
+export type CreateMembershipPlanInput = z.infer<typeof CreateMembershipPlanSchema>['body'];
+export type UpdateMembershipPlanInput = z.infer<typeof UpdateMembershipPlanSchema>['body'];
+export type MembershipPlanResponse = z.infer<typeof MembershipPlanResponseSchema>;

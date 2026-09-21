@@ -1,42 +1,41 @@
 @baseUrl = http://localhost:3000/api/membership-plans
-@existingId = 3
+@existingId = 6
 @nonExistingId = 999999
 
-### 1. Obtener todos los planes
+### 1. Obtener todos los planes OK
 GET {{baseUrl}}
 
 # Response esperada:
 # - 200 OK
 # - Body: array (puede venir vacio [])
 
-### 2. Obtener un plan por ID valido (existente o no)
+### 2. Obtener un plan por ID existente OK
 GET {{baseUrl}}/{{existingId}}
 
 # Response esperada:
 # - 200 OK
-# - Body: objeto si existe; null si no existe (comportamiento actual)
+# - Body: objeto del plan (sin deletedAt)
 
-### 3. Obtener un plan con ID invalido (no numerico)
+### 3. Obtener un plan con ID invalido (no numerico) -> valida el middleware validate() OK
 GET {{baseUrl}}/abc
 
 # Response esperada:
 # - 400 Bad Request
-# - Body: { "error": "Validacion fallida", "details": [...] }
+# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "error": "Validacion fallida", "details": [...] }
 
-### 4. Obtener un plan inexistente (control de codigo de respuesta)
+### 4. Obtener un plan inexistente -> valida NotFoundError + errorHandler FAILED: response null OK
 GET {{baseUrl}}/{{nonExistingId}}
 
-# Response esperada (actual):
-# - 200 OK
-# - Body: null
-# Nota: idealmente deberia ser 404, este caso ayuda a detectar esa diferencia.
+# Response esperada:
+# - 404 Not Found
+# - Body: { "statusCode": 404, "code": "NOT_FOUND", "error": "Plan de membresía con ID 999999 no encontrado" }
 
-### 5. Crear un plan valido
+### 5. Crear un plan valido OK
 POST {{baseUrl}}
 Content-Type: application/json
 
 {
-  "name": "Plan Basico",
+  "name": "Plan Basicoo",
   "description": "Acceso 3 veces por semana",
   "price": 15000,
   "durationDays": 30
@@ -46,12 +45,12 @@ Content-Type: application/json
 # - 201 Created
 # - Body: objeto creado con id
 
-### 6. Crear plan invalido (name corto)
+### 6. Crear plan invalido (name corto) OK
 POST {{baseUrl}}
 Content-Type: application/json
 
 {
-  "name": "A",
+  "name": "",
   "description": "Descripcion valida",
   "price": 15000,
   "durationDays": 30
@@ -59,11 +58,11 @@ Content-Type: application/json
 
 # Response esperada:
 # - 400 Bad Request
-# - Body: { "error": "Validacion fallida", "details": [...] }
+# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "error": "Validacion fallida", "details": [...] }
 # - Debe incluir error de min length para name
 
-### 7. Crear plan invalido (price negativo y durationDays no entero)
-POST {{baseUrl}}
+### 7. Crear plan invalido (price negativo y durationDays no entero)  OK
+POST {{baseUrl}}  
 Content-Type: application/json
 
 {
@@ -75,10 +74,10 @@ Content-Type: application/json
 
 # Response esperada:
 # - 400 Bad Request
-# - Body: { "error": "Validacion fallida", "details": [...] }
+# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "error": "Validacion fallida", "details": [...] }
 # - Debe incluir errores de precio positivo y duracion entera/positiva
 
-### 8. Crear plan invalido (tipos incorrectos)
+### 8. Crear plan invalido (tipos incorrectos)  OK
 POST {{baseUrl}}
 Content-Type: application/json
 
@@ -91,10 +90,10 @@ Content-Type: application/json
 
 # Response esperada:
 # - 400 Bad Request
-# - Body: { "error": "Validacion fallida", "details": [...] }
+# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "error": "Validacion fallida", "details": [...] }
 
-### 9. Actualizar plan existente con body valido
-PUT {{baseUrl}}/{{existingId}}
+### 9. Actualizar plan existente con body valido OK
+PATCH {{baseUrl}}/{{existingId}}
 Content-Type: application/json
 
 {
@@ -108,8 +107,8 @@ Content-Type: application/json
 # - 200 OK
 # - Body: objeto actualizado
 
-### 10. Actualizar con ID invalido
-PUT {{baseUrl}}/id-invalido
+### 10. Actualizar con ID invalido OK
+PATCH {{baseUrl}}/id-invalido
 Content-Type: application/json
 
 {
@@ -118,10 +117,10 @@ Content-Type: application/json
 
 # Response esperada:
 # - 400 Bad Request
-# - Body: { "error": "Validacion fallida", "details": [...] }
+# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "error": "Validacion fallida", "details": [...] }
 
-### 11. Actualizar con body invalido
-PUT {{baseUrl}}/{{existingId}}
+### 11. Actualizar con body invalido  OK
+PATCH {{baseUrl}}/{{existingId}}
 Content-Type: application/json
 
 {
@@ -132,10 +131,10 @@ Content-Type: application/json
 
 # Response esperada:
 # - 400 Bad Request
-# - Body: { "error": "Validacion fallida", "details": [...] }
+# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "error": "Validacion fallida", "details": [...] }
 
-### 12. Actualizar plan inexistente
-PUT {{baseUrl}}/{{nonExistingId}}
+### 12. Actualizar plan inexistente -> valida NotFoundError + errorHandler  OK
+PATCH {{baseUrl}}/{{nonExistingId}}
 Content-Type: application/json
 
 {
@@ -147,26 +146,26 @@ Content-Type: application/json
 
 # Response esperada:
 # - 404 Not Found
-# - Body: { "error": "..." } con mensaje de Prisma/Error
+# - Body: { "statusCode": 404, "code": "NOT_FOUND", "error": "Plan de membresía con ID 999999 no encontrado" }
 
-### 13. Eliminar plan existente
-DELETE {{baseUrl}}/{{existingId}}
+### 13. Eliminar plan existente   OK
+DELETE {{baseUrl}}/{{existingId}}  
 
 # Response esperada:
 # - 204 No Content
 # - Sin body
 
-### 14. Eliminar con ID invalido
+
+### 14. Eliminar con ID invalido OK
 DELETE {{baseUrl}}/no-numero
 
 # Response esperada:
 # - 400 Bad Request
-# - Body: { "error": "Validacion fallida", "details": [...] }
+# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", # "error": "Validacion fallida", "details": [...] }
 
-### 15. Eliminar plan inexistente (verificar manejo de errores)
-DELETE {{baseUrl}}/{{nonExistingId}}
+### 15. Eliminar plan inexistente -> valida NotFoundError + errorHandler  OK
+DELETE {{baseUrl}}/{{nonExistingId}} 
 
-# Response esperada (actual):
-# - 500 Internal Server Error
-# - Body: { "message": "Error al eliminar el plan de membresia" }
-# Nota: idealmente deberia mapearse a 404 cuando el recurso no existe.
+# Response esperada:
+# - 404 Not Found
+# - Body: { "statusCode": 404, "code": "NOT_FOUND", "error": "Plan de membresía con ID 999999 no encontrado" }

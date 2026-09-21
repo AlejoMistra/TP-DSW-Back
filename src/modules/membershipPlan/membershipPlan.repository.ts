@@ -1,43 +1,32 @@
-import { CreatePlanInput, UpdatePlanInput } from './membershipPlan.schemas.js';
 import { prisma } from '../../lib/prisma.js';
-import type { MembershipPlan } from '../../generated/prisma/client';
+import type { MembershipPlan } from '../../generated/prisma/client.js';
+import { CreateMembershipPlanInput, UpdateMembershipPlanInput } from './membershipPlan.schemas.js';
 
 export class MembershipPlanRepository{
-  
-  async getAll(): Promise<MembershipPlan[]> {
+  async findAll(): Promise<MembershipPlan[]> {
     return prisma.membershipPlan.findMany();
   }
 
-  async getOne(id: number): Promise<MembershipPlan | null> {
+  async findOne(id: number): Promise<MembershipPlan | null> {
     return prisma.membershipPlan.findUnique({
       where: { id },
     });
   }
 
-  async add(membershipPlan: CreatePlanInput): Promise<MembershipPlan> {
+  async create(membershipPlan: CreateMembershipPlanInput): Promise<MembershipPlan> {
     return prisma.membershipPlan.create({
-      data: {
-        name: membershipPlan.name,
-        description: membershipPlan.description,
-        price: membershipPlan.price,
-        durationDays: membershipPlan.durationDays,
-      }
-    })
+      data: membershipPlan,
+    });
   }
   
-  async update(id: number, membershipPlan: UpdatePlanInput): Promise<MembershipPlan> {
+  async update(id: number, membershipPlan: UpdateMembershipPlanInput): Promise<MembershipPlan> {
     return prisma.membershipPlan.update({
       where: { id },
-      data: {
-        name: membershipPlan.name,
-        description: membershipPlan.description,
-        price: membershipPlan.price,
-        durationDays: membershipPlan.durationDays,
-      }
-    })
+      data: membershipPlan,
+    });
   }
 
-  async delete(id: number): Promise<void> {
+  async remove(id: number): Promise<void> {
     await prisma.membershipPlan.delete({
       where: { id },
     });

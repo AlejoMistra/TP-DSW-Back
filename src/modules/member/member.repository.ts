@@ -1,60 +1,69 @@
 import { CreateMemberInput, UpdateMemberInput } from './member.schemas.js';
-import { Member } from '../../generated/prisma/client.js';
+import {
+  Member,
+  Membership,
+  MembershipPlan,
+  Prisma,
+} from '../../generated/prisma/client.js';
 import { prisma } from '../../lib/prisma.js';
+
+type DbClient = Prisma.TransactionClient | typeof prisma;
+// El membershipPlanId se resuelve a nivel de servicio (creación de la Membership); el repo de Member no lo conoce.
+type CreateMemberData = Omit<CreateMemberInput, 'membershipPlanId'>;
 
 export class MemberRepository {
   async getAll(): Promise<Member[]> {
-    return await prisma.member.findMany({
+    return prisma.member.findMany({
       where: { deletedAt: null },
-      // orderBy: { createdAt: 'desc' },
     });
   }
 
-  async getOne(id: number): Promise<Member | undefined> {
-    const member = await prisma.member.findFirst({
+  async getOne(id: number): Promise<Member | null> {
+    return prisma.member.findFirst({
       where: { id, deletedAt: null },
     });
-    return member ?? undefined;
   }
 
-  async add(props: CreateMemberInput): Promise<Member> {
-    // Validar email único ANTES de insertar
-    const existing = await prisma.member.findUnique({
-      where: { email: props.email },
-    });
-    if (existing) {
-      throw new Error('Email ya existe');
-    }
+  async findByEmail(email: string): Promise<Member | null> {
+    return prisma.member.findUnique({ where: { email } });
+  }
 
-    return await prisma.member.create({
-      data: props,
+  async getAllWithMembership(): Promise<
+    (Member & {
+      membership: (Membership & { membershipPlan: MembershipPlan }) | null;
+    })[]
+  > {
+    return prisma.member.findMany({
+      where: { deletedAt: null },
+      include: {
+        membership: {
+          include: {
+            membershipPlan: true,
+          },
+        },
+      },
     });
+  }
+
+  async add(props: CreateMemberData, db: DbClient = prisma): Promise<Member> {
+    return db.member.create({ data: props });
   }
 
   async update(
     id: number,
-    props: UpdateMemberInput,
-  ): Promise<Member | undefined> {
-    try {
-      return await prisma.member.update({
-        where: { id },
-        data: {
-          name: props.name,
-          surname: props.surname,
-          email: props.email,
-          phone: props.phone ?? null,
-          status: props.status ?? 'ACTIVE',
-        },
-      });
-    } catch (error) {
-      return undefined;
-    }
+    memberData: Omit<UpdateMemberInput, 'membershipPlanId'>,
+    db: DbClient = prisma,
+  ): Promise<Member> {
+    return db.member.update({
+      where: { id },
+      data: memberData,
+    });
   }
 
-  async delete(id: number): Promise<void> {
-    await prisma.member.update({
+  async delete(id: number, db: DbClient = prisma): Promise<void> {
+    await db.member.update({
       where: { id },
-      data: { deletedAt: new Date() },
+      data: { deletedAt: new Date(), status: 'INACTIVE' },
     });
   }
 }
