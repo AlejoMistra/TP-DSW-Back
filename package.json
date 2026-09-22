@@ -19,7 +19,12 @@
     "build": "tsc",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:unit": "vitest run src",
+    "test:integration": "vitest run test/integration",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@prisma/adapter-mariadb": "^7.9.0",
@@ -36,11 +41,16 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.9.4",
+    "@types/supertest": "^7.2.1",
+    "@vitest/coverage-v8": "^5.0.1",
     "dotenv": "^17.4.2",
     "prisma": "^7.9.0",
     "prisma-zod-generator": "^3.1.1",
+    "supertest": "^7.2.2",
     "tsc-watch": "^7.2.0",
     "tsx": "^4.23.1",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.1",
+    "vitest-mock-extended": "^5.1.1"
   }
 }

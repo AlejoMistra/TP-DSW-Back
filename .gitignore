@@ -29,5 +29,9 @@ Thumbs.db
 /src/generated/prisma
 /src/generated/zod
 
+# Test coverage reports (vitest --coverage)
+coverage/
+.vitest/
+
 /generated/prisma
 /serverLauncher.bat
