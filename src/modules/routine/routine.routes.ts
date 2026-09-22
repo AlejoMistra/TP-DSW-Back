@@ -1,5 +1,8 @@
 import { Router } from 'express';
 import { validate } from '../../middlewares/validate.middleware.js';
+import { authenticate } from '../../middlewares/authentication.middleware.js';
+import { authorize } from '../../middlewares/authorization.middleware.js';
+import { UserRole } from '../../generated/prisma/enums.js';
 import {
   CreateRoutineSchema,
   UpdateRoutineSchema,
@@ -10,8 +13,10 @@ import { findAll, findOne, create, update, remove } from './routine.controller.j
 
 export const routineRouter = Router();
 
-routineRouter.get('/', validate(ListRoutinesSchema), findAll);
-routineRouter.get('/:id', validate(GetRoutineByIdSchema), findOne);
-routineRouter.post('/', validate(CreateRoutineSchema), create);
-routineRouter.patch('/:id', validate(UpdateRoutineSchema), update);
-routineRouter.delete('/:id', remove);
+routineRouter.use(authenticate);
+
+routineRouter.get('/', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), validate(ListRoutinesSchema), findAll);
+routineRouter.get('/:id', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), validate(GetRoutineByIdSchema), findOne);
+routineRouter.post('/', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR), validate(CreateRoutineSchema), create);
+routineRouter.patch('/:id', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR), validate(UpdateRoutineSchema), update);
+routineRouter.delete('/:id', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR), remove);
