@@ -13,7 +13,7 @@ export function handleError(error: unknown, res: Response): void {
     res.status(400).json({
       statusCode: 400,
       code: 'VALIDATION_ERROR',
-      error: 'Validacion fallida',
+      message: 'Validacion fallida',
       details,
     });
     return;
@@ -36,7 +36,7 @@ export function handleError(error: unknown, res: Response): void {
         res.status(409).json({
           statusCode: 409,
           code: 'CONFLICT',
-          error: 'El member ya está reservado en esta classSession',
+          message: 'El member ya está reservado en esta classSession',
         });
         return;
       }
@@ -53,7 +53,7 @@ export function handleError(error: unknown, res: Response): void {
         res.status(409).json({
           statusCode: 409,
           code: 'CONFLICT',
-          error: 'Ya existe una classSession con ese classScheduleId, date y startTime',
+          message: 'Ya existe una classSession con ese classScheduleId, date y startTime',
         });
         return;
       }
@@ -62,7 +62,7 @@ export function handleError(error: unknown, res: Response): void {
       res.status(409).json({
         statusCode: 409,
         code: 'CONFLICT',
-        error: 'Conflicto de unicidad',
+        message: 'Conflicto de unicidad',
       });
       return;
     }
@@ -72,7 +72,7 @@ export function handleError(error: unknown, res: Response): void {
       res.status(409).json({
         statusCode: 409,
         code: 'CONFLICT',
-        error: 'Referencia inválida (foreign key)',
+        message: 'Referencia inválida (foreign key)',
       });
       return;
     }
@@ -82,7 +82,7 @@ export function handleError(error: unknown, res: Response): void {
       res.status(404).json({
         statusCode: 404,
         code: 'NOT_FOUND',
-        error: 'Recurso no encontrado',
+        message: 'Recurso no encontrado',
       });
       return;
     }
@@ -96,7 +96,7 @@ export function handleError(error: unknown, res: Response): void {
   res.status(statusCode).json({
     statusCode,
     code,
-    error: message,
+    message,
   });
 }
 

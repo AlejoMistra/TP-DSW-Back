@@ -42,7 +42,13 @@ export const findAll = async (req: Request, res: Response, next: NextFunction) =
 export const findOne = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = getIdFromReq(req);
-    if (id === null) return res.status(400).json({ error: 'ID inválido' });
+    if (id === null) {
+      return res.status(400).json({
+        statusCode: 400,
+        code: 'BAD_REQUEST',
+        message: 'ID inválido',
+      });
+    }
 
     const item = await service.findOne(id);
     res.status(200).json(item);
@@ -57,7 +63,13 @@ export const findByRoutine = async (req: Request, res: Response, next: NextFunct
       (req.validated?.params as { routineId?: number } | undefined)?.routineId ??
       (req.params.routineId ? Number(req.params.routineId) : NaN);
 
-    if (!Number.isFinite(routineId)) return res.status(400).json({ error: 'Routine ID inválido' });
+    if (!Number.isFinite(routineId)) {
+      return res.status(400).json({
+        statusCode: 400,
+        code: 'BAD_REQUEST',
+        message: 'Routine ID inválido',
+      });
+    }
 
     const items = await service.findByRoutine(Number(routineId));
     res.status(200).json(items);
@@ -70,7 +82,13 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
   try {
     const body = (req.validated?.body ?? req.body) as CreateRoutineExerciseInput & { instructorId?: number };
     const user = getInstructorUserFromReq(req);
-    if (!user) return res.status(400).json({ error: 'InstructorId obligatorio en el body mientras no haya auth' });
+    if (!user) {
+      return res.status(400).json({
+        statusCode: 400,
+        code: 'BAD_REQUEST',
+        message: 'InstructorId obligatorio en el body mientras no haya auth',
+      });
+    }
 
     const created = await service.create(body, user);
     res.status(201).json(created);
@@ -82,11 +100,23 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
 export const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = getIdFromReq(req);
-    if (id === null) return res.status(400).json({ error: 'ID inválido' });
+    if (id === null) {
+      return res.status(400).json({
+        statusCode: 400,
+        code: 'BAD_REQUEST',
+        message: 'ID inválido',
+      });
+    }
 
     const payload = (req.validated?.body ?? req.body) as UpdateRoutineExerciseInput & { instructorId?: number };
     const user = getInstructorUserFromReq(req);
-    if (!user) return res.status(400).json({ error: 'InstructorId obligatorio en el body mientras no haya auth' });
+    if (!user) {
+      return res.status(400).json({
+        statusCode: 400,
+        code: 'BAD_REQUEST',
+        message: 'InstructorId obligatorio en el body mientras no haya auth',
+      });
+    }
 
     const updated = await service.update(id, payload, user);
     res.status(200).json(updated);
@@ -98,10 +128,22 @@ export const update = async (req: Request, res: Response, next: NextFunction) =>
 export const remove = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = getIdFromReq(req);
-    if (id === null) return res.status(400).json({ error: 'ID inválido' });
+    if (id === null) {
+      return res.status(400).json({
+        statusCode: 400,
+        code: 'BAD_REQUEST',
+        message: 'ID inválido',
+      });
+    }
 
     const user = getInstructorUserFromReq(req);
-    if (!user) return res.status(400).json({ error: 'InstructorId obligatorio en el body mientras no haya auth' });
+    if (!user) {
+      return res.status(400).json({
+        statusCode: 400,
+        code: 'BAD_REQUEST',
+        message: 'InstructorId obligatorio en el body mientras no haya auth',
+      });
+    }
 
     await service.remove(id, user);
     res.status(204).send();

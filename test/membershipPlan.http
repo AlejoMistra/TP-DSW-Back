@@ -21,14 +21,14 @@ GET {{baseUrl}}/abc
 
 # Response esperada:
 # - 400 Bad Request
-# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "error": "Validacion fallida", "details": [...] }
+# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "message": "Validacion fallida", "details": [...] }
 
 ### 4. Obtener un plan inexistente -> valida NotFoundError + errorHandler FAILED: response null OK
 GET {{baseUrl}}/{{nonExistingId}}
 
 # Response esperada:
 # - 404 Not Found
-# - Body: { "statusCode": 404, "code": "NOT_FOUND", "error": "Plan de membresía con ID 999999 no encontrado" }
+# - Body: { "statusCode": 404, "code": "NOT_FOUND", "message": "Plan de membresía con ID 999999 no encontrado" }
 
 ### 5. Crear un plan valido OK
 POST {{baseUrl}}
@@ -58,7 +58,7 @@ Content-Type: application/json
 
 # Response esperada:
 # - 400 Bad Request
-# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "error": "Validacion fallida", "details": [...] }
+# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "message": "Validacion fallida", "details": [...] }
 # - Debe incluir error de min length para name
 
 ### 7. Crear plan invalido (price negativo y durationDays no entero)  OK
@@ -74,7 +74,7 @@ Content-Type: application/json
 
 # Response esperada:
 # - 400 Bad Request
-# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "error": "Validacion fallida", "details": [...] }
+# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "message": "Validacion fallida", "details": [...] }
 # - Debe incluir errores de precio positivo y duracion entera/positiva
 
 ### 8. Crear plan invalido (tipos incorrectos)  OK
@@ -90,7 +90,7 @@ Content-Type: application/json
 
 # Response esperada:
 # - 400 Bad Request
-# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "error": "Validacion fallida", "details": [...] }
+# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "message": "Validacion fallida", "details": [...] }
 
 ### 9. Actualizar plan existente con body valido OK
 PATCH {{baseUrl}}/{{existingId}}
@@ -117,7 +117,7 @@ Content-Type: application/json
 
 # Response esperada:
 # - 400 Bad Request
-# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "error": "Validacion fallida", "details": [...] }
+# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "message": "Validacion fallida", "details": [...] }
 
 ### 11. Actualizar con body invalido  OK
 PATCH {{baseUrl}}/{{existingId}}
@@ -131,7 +131,7 @@ Content-Type: application/json
 
 # Response esperada:
 # - 400 Bad Request
-# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "error": "Validacion fallida", "details": [...] }
+# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "message": "Validacion fallida", "details": [...] }
 
 ### 12. Actualizar plan inexistente -> valida NotFoundError + errorHandler  OK
 PATCH {{baseUrl}}/{{nonExistingId}}
@@ -146,7 +146,7 @@ Content-Type: application/json
 
 # Response esperada:
 # - 404 Not Found
-# - Body: { "statusCode": 404, "code": "NOT_FOUND", "error": "Plan de membresía con ID 999999 no encontrado" }
+# - Body: { "statusCode": 404, "code": "NOT_FOUND", "message": "Plan de membresía con ID 999999 no encontrado" }
 
 ### 13. Eliminar plan existente   OK
 DELETE {{baseUrl}}/{{existingId}}  
@@ -161,11 +161,11 @@ DELETE {{baseUrl}}/no-numero
 
 # Response esperada:
 # - 400 Bad Request
-# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", # "error": "Validacion fallida", "details": [...] }
+# - Body: { "statusCode": 400, "code": "VALIDATION_ERROR", "message": "Validacion fallida", "details": [...] }
 
 ### 15. Eliminar plan inexistente -> valida NotFoundError + errorHandler  OK
 DELETE {{baseUrl}}/{{nonExistingId}} 
 
 # Response esperada:
 # - 404 Not Found
-# - Body: { "statusCode": 404, "code": "NOT_FOUND", "error": "Plan de membresía con ID 999999 no encontrado" }
+# - Body: { "statusCode": 404, "code": "NOT_FOUND", "message": "Plan de membresía con ID 999999 no encontrado" }
