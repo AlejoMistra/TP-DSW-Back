@@ -9,18 +9,6 @@ export class AppError extends Error {
   }
 }
 
-export class BadRequestError extends AppError {
-  constructor(message = 'Solicitud inválida') {
-    super(message, 400, 'BAD_REQUEST');
-  }
-}
-
-export class UnauthorizedError extends AppError {
-  constructor(message = 'No autorizado') {
-    super(message, 401, 'UNAUTHORIZED');
-  }
-}
-
 export class ForbiddenError extends AppError {
   constructor(message = 'Acceso denegado') {
     super(message, 403, 'FORBIDDEN');
