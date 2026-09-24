@@ -4,38 +4,53 @@ import {
   Membership,
   MembershipPlan,
   Prisma,
+  User,
 } from '../../generated/prisma/client.js';
 import { prisma } from '../../lib/prisma.js';
 
 type DbClient = Prisma.TransactionClient | typeof prisma;
-// El membershipPlanId se resuelve a nivel de servicio (creación de la Membership); el repo de Member no lo conoce.
-type CreateMemberData = Omit<CreateMemberInput, 'membershipPlanId'>;
+
+export type MemberWithUser = Member & { user: User };
+export type MemberWithUserAndMembership = Member & {
+  user: User;
+  membership: (Membership & { membershipPlan: MembershipPlan }) | null;
+};
+
+export type CreateMemberData = Omit<CreateMemberInput, 'membershipPlanId' | 'email'> & {
+  userId: number;
+};
+export type UpdateMemberData = Omit<UpdateMemberInput, 'membershipPlanId' | 'email'>;
 
 export class MemberRepository {
-  async getAll(): Promise<Member[]> {
+  async getAll(): Promise<MemberWithUser[]> {
     return prisma.member.findMany({
       where: { deletedAt: null },
+      include: { user: true },
     });
   }
 
-  async getOne(id: number): Promise<Member | null> {
+  async getOne(id: number): Promise<MemberWithUser | null> {
     return prisma.member.findFirst({
       where: { id, deletedAt: null },
+      include: { user: true },
     });
   }
 
-  async findByEmail(email: string): Promise<Member | null> {
-    return prisma.member.findUnique({ where: { email } });
+  async findByEmail(email: string): Promise<MemberWithUser | null> {
+    return prisma.member.findFirst({
+      where: {
+        deletedAt: null,
+        user: { email },
+      },
+      include: { user: true },
+    });
   }
 
-  async getAllWithMembership(): Promise<
-    (Member & {
-      membership: (Membership & { membershipPlan: MembershipPlan }) | null;
-    })[]
-  > {
+  async getAllWithMembership(): Promise<MemberWithUserAndMembership[]> {
     return prisma.member.findMany({
       where: { deletedAt: null },
       include: {
+        user: true,
         membership: {
           include: {
             membershipPlan: true,
@@ -45,18 +60,22 @@ export class MemberRepository {
     });
   }
 
-  async add(props: CreateMemberData, db: DbClient = prisma): Promise<Member> {
-    return db.member.create({ data: props });
+  async add(props: CreateMemberData, db: DbClient = prisma): Promise<MemberWithUser> {
+    return db.member.create({
+      data: props,
+      include: { user: true },
+    });
   }
 
   async update(
     id: number,
-    memberData: Omit<UpdateMemberInput, 'membershipPlanId'>,
+    memberData: UpdateMemberData,
     db: DbClient = prisma,
-  ): Promise<Member> {
+  ): Promise<MemberWithUser> {
     return db.member.update({
       where: { id },
       data: memberData,
+      include: { user: true },
     });
   }
 

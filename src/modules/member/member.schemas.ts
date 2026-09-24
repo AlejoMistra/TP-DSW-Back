@@ -7,7 +7,6 @@ import { IdSchema } from '../../shared/common.schemas.js';
 const memberBaseSchema = MemberSchema.pick({
   name: true,
   surname: true,
-  email: true,
   phone: true,
   docType: true,
   docNumber: true,
@@ -25,6 +24,7 @@ const memberPaymentInputSchema = PaymentSchema.pick({
 
 export const CreateMemberSchema = z.object({
   body: memberBaseSchema.extend({
+    email: z.string().email('Email inválido'),
     membershipPlanId: MembershipSchema.shape.membershipPlanId,
     payment: memberPaymentInputSchema.optional(),
   }),
@@ -37,6 +37,7 @@ export const GetMemberByIdRequestSchema = z.object({
 export const UpdateMemberSchema = z.object({
   params: IdSchema,
   body: memberBaseSchema.partial().extend({
+    email: z.string().email('Email inválido').optional(),
     membershipPlanId: MembershipSchema.shape.membershipPlanId.optional(),
     payment: memberPaymentInputSchema.optional(),
   }),
@@ -46,7 +47,10 @@ export const DeleteMemberRequestSchema = z.object({
   params: IdSchema,
 });
 
-export const MemberResponseSchema = MemberSchema.omit({ deletedAt: true, 
+export const MemberResponseSchema = MemberSchema.omit({
+  deletedAt: true,
+}).extend({
+  email: z.string().email(),
 });
 
 export type CreateMemberInput = z.infer<typeof CreateMemberSchema>['body'];

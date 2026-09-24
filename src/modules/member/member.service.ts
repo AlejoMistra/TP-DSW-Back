@@ -1,6 +1,6 @@
 import { prisma } from '../../lib/prisma.js';
-import type { Member } from '../../generated/prisma/client.js';
-import { MemberRepository } from './member.repository.js';
+import { MemberRepository, MemberWithUser } from './member.repository.js';
+import { UserRepository } from '../user/user.repository.js';
 import { MembershipRepository } from '../membership/membership.repository.js';
 import { MembershipService } from '../membership/membership.service.js';
 import { MembershipResponse } from '../membership/membership.schemas.js';
@@ -28,6 +28,7 @@ export class MemberService {
     private readonly membershipService: MembershipService,
     private readonly membershipPlanRepository: MembershipPlanRepository,
     private readonly paymentRepository: PaymentRepository,
+    private readonly userRepository: UserRepository,
   ) {}
 
   async getAll(): Promise<MemberResponse[]> {
@@ -46,13 +47,18 @@ export class MemberService {
   async getAllWithMembership() {
     const members = await this.memberRepository.getAllWithMembership();
     return members.map((member) => {
-      const { membership, ...rest } = member;
+      const { membership, user, ...rest } = member;
+      const baseMember = {
+        ...rest,
+        email: user.email,
+      };
+
       if (!membership) {
-        return { ...rest, membership: null };
+        return { ...baseMember, membership: null };
       }
       const { membershipPlan, ...membershipFields } = membership;
       return {
-        ...rest,
+        ...baseMember,
         membership: {
           ...this.membershipService.toResponse(membershipFields),
           membershipPlan,
@@ -62,23 +68,38 @@ export class MemberService {
   }
 
   async create(input: CreateMemberInput): Promise<MemberWithMembershipAndPayment> {
-    const existing = await this.memberRepository.findByEmail(input.email);
-    if (existing) {
+    const existingUser = await this.userRepository.findByEmail(input.email);
+    if (existingUser) {
       throw new ConflictError('El email ingresado ya existe');
     }
 
-    const { membershipPlanId, payment, ...memberData } = input;
+    const { membershipPlanId, payment, email, ...memberData } = input;
 
     const membershipPlan = await this.membershipPlanRepository.findOne(membershipPlanId);
     if (!membershipPlan) {
       throw new NotFoundError(`Plan de membresía con ID ${membershipPlanId} no encontrado`);
     }
 
-    // Member + Membership se crean atómicamente.
-    // Sin pago: membresía ACTIVE con free trial de FREE_TRIAL_DAYS días.
-    // Con pago: membresía ACTIVE con duración completa del plan.
+    // Member + User + Membership se crean atómicamente dentro de la misma transacción.
     const { member, membership, createdPayment } = await prisma.$transaction(async (tx) => {
-      const newMember = await this.memberRepository.add(memberData, tx);
+      const newUser = await this.userRepository.add(
+        {
+          email,
+          passwordHash: null,
+          accountStatus: 'PENDING_ACTIVATION',
+          role: 'MEMBER',
+          isActive: true,
+        },
+        tx,
+      );
+
+      const newMember = await this.memberRepository.add(
+        {
+          ...memberData,
+          userId: newUser.id,
+        },
+        tx,
+      );
 
       const startDate = new Date();
       const endDate = new Date(startDate);
@@ -127,55 +148,65 @@ export class MemberService {
       throw new NotFoundError(`Socio con ID ${id} no encontrado`);
     }
 
-    const { membershipPlanId, payment, ...memberData } = input;
+    const { membershipPlanId, payment, email, ...memberData } = input;
 
-    if (membershipPlanId === undefined) {
-      // Sin cambio de plan: actualizar solo datos del socio.
-      const updatedMember = await this.memberRepository.update(id, memberData);
-      return this.toResponse(updatedMember);
+    if (email !== undefined && email !== member.user.email) {
+      const existingUser = await this.userRepository.findByEmail(email);
+      if (existingUser) {
+        throw new ConflictError('El email ingresado ya existe');
+      }
     }
 
-    const membershipPlan = await this.membershipPlanRepository.findOne(membershipPlanId);
-    if (!membershipPlan) {
-      throw new NotFoundError(
-        `Plan de membresía con ID ${membershipPlanId} no encontrado`,
-      );
-    }
+    let membershipPlan: Awaited<ReturnType<typeof this.membershipPlanRepository.findOne>> = null;
+    let membership: Awaited<ReturnType<typeof this.membershipRepository.getByMemberId>> = null;
 
-    const membership = await this.membershipRepository.getByMemberId(id);
-    if (!membership) {
-      throw new NotFoundError(`Membresía para el socio con ID ${id} no encontrada`);
-    }
+    if (membershipPlanId !== undefined) {
+      membershipPlan = await this.membershipPlanRepository.findOne(membershipPlanId);
+      if (!membershipPlan) {
+        throw new NotFoundError(
+          `Plan de membresía con ID ${membershipPlanId} no encontrado`,
+        );
+      }
 
-    // Cambio de plan: el período se reinicia desde hoy.
-    // Sin pago: free trial de FREE_TRIAL_DAYS días.
-    // Con pago: duración completa del nuevo plan.
-    const startDate = new Date();
-    const endDate = new Date(startDate);
-    endDate.setDate(
-      endDate.getDate() + (payment ? membershipPlan.durationDays : FREE_TRIAL_DAYS),
-    );
+      membership = await this.membershipRepository.getByMemberId(id);
+      if (!membership) {
+        throw new NotFoundError(`Membresía para el socio con ID ${id} no encontrada`);
+      }
+    }
 
     const updatedMember = await prisma.$transaction(async (tx) => {
-      const updated = await this.memberRepository.update(id, memberData, tx);
-      await this.membershipRepository.update(
-        membership.id,
-        { membershipPlanId, startDate, endDate, status: 'ACTIVE' },
-        tx,
-      );
+      if (email !== undefined && email !== member.user.email) {
+        await this.userRepository.update(member.userId, { email }, tx);
+      }
 
-      if (payment) {
-        await this.paymentRepository.create(
-          {
-            membershipId: membership.id,
-            amount: payment.amount,
-            method: payment.method,
-            paymentDate: payment.paymentDate,
-            periodStart: startDate,
-            periodEnd: endDate,
-          },
+      const updated = await this.memberRepository.update(id, memberData, tx);
+
+      if (membershipPlanId !== undefined && membership && membershipPlan) {
+        const startDate = new Date();
+        const endDate = new Date(startDate);
+        endDate.setDate(
+          endDate.getDate() + (payment ? membershipPlan.durationDays : FREE_TRIAL_DAYS),
+        );
+
+        await this.membershipRepository.update(
+          membership.id,
+          { membershipPlanId, startDate, endDate, status: 'ACTIVE' },
           tx,
         );
+
+        if (payment) {
+          await this.paymentRepository.create(
+            {
+              membershipId: membership.id,
+              amount: payment.amount,
+              method: payment.method,
+              paymentDate: payment.paymentDate,
+              periodStart: startDate,
+              periodEnd: endDate,
+            },
+            tx,
+          );
+        }
       }
 
       return updated;
@@ -197,10 +228,15 @@ export class MemberService {
         await this.membershipRepository.delete(membership.id, tx);
       }
       await this.memberRepository.delete(id, tx);
+      await this.userRepository.delete(member.userId, tx);
     });
   }
 
-  private toResponse(member: Member): MemberResponse {
-    return MemberResponseSchema.parse(member);
+  private toResponse(member: MemberWithUser): MemberResponse {
+    const { user, ...memberFields } = member;
+    return MemberResponseSchema.parse({
+      ...memberFields,
+      email: user.email,
+    });
   }
 }

@@ -18,14 +18,42 @@ generator zod {
   config   = "./zod-generator.config.json"
 }
 
+model User {
+  id Int @id @default(autoincrement())
+
+  /// @zod.email("Email inválido")
+  email String @unique
+
+  /// @zod.min(8, "La contraseña debe tener al menos 8 caracteres")
+  passwordHash String?
+
+  /// @zod.enum(AccountStatus, "Estado de cuenta inválido")
+  accountStatus AccountStatus @default(PENDING_ACTIVATION)
+  /// @zod.enum(UserRole, "Rol inválido")
+  role          UserRole
+  isActive      Boolean       @default(true)
+
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+
+  member     Member?
+  instructor Instructor?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([role, isActive])
+  @@map("users")
+}
+
 model Member {
   id         Int         @id @default(autoincrement())
   /// @zod.min(2, "Nombre debe tener al menos 2 caracteres").max(100, "Nombre máximo 100 caracteres")
   name       String
   /// @zod.min(2, "Apellido debe tener al menos 2 caracteres").max(100, "Apellido máximo 100 caracteres")
   surname    String
-  /// @zod.email("Email inválido")
-  email      String      @unique
   /// @zod.custom.use(z.string().regex(/^\d{7,15}$/, "Teléfono debe tener entre 7 y 15 dígitos"))
   phone      String?
   docType    docType     @default(DNI)
@@ -35,28 +63,35 @@ model Member {
   birthDate  DateTime
   membership Membership?
   status     Status      @default(ACTIVE)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  deletedAt  DateTime?
 
   classBookings ClassBooking[]
 
-  @@map("members")
-}
-
-model Instructor {
-  id       Int      @id @default(autoincrement())
-  name     String
-  surname  String
-  email    String   @unique
-  phone    String?
-  joinDate DateTime @default(now())
+  user   User @relation(fields: [userId], references: [id])
+  userId Int  @unique
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  routines Routine[]
+  @@map("members")
+}
+
+model Instructor {
+  id        Int      @id @default(autoincrement())
+  name      String
+  surname   String
+  phone     String?
+  docType   docType  @default(DNI)
+  docNumber String   @default("")
+  joinDate  DateTime @default(now())
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user          User           @relation(fields: [userId], references: [id])
+  userId        Int            @unique
+  routines      Routine[]
   classSessions ClassSession[]
 
   @@map("instructors")
@@ -219,27 +254,27 @@ model Exercise {
 }
 
 model Routine {
-  id          Int               @id @default(autoincrement())
+  id           Int                     @id @default(autoincrement())
   /// @zod.min(1, "El nombre de la rutina no puede estar vacío").max(200, "El nombre no puede superar los 200 caracteres")
-  name        String
+  name         String
   /// @zod.max(1000, "La descripción de la rutina no puede superar los 1000 caracteres")
-  description String?
-  difficulty  DifficultyLevelExercise
-  instructor  Instructor        @relation(fields: [instructorId], references: [id])
+  description  String?
+  difficulty   DifficultyLevelExercise
+  instructor   Instructor              @relation(fields: [instructorId], references: [id])
   instructorId Int
 
   routineExercises RoutineExercise[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   @@map("routines")
 }
 
 model RoutineExercise {
-  id         Int     @id @default(autoincrement())
-  routine    Routine @relation(fields: [routineId], references: [id])
+  id         Int      @id @default(autoincrement())
+  routine    Routine  @relation(fields: [routineId], references: [id])
   routineId  Int
   exercise   Exercise @relation(fields: [exerciseId], references: [id])
   exerciseId Int
@@ -255,8 +290,8 @@ model RoutineExercise {
   /// @zod.max(500, "Las notas no pueden superar 500 caracteres")
   notes  String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   @@index([routineId])
@@ -264,6 +299,11 @@ model RoutineExercise {
   @@map("routine_exercises")
 }
 
+enum AccountStatus {
+  PENDING_ACTIVATION
+  ACTIVE
+  SUSPENDED
+}
 
 enum ClassBookingStatus {
   CONFIRMED
@@ -294,6 +334,11 @@ enum DifficultyLevelExercise {
   ADVANCED
 }
 
+enum docType {
+  DNI
+  PASAPORTE
+}
+
 enum MembershipStatus {
   ACTIVE
   CANCELLED
@@ -313,7 +358,8 @@ enum Status {
   INACTIVE
 }
 
-enum docType {
-  DNI
-  PASAPORTE
+enum UserRole {
+  ADMIN
+  INSTRUCTOR
+  MEMBER
 }

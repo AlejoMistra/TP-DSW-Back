@@ -1,5 +1,6 @@
 /// <reference types="node" />  // Para ignorar el error de "Cannot find name 'process'" en TypeScript, ya que la seed esta fuera del src
 import "dotenv/config";
+import bcrypt from "bcrypt";
 import { PrismaClient } from "../src/generated/prisma/client.js";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
@@ -298,20 +299,27 @@ const instructors = [
     surname: "Martínez",
     email: "gabrielmartinez@gmail.com",
     phone: "1155443322",
+    docNumber: "25111222",
+    docType: "DNI" as const,
   },
   {
     name: "Martín",
     surname: "González",
     email: "martingonzales2004@gmail.com",
     phone: "1166778899",
+    docNumber: "26333444",
+    docType: "DNI" as const,
   },
   {
     name: "Milton",
     surname: "Ramírez",
     email: "mramirez@hotmail.com",
     phone: "1144332211",
+    docNumber: "27555666",
+    docType: "DNI" as const,
   },
 ];
+
 
 const exercisesData = [
   // Pecho
@@ -641,6 +649,25 @@ const routineTemplates = [
 async function main() {
   console.log("Seeding database...");
 
+  // 0. Admin User
+  console.log("Seeding admin user...");
+  const adminEmail = "admin@gym.com";
+  const existingAdmin = await prisma.user.findUnique({
+    where: { email: adminEmail },
+  });
+  if (!existingAdmin) {
+    const passwordHash = await bcrypt.hash("admin1234", 10);
+    await prisma.user.create({
+      data: {
+        email: adminEmail,
+        passwordHash,
+        role: "ADMIN",
+        accountStatus: "ACTIVE",
+        isActive: true,
+      },
+    });
+  }
+
   // 1. Membership Plans
   console.log("Seeding membership plans...");
   const plansByName = new Map<string, { id: number; price: number }>();
@@ -669,11 +696,25 @@ async function main() {
     const startDate = sortedPayments[0].periodStart;
     const endDate = sortedPayments[sortedPayments.length - 1].periodEnd;
 
-    const existingMember = await prisma.member.findUnique({
+    let user = await prisma.user.findUnique({
       where: { email: memberData.email },
-      include: { membership: true },
+      include: { member: { include: { membership: true } } },
     });
 
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email: memberData.email,
+          role: "MEMBER",
+          accountStatus: "PENDING_ACTIVATION",
+          passwordHash: null,
+          isActive: true,
+        },
+        include: { member: { include: { membership: true } } },
+      });
+    }
+
+    const existingMember = user.member;
     let memberId: number;
 
     if (existingMember) {
@@ -738,11 +779,11 @@ async function main() {
         data: {
           name: memberData.name,
           surname: memberData.surname,
-          email: memberData.email,
           phone: memberData.phone,
           docNumber: memberData.docNumber,
           birthDate: memberData.birthDate,
           status: memberData.memberStatus,
+          userId: user.id,
           membership: {
             create: {
               startDate,
@@ -766,6 +807,7 @@ async function main() {
     }
 
     membersByEmail.set(memberData.email, memberId);
+
   }
 
   // 3. Class Schedules
@@ -862,26 +904,57 @@ async function main() {
   const instructorsByEmail = new Map<string, number>();
 
   for (const instructorData of instructors) {
-    const existing = await prisma.instructor.findUnique({
+    let user = await prisma.user.findUnique({
       where: { email: instructorData.email },
+      include: { instructor: true },
     });
 
-    const savedInstructor = existing
-      ? await prisma.instructor.update({
-          where: { id: existing.id },
-          data: {
-            name: instructorData.name,
-            surname: instructorData.surname,
-            phone: instructorData.phone,
-            deletedAt: null,
-          },
-        })
-      : await prisma.instructor.create({
-          data: instructorData,
-        });
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email: instructorData.email,
+          role: "INSTRUCTOR",
+          accountStatus: "PENDING_ACTIVATION",
+          passwordHash: null,
+          isActive: true,
+        },
+        include: { instructor: true },
+      });
+    }
 
-    instructorsByEmail.set(savedInstructor.email, savedInstructor.id);
+    const existingInstructor = user.instructor;
+    let instructorId: number;
+
+    if (existingInstructor) {
+      instructorId = existingInstructor.id;
+      await prisma.instructor.update({
+        where: { id: existingInstructor.id },
+        data: {
+          name: instructorData.name,
+          surname: instructorData.surname,
+          phone: instructorData.phone,
+          docNumber: instructorData.docNumber,
+          docType: instructorData.docType,
+          deletedAt: null,
+        },
+      });
+    } else {
+      const created = await prisma.instructor.create({
+        data: {
+          name: instructorData.name,
+          surname: instructorData.surname,
+          phone: instructorData.phone,
+          docNumber: instructorData.docNumber,
+          docType: instructorData.docType,
+          userId: user.id,
+        },
+      });
+      instructorId = created.id;
+    }
+
+    instructorsByEmail.set(instructorData.email, instructorId);
   }
+
 
   // 6. Exercises
   console.log("Seeding exercises...");
