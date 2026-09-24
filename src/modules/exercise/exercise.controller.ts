@@ -32,7 +32,13 @@ export const findAll = async (req: Request, res: Response) => {
 
 export const findOne = async (req: Request, res: Response) => {
   const id = getIdFromReq(req);
-  if (id === null) return res.status(400).json({ error: 'ID inválido' });
+  if (id === null) {
+    return res.status(400).json({
+      statusCode: 400,
+      code: 'BAD_REQUEST',
+      message: 'ID inválido',
+    });
+  }
 
   const exercise = await service.findOne(id);
   res.status(200).json(exercise);
@@ -47,7 +53,13 @@ export const create = async (req: Request, res: Response) => {
 
 export const update = async (req: Request, res: Response) => {
   const id = getIdFromReq(req);
-  if (id === null) return res.status(400).json({ error: 'ID inválido' });
+  if (id === null) {
+    return res.status(400).json({
+      statusCode: 400,
+      code: 'BAD_REQUEST',
+      message: 'ID inválido',
+    });
+  }
 
   const payload = (req.validated?.body ?? req.body) as UpdateExerciseInput;
   const updated = await service.update(id, payload);
@@ -56,7 +68,13 @@ export const update = async (req: Request, res: Response) => {
 
 export const remove = async (req: Request, res: Response) => {
   const id = getIdFromReq(req);
-  if (id === null) return res.status(400).json({ error: 'ID inválido' });
+  if (id === null) {
+    return res.status(400).json({
+      statusCode: 400,
+      code: 'BAD_REQUEST',
+      message: 'ID inválido',
+    });
+  }
 
   await service.remove(id);
   res.status(204).send();

@@ -38,3 +38,15 @@ export class ConflictError extends AppError {
     super(message, 409, 'CONFLICT');
   }
 }
+
+export class UnauthorizedError extends AppError {
+  constructor(message = 'No autorizado') {
+    super(message, 401, 'UNAUTHORIZED');
+  }
+}
+
+export class BadRequestError extends AppError {
+  constructor(message = 'Solicitud inválida') {
+    super(message, 400, 'BAD_REQUEST');
+  }
+}

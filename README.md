@@ -25,10 +25,11 @@ El proyecto sigue una organización modular por dominio dentro de `src/modules` 
 Además, hoy se observan estos patrones de soporte:
 
 - `src/middlewares/validate.middleware.ts`: middleware genérico para validación de requests (body, params, query) con esquemas Zod, inyectando el resultado en `req.validated`.
-- `src/middlewares/errorHandler.middleware.ts`: middleware centralizado de Express para manejo uniforme de errores (`ZodError`, `AppError` y errores no controlados).
-- `src/utils/errors.ts`: jerarquía de errores personalizados de aplicación (`AppError`, `NotFoundError`, `ConflictError`, `UnauthorizedError`).
+- `src/middlewares/errorHandler.middleware.ts`: middleware centralizado de Express para manejo uniforme de errores (`ZodError`, `AppError`, errores de Prisma y errores no controlados), respondiendo con el formato estándar `{ statusCode, code, message, details? }`.
+- `src/utils/errors.ts`: jerarquía de errores personalizados de aplicación (`AppError`, `NotFoundError`, `ConflictError`, `UnauthorizedError`, `BadRequestError`).
 - `src/shared/instances.ts`: composición e inyección manual de dependencias (instanciación de repositorios, servicios y controladores).
 - `src/lib/prisma.ts`: instancia compartida de Prisma Client configurada con `@prisma/adapter-mariadb`.
+
 
 ## Estructura principal
 
