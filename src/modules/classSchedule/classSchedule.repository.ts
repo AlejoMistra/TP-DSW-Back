@@ -26,7 +26,6 @@ export class ClassScheduleRepository {
         category: input.category,
         maxCapacity: input.maxCapacity,
         durationMinutes: input.durationMinutes,
-        instructor: { connect: { id: input.instructorId } },
       },
     });
   }
@@ -40,10 +39,6 @@ export class ClassScheduleRepository {
         category: input.category,
         maxCapacity: input.maxCapacity,
         durationMinutes: input.durationMinutes,
-        instructor:
-          input.instructorId !== undefined
-            ? { connect: { id: input.instructorId } }
-            : undefined,
       },
     });
   }
@@ -52,13 +47,6 @@ export class ClassScheduleRepository {
     return prisma.classSchedule.update({
       where: { id },
       data: { deletedAt: new Date() },
-    });
-  }
-
-  // opcionales (si ya los usabas en tu router anterior)
-  async getByInstructorId(instructorId: number): Promise<ClassSchedule[]> {
-    return prisma.classSchedule.findMany({
-      where: { instructorId, deletedAt: null },
     });
   }
 

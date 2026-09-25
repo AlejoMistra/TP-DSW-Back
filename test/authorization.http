@@ -1,0 +1,104 @@
+@baseUrl = http://localhost:3000/api
+
+### 1. Iniciar sesión como ADMIN (guarda el token)
+# @name loginAdmin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@gym.com",
+  "password": "admin1234"
+}
+
+### Extraer token admin
+@adminToken = {{loginAdmin.response.body.token}}
+
+### 2. Iniciar sesión como SOCIO (MEMBER)
+# @name loginMember
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "juan.perez@example.com",
+  "password": "member1234"
+}
+
+### Extraer token socio
+@memberToken = {{loginMember.response.body.token}}
+
+### 3. Iniciar sesión como INSTRUCTOR
+# @name loginInstructor
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "gabrielmartinez@gmail.com",
+  "password": "instructor1234"
+}
+
+### Extraer token instructor
+@instructorToken = {{loginInstructor.response.body.token}}
+
+
+### ========================================================
+### CASOS DE PRUEBA: AUTENTICACIÓN (401 UNAUTHORIZED)
+### ========================================================
+
+### 3. Petición sin token a endpoint protegido (debe retornar 401 UNAUTHORIZED)
+GET {{baseUrl}}/users
+
+### 4. Petición con token malformado/inválido (debe retornar 401 UNAUTHORIZED)
+GET {{baseUrl}}/users
+Authorization: Bearer token_totalmente_invalido
+
+
+### ========================================================
+### CASOS DE PRUEBA: AUTORIZACIÓN POR ROL (403 FORBIDDEN)
+### ========================================================
+
+### 5. Socio intenta acceder a listar usuarios (Solo ADMIN) -> 403 FORBIDDEN
+GET {{baseUrl}}/users
+Authorization: Bearer {{memberToken}}
+
+### 6. Socio intenta crear un ejercicio (Solo ADMIN o INSTRUCTOR) -> 403 FORBIDDEN
+POST {{baseUrl}}/exercises
+Content-Type: application/json
+Authorization: Bearer {{memberToken}}
+
+{
+  "name": "Intento no autorizado",
+  "description": "Debe fallar con 403"
+}
+
+### 7. Socio intenta crear un plan de membresía (Solo ADMIN) -> 403 FORBIDDEN
+POST {{baseUrl}}/membership-plans
+Content-Type: application/json
+Authorization: Bearer {{memberToken}}
+
+{
+  "name": "Plan Hack",
+  "description": "Plan no permitido",
+  "price": 100,
+  "durationMonths": 1
+}
+
+
+### ========================================================
+### CASOS DE PRUEBA: ACCESO PERMITIDO (200 / 201 OK)
+### ========================================================
+
+### 8. Admin accede a listar usuarios -> 200 OK
+GET {{baseUrl}}/users
+Authorization: Bearer {{adminToken}}
+
+### 9. Socio accede a ver ejercicios -> 200 OK
+GET {{baseUrl}}/exercises
+Authorization: Bearer {{memberToken}}
+
+### 10. Socio accede a ver planes de membresía -> 200 OK
+GET {{baseUrl}}/membership-plans
+Authorization: Bearer {{memberToken}}
+
+### 11. Socio accede a ver horarios de clase -> 200 OK
+GET {{baseUrl}}/classSchedules
+Authorization: Bearer {{memberToken}}

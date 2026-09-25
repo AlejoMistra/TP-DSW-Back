@@ -1,57 +1,74 @@
 import { prisma } from '../../lib/prisma.js';
-import { Instructor } from '../../generated/prisma/client.js';
-import {
+import type { Instructor, Prisma, User } from '../../generated/prisma/client.js';
+import type {
   CreateInstructorInput,
   UpdateInstructorInput,
 } from './instructor.schemas.js';
 
+type DbClient = Prisma.TransactionClient | typeof prisma;
+
+export type InstructorWithUser = Instructor & { user: User };
+export type CreateInstructorData = Omit<CreateInstructorInput, 'email'> & {
+  userId: number;
+};
+export type UpdateInstructorData = Omit<UpdateInstructorInput, 'email'>;
+
 export class InstructorRepository {
-  async getAll(): Promise<Instructor[]> {
-    return await prisma.instructor.findMany({
+  async getAll(): Promise<InstructorWithUser[]> {
+    return prisma.instructor.findMany({
       where: { deletedAt: null },
+      include: { user: true },
     });
   }
 
-  async getById(id: number): Promise<Instructor | undefined> {
-    const instructor = await prisma.instructor.findFirst({
-      where: { id, deletedAt: null },
-    });
-    return instructor ?? undefined;
-  }
-
-  async add(props: CreateInstructorInput): Promise<Instructor> {
-    const existing = await prisma.instructor.findUnique({
-      where: { email: props.email },
-    });
-    if (existing) {
-      throw new Error('Email ya registrado');
-    }
-    return await prisma.instructor.create({
-      data: props,
+  async getById(id: number): Promise<InstructorWithUser | null> {
+    return prisma.instructor.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+      },
+      include: { user: true },
     });
   }
 
-  // TODO: Because UpdateInstructorInput is partial, this update currently passes undefined for omitted fields (and coerces phoneNumber to null when phone is not provided). This can cause Prisma validation errors and/or unintentionally clear fields on partial updates. Build the data object to include only keys that are actually provided (and only set phoneNumber to null when the caller explicitly sends phone: null). Also, catching all errors and returning undefined hides non-not-found problems (e.g., unique constraint violations); prefer letting Prisma errors bubble up (and map them in a higher layer) or translating them into a specific error type.
+  async findByEmail(email: string): Promise<InstructorWithUser | null> {
+    return prisma.instructor.findFirst({
+      where: {
+        deletedAt: null,
+        user: { email },
+      },
+      include: { user: true },
+    });
+  }
+
+  async create(
+    input: CreateInstructorData,
+    db: DbClient = prisma,
+  ): Promise<InstructorWithUser> {
+    return db.instructor.create({
+      data: input,
+      include: { user: true },
+    });
+  }
 
   async update(
     id: number,
-    props: UpdateInstructorInput,
-  ): Promise<Instructor | undefined> {
-    return prisma.instructor.update({
+    input: UpdateInstructorData,
+    db: DbClient = prisma,
+  ): Promise<InstructorWithUser> {
+    return db.instructor.update({
       where: { id },
-      data: {
-        name: props.name,
-        surname: props.surname,
-        email: props.email,
-        phone: props.phone ?? null,
-      },
+      data: input,
+      include: { user: true },
     });
   }
 
-  async delete(id: number): Promise<void> {
-    await prisma.instructor.update({
+  async delete(id: number, db: DbClient = prisma): Promise<void> {
+    await db.instructor.update({
       where: { id },
-      data: { deletedAt: new Date() },
+      data: {
+        deletedAt: new Date(),
+      },
     });
   }
 }

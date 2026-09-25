@@ -4,9 +4,10 @@ import {
   ClassBookingResponse,
   ClassBookingResponseSchema,
 } from './classBooking.schemas.js';
-import { Prisma, type ClassBooking } from '../../generated/prisma/client.js'; // <- cambiar import
+import { Prisma, type ClassBooking } from '../../generated/prisma/client.js';
 import { ClassBookingRepository } from './classBooking.repository.js';
 import { prisma } from '../../lib/prisma.js';
+import { NotFoundError, ConflictError } from '../../utils/errors.js';
 
 export class ClassBookingService {
   constructor(private readonly repository: ClassBookingRepository) {}
@@ -18,7 +19,7 @@ export class ClassBookingService {
 
   async getById(id: number): Promise<ClassBookingResponse> {
     const classBooking = await this.repository.getById(id);
-    if (!classBooking) throw new Error(`ClassBooking with ID ${id} not found`);
+    if (!classBooking) throw new NotFoundError(`Asistencia a clase con ID ${id} no encontrada`);
     return this.toResponse(classBooking);
   }
 
@@ -34,32 +35,51 @@ export class ClassBookingService {
           },
         });
 
-        if (!session) throw new Error('ClassSession no encontrada o no disponible');
+        if (!session) throw new NotFoundError('Sesión de clase no encontrada o no disponible');
 
-        // 2) Duplicado ANTES de cupo
+        // 2) Buscar reserva previa (incluso cancelada o con soft-delete)
         const existingBooking = await tx.classBooking.findFirst({
           where: {
             memberId: input.memberId,
             classSessionId: input.classSessionId,
-            deletedAt: null,
           },
         });
 
-        if (existingBooking) {
-          throw new Error('El socio ya tiene una reserva para esta clase');
+        if (existingBooking && existingBooking.status === 'CONFIRMED' && existingBooking.deletedAt === null) {
+          throw new ConflictError('El socio ya tiene una reserva para esta clase');
         }
 
         // 3) Cupo
         if (session.remainingCapacity <= 0) {
-          throw new Error('No hay cupos disponibles');
+          throw new ConflictError('No hay cupos disponibles');
         }
 
-        // 4) Crear + descontar
+        // 4) Si ya existía cancelada o soft-deleted, reactivarla
+        if (existingBooking) {
+          const reactivated = await tx.classBooking.update({
+            where: { id: existingBooking.id },
+            data: {
+              status: 'CONFIRMED',
+              deletedAt: null,
+              bookingDate: new Date(),
+            },
+          });
+
+          await tx.classSession.update({
+            where: { id: input.classSessionId },
+            data: { remainingCapacity: { decrement: 1 } },
+          });
+
+          return reactivated;
+        }
+
+        // 5) Crear nueva reserva + descontar cupo
         const booking = await tx.classBooking.create({
           data: {
             memberId: input.memberId,
             classSessionId: input.classSessionId,
             status: 'CONFIRMED',
+            bookingDate: new Date(),
           },
         });
 
@@ -78,7 +98,7 @@ export class ClassBookingService {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
-        throw new Error('El socio ya tiene una reserva para esta clase');
+        throw new ConflictError('El socio ya tiene una reserva para esta clase');
       }
       throw error;
     }
@@ -87,36 +107,46 @@ export class ClassBookingService {
   async update(id: number, input: UpdateClassBookingInput): Promise<ClassBookingResponse> {
     const updated = await prisma.$transaction(async (tx) => {
       const existing = await tx.classBooking.findFirst({
-        where: { id, deletedAt: null },
+        where: { id },
       });
-      if (!existing) throw new Error(`ClassBooking with ID ${id} not found`);
+      if (!existing) throw new NotFoundError(`Asistencia a clase con ID ${id} no encontrada`);
 
-      if (existing.status === input.status) return existing;
+      // Si no hay cambio de estado y no está soft-deleted, devolver existente
+      if (existing.status === input.status && existing.deletedAt === null) return existing;
 
-      if (existing.status === 'CONFIRMED' && input.status === 'CANCELLED') {
-        const booking = await tx.classBooking.update({
-          where: { id },
-          data: { status: 'CANCELLED' },
-        });
+      if (input.status === 'CANCELLED') {
+        if (existing.status === 'CONFIRMED') {
+          const booking = await tx.classBooking.update({
+            where: { id },
+            data: { status: 'CANCELLED' },
+          });
 
-        await tx.classSession.update({
-          where: { id: existing.classSessionId },
-          data: { remainingCapacity: { increment: 1 } },
-        });
+          await tx.classSession.update({
+            where: { id: existing.classSessionId },
+            data: { remainingCapacity: { increment: 1 } },
+          });
 
-        return booking;
+          return booking;
+        }
+
+        return existing;
       }
 
-      if (existing.status === 'CANCELLED' && input.status === 'CONFIRMED') {
+      if (input.status === 'CONFIRMED') {
+        // Reactivación si estaba cancelada o soft-deleted
         const session = await tx.classSession.findFirst({
           where: { id: existing.classSessionId, deletedAt: null, status: 'SCHEDULED' },
         });
-        if (!session) throw new Error('ClassSession no encontrada o no disponible');
-        if (session.remainingCapacity <= 0) throw new Error('No hay cupos disponibles');
+        if (!session) throw new NotFoundError('Sesión de clase no encontrada o no disponible');
+        if (session.remainingCapacity <= 0) throw new ConflictError('No hay cupos disponibles');
 
         const booking = await tx.classBooking.update({
           where: { id },
-          data: { status: 'CONFIRMED' },
+          data: {
+            status: 'CONFIRMED',
+            deletedAt: null,
+            bookingDate: new Date(),
+          },
         });
 
         await tx.classSession.update({
@@ -138,11 +168,11 @@ export class ClassBookingService {
       const existing = await tx.classBooking.findFirst({ where: { id } });
 
       if (!existing || existing.deletedAt) {
-        throw new Error(`ClassBooking with ID ${id} not found`);
+        throw new NotFoundError(`Asistencia a clase con ID ${id} no encontrada`);
       }
 
       if (existing.status === 'CANCELLED') {
-        throw new Error('La reserva ya está cancelada');
+        throw new ConflictError('La reserva ya está cancelada');
       }
 
       await tx.classBooking.update({

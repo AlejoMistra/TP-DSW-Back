@@ -1,0 +1,65 @@
+@baseUrl = http://localhost:3000/api/classBookings
+
+### 1. Obtener todas las reservas de clase
+GET {{baseUrl}}
+
+### 2. Obtener una reserva por ID
+GET {{baseUrl}}/1
+
+### 3. Crear una reserva de clase inicial
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "memberId": 1,
+  "classSessionId": 15
+}
+
+### 4. Intentar duplicar reserva activa (espera 409 Conflicto)
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "memberId": 1,
+  "classSessionId": 15
+}
+
+### 5. Cancelar reserva mediante PATCH (status: CANCELLED)
+PATCH {{baseUrl}}/17
+Content-Type: application/json
+
+{
+  "status": "CANCELLED"
+}
+
+### 6. Re-reservar la misma sesión tras cancelación por PATCH (POST reactiva la reserva con 201)
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "memberId": 1,
+  "classSessionId": 20
+}
+
+### 7. Cancelar / Eliminar una reserva (soft-delete via DELETE)
+DELETE {{baseUrl}}/15
+
+### 8. Re-reservar la misma sesión tras soft-delete (POST reactiva y resetea deletedAt a null con 201)
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "memberId": 1,
+  "classSessionId": 15
+}
+
+### 9. Cancelar nuevamente via DELETE para probar reactivación por PATCH
+DELETE {{baseUrl}}/15
+
+### 10. Reactivar reserva soft-deleted directamente mediante PATCH (status: CONFIRMED)
+PATCH {{baseUrl}}/1
+Content-Type: application/json
+
+{
+  "status": "CONFIRMED"
+}
