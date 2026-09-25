@@ -106,7 +106,7 @@ describe('Auth flow (login, activation) — mocked Prisma', () => {
       });
 
       expect(res.status).toBe(403);
-      expect(res.body.error).toMatch(/activar/);
+      expect(res.body.message).toMatch(/activar/);
     });
 
     it('rejects login with the wrong password and records the failed attempt', async () => {
@@ -124,7 +124,7 @@ describe('Auth flow (login, activation) — mocked Prisma', () => {
       });
 
       expect(res.status).toBe(401);
-      expect(res.body.error).toBe('Credenciales inválidas');
+      expect(res.body.message).toBe('Credenciales inválidas');
       expect(prismaMock.user.update).toHaveBeenCalledWith(
         expect.objectContaining({ data: expect.objectContaining({ failedLoginAttempts: 1 }) }),
       );
@@ -162,7 +162,7 @@ describe('Auth flow (login, activation) — mocked Prisma', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe('No se pudieron verificar los datos');
+      expect(res.body.message).toBe('No se pudieron verificar los datos');
     });
 
     it('rejects activation with mismatched identity data', async () => {
@@ -181,7 +181,7 @@ describe('Auth flow (login, activation) — mocked Prisma', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe('No se pudieron verificar los datos');
+      expect(res.body.message).toBe('No se pudieron verificar los datos');
     });
 
     it('activates the account when identity data matches (case-insensitive)', async () => {
@@ -222,7 +222,7 @@ describe('Auth flow (login, activation) — mocked Prisma', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe('La cuenta ya está activada, por favor inicia sesión');
+      expect(res.body.message).toBe('La cuenta ya está activada, por favor inicia sesión');
     });
   });
 });
