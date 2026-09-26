@@ -22,7 +22,7 @@ El proyecto sigue una organización modular por dominio dentro de `src/modules` 
 - `repository`: encapsula el acceso a datos y las operaciones contra la base de datos utilizando Prisma Client.
 - `schemas`: define los esquemas de validación de entrada (body, params, query) con Zod y proporciona inferencia de tipos estáticos en TypeScript. Se apoya en `prisma-zod-generator`, que genera automáticamente esquemas base de validación a partir de anotaciones y reglas definidas directamente en `prisma/schema.prisma` (mediante directivas `/// @zod.*` como `@zod.min`, `@zod.email`, `@zod.custom.use`), asegurando coherencia entre el modelo de datos y la validación en capa de aplicación.
 
-Además, hoy se observan estos patrones de soporte:
+Además, se observan estos patrones de soporte:
 
 - `src/middlewares/validate.middleware.ts`: middleware genérico para validación de requests (body, params, query) con esquemas Zod, inyectando el resultado en `req.validated`.
 - `src/middlewares/errorHandler.middleware.ts`: middleware centralizado de Express para manejo uniforme de errores (`ZodError`, `AppError`, errores de Prisma y errores no controlados), respondiendo con el formato estándar `{ statusCode, code, message, details? }`.
@@ -34,38 +34,71 @@ Además, hoy se observan estos patrones de soporte:
 ## Estructura principal
 
 ```text
-src/
-├── app.ts
-├── server.ts
-├── lib/
-│   └── prisma.ts
-├── middlewares/
-│   ├── errorHandler.middleware.ts
-│   └── validate.middleware.ts
-├── shared/
-│   ├── common.schemas.ts
-│   ├── constants.ts
-│   └── instances.ts
-├── utils/
-│   ├── errors.ts
-│   ├── errorHandler.ts
-│   ├── stringUtils.ts
-│   └── timeUtils.ts
-└── modules/
-    ├── classBooking/
-    ├── classSchedule/
-    ├── classSession/
-    ├── exercise/
-    ├── instructor/
-    ├── member/
-    ├── membership/
-    ├── membershipPlan/
-    ├── payment/
-    ├── routine/
-    └── routineExercise/
+.
+├── prisma/
+│   ├── migrations/
+│   ├── schema.prisma
+│   ├── seed.ts
+│   └── zod-generator.config.json
+├── src/
+│   ├── app.ts
+│   ├── server.ts
+│   ├── generated/
+│   │   ├── prisma/
+│   │   └── zod/
+│   ├── lib/
+│   │   └── prisma.ts
+│   ├── middlewares/
+│   │   ├── authentication.middleware.ts
+│   │   ├── authorization.middleware.ts
+│   │   ├── errorHandler.middleware.ts
+│   │   └── validate.middleware.ts
+│   ├── modules/
+│   │   ├── auth/
+│   │   ├── classBooking/
+│   │   ├── classSchedule/
+│   │   ├── classSession/
+│   │   ├── exercise/
+│   │   ├── instructor/
+│   │   ├── member/
+│   │   ├── membership/
+│   │   ├── membershipPlan/
+│   │   ├── payment/
+│   │   ├── routine/
+│   │   ├── routineExercise/
+│   │   └── user/
+│   ├── shared/
+│   │   ├── common.schemas.ts
+│   │   ├── constants.ts
+│   │   └── instances.ts
+│   └── utils/
+│       ├── errors.ts
+│       ├── errorHandler.ts
+│       ├── stringUtils.ts
+│       └── timeUtils.ts
+├── test/
+│   ├── *.http
+│   ├── helpers/
+│   │   └── auth.helper.ts
+│   ├── integration/
+│   │   ├── auth.integration.test.ts
+│   │   └── authorization.integration.test.ts
+│   └── mocks/
+│       └── prisma.mock.ts
+├── .gitignore
+├── .env.example
+├── README.md
+├── package.json
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+├── prisma.config.ts
+├── tsconfig.json
+└── vitest.config.ts
 ```
 
-Cada módulo típicamente implementa:
+`src/generated/prisma` y `src/generated/zod` se generan con `pnpm db:generate`.
+
+Cada módulo implementa:
 - `[dominio].routes.ts`: definición de rutas y middlewares de validación
 - `[dominio].controller.ts`: controladores HTTP
 - `[dominio].service.ts`: lógica de negocio
@@ -76,54 +109,72 @@ Cada módulo típicamente implementa:
 
 ### Requisitos
 
-- Node.js 18 o superior
-- npm (o gestor compatible)
+- Node.js 20.19 o superior
+- pnpm
 - Base de datos MariaDB/MySQL disponible
 
 ### Variables de entorno
 
-Crear un archivo `.env` en la raíz con, como mínimo:
+Copiar `.env.example` como `.env` en la raíz y ajustar las credenciales para la instancia local de MariaDB/MySQL. La base de datos indicada (`tp_dsw` por defecto) debe existir. `DATABASE_URL` es utilizada por la CLI de Prisma (`prisma.config.ts`), mientras que las variables `DATABASE_*` individuales son consumidas en tiempo de ejecución por el adaptador `@prisma/adapter-mariadb`.
 
-```env
-PORT=3000
-NODE_ENV=development
-DATABASE_URL=mysql://user:password@localhost:3306/database
-DATABASE_HOST=localhost
-DATABASE_PORT=3306
-DATABASE_USER=user
-DATABASE_PASSWORD=password
-DATABASE_NAME=database
-```
-
-> `DATABASE_URL` es utilizada por la CLI de Prisma (`prisma.config.ts`) para migraciones, mientras que las variables `DATABASE_*` individuales son consumidas en tiempo de ejecución por el adaptador `@prisma/adapter-mariadb`.
+`JWT_SECRET` tiene un valor de desarrollo en la plantilla; configurar uno propio antes de usar el proyecto fuera de un entorno local.
 
 ### Scripts
 
-- `npm run dev`: compila en modo watch y levanta el servidor
-- `npm run build`: compila el proyecto TypeScript
-- `npm run db:migrate`: aplica o genera migraciones de base de datos con Prisma
-- `npm run db:generate`: genera el cliente de Prisma y esquemas de validación Zod
-- `npm run db:seed`: ejecuta el seeder para poblar datos iniciales
+- `pnpm dev`: compila en modo watch y levanta el servidor
+- `pnpm build`: compila el proyecto TypeScript
+- `pnpm db:migrate`: aplica o genera migraciones de base de datos con Prisma
+- `pnpm db:generate`: genera el cliente de Prisma y esquemas de validación Zod
+- `pnpm db:seed`: ejecuta el seeder para poblar datos iniciales
+- `pnpm test`: ejecuta todos los tests una vez
+- `pnpm test:watch`: ejecuta Vitest en modo interactivo/watch
+- `pnpm test:unit`: ejecuta los tests unitarios ubicados en `src/modules/auth` y `src/modules/user`
+- `pnpm test:integration`: ejecuta los tests de integración ubicados en `test/integration`
+- `pnpm test:coverage`: ejecuta todos los tests y genera el reporte de cobertura
 
 ### Puesta en marcha
 
 ```bash
-npm install
-npm run db:generate
-npm run db:migrate
-npm run db:seed      # opcional, para cargar datos iniciales
-npm run build
-npm run dev
+cp .env.example .env
+pnpm install
+pnpm db:generate
+pnpm db:migrate
+pnpm db:seed
+pnpm build
+pnpm dev
 ```
 
 El servidor queda disponible en `http://localhost:3000`.
 
-## Endpoints disponibles
+El seeder crea e inicializa users para los tres roles:
+
+| Rol | Email | Contraseña |
+| --- | --- | --- |
+| Administrador | `admin@gym.com` | `admin1234` |
+| Instructor | `gabrielmartinez@gmail.com` | `instructor1234` |
+| Socio | `juan.perez@example.com` | `member1234` |
+
+Volver a ejecutar `pnpm db:seed` restablece estas credenciales.
+
+## Endpoints disponibles (Falta cambiar algunos PUT por PATCH)
 
 ### Generales
 
 - `GET /`
 - `GET /health`
+
+### Auth
+
+- `POST /api/auth/login`
+- `POST /api/auth/activate-account`
+
+### Users
+
+- `GET /api/users`
+- `GET /api/users/:id`
+- `POST /api/users`
+- `PATCH /api/users/:id`
+- `DELETE /api/users/:id`
 
 ### Members
 
@@ -166,6 +217,7 @@ El servidor queda disponible en `http://localhost:3000`.
 - `GET /api/instructors`
 - `GET /api/instructors/:id`
 - `POST /api/instructors`
+- `PATCH /api/instructors/:id`
 - `PUT /api/instructors/:id`
 - `DELETE /api/instructors/:id`
 
@@ -219,11 +271,6 @@ El servidor queda disponible en `http://localhost:3000`.
 - `GET /api/classBookings/:id`
 - `POST /api/classBookings`
 - `PATCH /api/classBookings/:id`
+- `PUT /api/classBookings/:id`
 - `DELETE /api/classBookings/:id`
 
-## Sugerencias y cuestiones a revisar
-
-- Finalizar la migración del módulo `instructor` al nuevo patrón de arquitectura (`controller` + `validate.middleware` + `errorHandler.middleware`), ya que actualmente mantiene el esquema anterior con try/catch directo y `handleError`.
-- Unificar o documentar la estrategia de variables de entorno entre Prisma CLI (`DATABASE_URL` en `prisma.config.ts`) y la conexión en tiempo de ejecución (`DATABASE_*` con `@prisma/adapter-mariadb`).
-- Agregar pruebas automatizadas (unitarias y de integración) para complementar las solicitudes manuales de los archivos `.http` en `test/`.
-- Incorporar mecanismos de autenticación y autorización en los endpoints según los roles requeridos (ej. socios, instructores, administradores).
