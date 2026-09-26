@@ -6,7 +6,11 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import supertest from 'supertest';
 import { prismaMock } from '../mocks/prisma.mock.js';
 import { app } from '../../src/app.js';
-import type { User, Member, Instructor } from '../../src/generated/prisma/client.js';
+import type {
+  User,
+  Member,
+  Instructor,
+} from '../../src/generated/prisma/client.js';
 
 function buildUser(overrides: Partial<User> = {}): User {
   return {
@@ -106,7 +110,7 @@ describe('Auth flow (login, activation) — mocked Prisma', () => {
       });
 
       expect(res.status).toBe(403);
-      expect(res.body.error).toMatch(/activar/);
+      expect(res.body.message).toMatch(/activar/);
     });
 
     it('rejects login with the wrong password and records the failed attempt', async () => {
@@ -124,16 +128,23 @@ describe('Auth flow (login, activation) — mocked Prisma', () => {
       });
 
       expect(res.status).toBe(401);
-      expect(res.body.error).toBe('Credenciales inválidas');
+      expect(res.body.message).toBe('Credenciales inválidas');
       expect(prismaMock.user.update).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ failedLoginAttempts: 1 }) }),
+        expect.objectContaining({
+          data: expect.objectContaining({ failedLoginAttempts: 1 }),
+        }),
       );
     });
 
     it('returns a token for an activated instructor', async () => {
       const passwordHash = await bcrypt.hash('InstructorPassword123!', 4);
       prismaMock.user.findUnique.mockResolvedValue({
-        ...buildUser({ id: 2, accountStatus: 'ACTIVE', role: 'INSTRUCTOR', passwordHash }),
+        ...buildUser({
+          id: 2,
+          accountStatus: 'ACTIVE',
+          role: 'INSTRUCTOR',
+          passwordHash,
+        }),
         member: null,
         instructor: buildInstructor(),
       } as never);
@@ -162,7 +173,7 @@ describe('Auth flow (login, activation) — mocked Prisma', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe('No se pudieron verificar los datos');
+      expect(res.body.message).toBe('No se pudieron verificar los datos');
     });
 
     it('rejects activation with mismatched identity data', async () => {
@@ -181,7 +192,7 @@ describe('Auth flow (login, activation) — mocked Prisma', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe('No se pudieron verificar los datos');
+      expect(res.body.message).toBe('No se pudieron verificar los datos');
     });
 
     it('activates the account when identity data matches (case-insensitive)', async () => {
@@ -190,7 +201,9 @@ describe('Auth flow (login, activation) — mocked Prisma', () => {
         member: buildMember(),
         instructor: null,
       } as never);
-      prismaMock.user.update.mockResolvedValue(buildUser({ accountStatus: 'ACTIVE' }));
+      prismaMock.user.update.mockResolvedValue(
+        buildUser({ accountStatus: 'ACTIVE' }),
+      );
 
       const res = await request.post('/auth/activate-account').send({
         email: 'user@example.com',
@@ -202,7 +215,9 @@ describe('Auth flow (login, activation) — mocked Prisma', () => {
 
       expect(res.status).toBe(200);
       expect(prismaMock.user.update).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ accountStatus: 'ACTIVE' }) }),
+        expect.objectContaining({
+          data: expect.objectContaining({ accountStatus: 'ACTIVE' }),
+        }),
       );
     });
 
@@ -222,7 +237,9 @@ describe('Auth flow (login, activation) — mocked Prisma', () => {
       });
 
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe('La cuenta ya está activada, por favor inicia sesión');
+      expect(res.body.message).toBe(
+        'La cuenta ya está activada, por favor inicia sesión',
+      );
     });
   });
 });
