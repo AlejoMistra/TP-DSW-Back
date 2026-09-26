@@ -1,13 +1,18 @@
 import { Request, Response } from 'express';
 import { exerciseRepository } from '../../shared/instances.js';
 import { ExerciseService } from './exercise.service.js';
-import type { CreateExerciseInput, UpdateExerciseInput } from './exercise.schemas.js';
+import type {
+  CreateExerciseInput,
+  UpdateExerciseInput,
+} from './exercise.schemas.js';
+import { BadRequestError } from '../../utils/errors.js';
 
 const service = new ExerciseService(exerciseRepository);
 
 function getIdFromReq(req: Request): number | null {
   const validatedParams = req.validated?.params as { id?: number } | undefined;
-  const id = validatedParams?.id ?? (req.params.id ? Number(req.params.id) : NaN);
+  const id =
+    validatedParams?.id ?? (req.params.id ? Number(req.params.id) : NaN);
   if (!Number.isFinite(id)) return null;
   return Number(id);
 }
@@ -33,11 +38,7 @@ export const findAll = async (req: Request, res: Response) => {
 export const findOne = async (req: Request, res: Response) => {
   const id = getIdFromReq(req);
   if (id === null) {
-    return res.status(400).json({
-      statusCode: 400,
-      code: 'BAD_REQUEST',
-      message: 'ID inválido',
-    });
+    throw new BadRequestError('ID inválido');
   }
 
   const exercise = await service.findOne(id);
@@ -54,11 +55,7 @@ export const create = async (req: Request, res: Response) => {
 export const update = async (req: Request, res: Response) => {
   const id = getIdFromReq(req);
   if (id === null) {
-    return res.status(400).json({
-      statusCode: 400,
-      code: 'BAD_REQUEST',
-      message: 'ID inválido',
-    });
+    throw new BadRequestError('ID inválido');
   }
 
   const payload = (req.validated?.body ?? req.body) as UpdateExerciseInput;
@@ -69,11 +66,7 @@ export const update = async (req: Request, res: Response) => {
 export const remove = async (req: Request, res: Response) => {
   const id = getIdFromReq(req);
   if (id === null) {
-    return res.status(400).json({
-      statusCode: 400,
-      code: 'BAD_REQUEST',
-      message: 'ID inválido',
-    });
+    throw new BadRequestError('ID inválido');
   }
 
   await service.remove(id);

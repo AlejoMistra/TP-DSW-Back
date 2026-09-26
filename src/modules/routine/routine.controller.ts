@@ -1,22 +1,36 @@
 import { Request, Response } from 'express';
 import { routineRepository } from '../../shared/instances.js';
 import { RoutineService } from './routine.service.js';
-import type { CreateRoutineInput, UpdateRoutineInput } from './routine.schemas.js';
+import type {
+  CreateRoutineInput,
+  UpdateRoutineInput,
+} from './routine.schemas.js';
+import { BadRequestError } from '../../utils/errors.js';
 
 const service = new RoutineService(routineRepository);
 
 function getIdFromReq(req: Request): number | null {
   const validatedParams = req.validated?.params as { id?: number } | undefined;
-  const id = validatedParams?.id ?? (req.params.id ? Number(req.params.id) : NaN);
+  const id =
+    validatedParams?.id ?? (req.params.id ? Number(req.params.id) : NaN);
   if (!Number.isFinite(id)) return null;
   return Number(id);
 }
 
 function getInstructorUserFromReq(req: Request) {
-  const userFromReq = (req as any).user as { id?: number; role?: string } | undefined;
-  if (userFromReq?.id) return { id: Number(userFromReq.id), role: userFromReq.role ?? 'instructor' };
+  const userFromReq = (req as any).user as
+    | { id?: number; role?: string }
+    | undefined;
+  if (userFromReq?.id)
+    return {
+      id: Number(userFromReq.id),
+      role: userFromReq.role ?? 'instructor',
+    };
 
-  const instr = (req.validated?.body as any)?.instructorId ?? (req.body?.instructorId ?? undefined);
+  const instr =
+    (req.validated?.body as any)?.instructorId ??
+    req.body?.instructorId ??
+    undefined;
   const instructorId = instr !== undefined ? Number(instr) : NaN;
   if (!Number.isFinite(instructorId)) return null;
   return { id: instructorId, role: 'instructor' as const };
@@ -32,11 +46,7 @@ export const findAll = async (req: Request, res: Response) => {
 export const findOne = async (req: Request, res: Response) => {
   const id = getIdFromReq(req);
   if (id === null) {
-    return res.status(400).json({
-      statusCode: 400,
-      code: 'BAD_REQUEST',
-      message: 'ID inválido',
-    });
+    throw new BadRequestError('ID inválido');
   }
   const routine = await service.findOne(id);
   res.status(200).json(routine);
@@ -46,13 +56,10 @@ export const create = async (req: Request, res: Response) => {
   const { body } = req.validated!;
   const user = getInstructorUserFromReq(req);
   if (!user) {
-    return res.status(400).json({
-      statusCode: 400,
-      code: 'BAD_REQUEST',
-      message: 'InstructorId obligatorio en body mientras no haya auth',
-    });
+    throw new BadRequestError(
+      'InstructorId obligatorio en body mientras no haya auth',
+    );
   }
-
   const newRoutine = await service.create(body as CreateRoutineInput, user);
   res.status(201).json(newRoutine);
 };
@@ -60,21 +67,14 @@ export const create = async (req: Request, res: Response) => {
 export const update = async (req: Request, res: Response) => {
   const id = getIdFromReq(req);
   if (id === null) {
-    return res.status(400).json({
-      statusCode: 400,
-      code: 'BAD_REQUEST',
-      message: 'ID inválido',
-    });
+    throw new BadRequestError('ID inválido');
   }
-
   const { body } = req.validated!;
   const user = getInstructorUserFromReq(req);
   if (!user) {
-    return res.status(400).json({
-      statusCode: 400,
-      code: 'BAD_REQUEST',
-      message: 'InstructorId obligatorio en body mientras no haya auth',
-    });
+    throw new BadRequestError(
+      'InstructorId obligatorio en body mientras no haya auth',
+    );
   }
 
   const updated = await service.update(id, body as UpdateRoutineInput, user);
@@ -84,22 +84,14 @@ export const update = async (req: Request, res: Response) => {
 export const remove = async (req: Request, res: Response) => {
   const id = getIdFromReq(req);
   if (id === null) {
-    return res.status(400).json({
-      statusCode: 400,
-      code: 'BAD_REQUEST',
-      message: 'ID inválido',
-    });
+    throw new BadRequestError('ID inválido');
   }
-
   const user = getInstructorUserFromReq(req);
   if (!user) {
-    return res.status(400).json({
-      statusCode: 400,
-      code: 'BAD_REQUEST',
-      message: 'InstructorId obligatorio en body mientras no haya auth',
-    });
+    throw new BadRequestError(
+      'InstructorId obligatorio en body mientras no haya auth',
+    );
   }
-
   await service.remove(id, user);
   res.status(204).send();
 };
