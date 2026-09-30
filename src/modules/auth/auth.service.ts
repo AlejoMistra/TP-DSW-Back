@@ -21,6 +21,7 @@ export interface AuthResponse {
     id: number;
     email: string;
     role: string;
+    memberId: number | null;
   };
 }
 
@@ -146,6 +147,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         role: user.role,
+        memberId: user.member?.id ?? null,
       },
     };
   }

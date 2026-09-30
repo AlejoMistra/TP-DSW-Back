@@ -121,23 +121,25 @@ describe('AuthService', () => {
       expect(lockedUntil).toBeInstanceOf(Date);
     });
 
-    it('returns a token and user on successful login', async () => {
-      authRepository.findByEmailWithRelations.mockResolvedValue(buildUser());
-      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
-      vi.mocked(jwt.sign).mockReturnValue('signed-token' as never);
+it('returns a token and user on successful login', async () => {
+  authRepository.findByEmailWithRelations.mockResolvedValue(
+    buildUser({ member: { id: 25 } as never }),
+  );
+  vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+  vi.mocked(jwt.sign).mockReturnValue('signed-token' as never);
 
-      const result = await authService.login({
-        email: 'member@example.com',
-        password: 'correct',
-      });
+  const result = await authService.login({
+    email: 'member@example.com',
+    password: 'correct',
+  });
 
-      expect(authRepository.recordLoginSuccess).toHaveBeenCalledWith(1);
-      expect(result).toEqual({
-        token: 'signed-token',
-        user: { id: 1, email: 'member@example.com', role: 'MEMBER' },
-      });
+  expect(authRepository.recordLoginSuccess).toHaveBeenCalledWith(1);
+  expect(result).toEqual({
+    token: 'signed-token',
+    user: { id: 1, email: 'member@example.com', role: 'MEMBER', memberId: 25 },
     });
   });
+});
 
   describe('activateAccount', () => {
     const activationInput = {
