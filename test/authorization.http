@@ -20,11 +20,24 @@ Content-Type: application/json
 
 {
   "email": "juan.perez@example.com",
-  "password": "miPasswordSeguro123"
+  "password": "member1234"
 }
 
 ### Extraer token socio
 @memberToken = {{loginMember.response.body.token}}
+
+### 3. Iniciar sesión como INSTRUCTOR
+# @name loginInstructor
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "gabrielmartinez@gmail.com",
+  "password": "instructor1234"
+}
+
+### Extraer token instructor
+@instructorToken = {{loginInstructor.response.body.token}}
 
 
 ### ========================================================

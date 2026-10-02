@@ -32,47 +32,34 @@ const availableEndpoints = {
   '/api/users': 'GET: Obtener usuarios | POST: Crear usuario',
   '/api/users/:id': 'GET: Obtener usuario | PATCH: Actualizar usuario | DELETE: Eliminar usuario',
   '/api/members': 'GET: Obtener todos los socios | POST: Crear nuevo socio',
-  '/api/members/:id':
-    'GET: Obtener un socio | PATCH: Actualizar socio | DELETE: Eliminar socio',
-  '/api/memberships':
-    'GET: Obtener todas las membresías | POST: Crear nueva membresía',
-  '/api/memberships/:id':
-    'GET: Obtener una membresía | PATCH: Actualizar membresía | DELETE: Eliminar membresía',
-  '/api/memberships/:membershipId/payments':
-    'GET: Obtener todos los pagos de una membresía | POST: Registrar nuevo pago en una membresía',
-  '/api/instructors':
-    'GET: Obtener todos los instructores | POST: Crear nuevo instructor',
-  '/api/instructors/:id':
-    'GET: Obtener un instructor | PUT: Actualizar instructor | DELETE: Eliminar instructor',
-  '/api/exercises':
-    'GET: Obtener todos los ejercicios | POST: Crear nuevo ejercicio',
-  '/api/exercises/:id':
-    'GET: Obtener un ejercicio | PUT: Actualizar ejercicio | DELETE: Eliminar ejercicio',
-  '/api/classSchedules':
-    'GET: Obtener todos los horarios de clase | POST: Crear nuevo horario de clase',
-  '/api/classSchedules/:id':
-    'GET: Obtener un horario de clase | PUT: Actualizar horario de clase | DELETE: Eliminar horario de clase',
-  '/api/classSchedules/instructor/:instructorId':
-    'GET: Obtener todos los horarios de clase de un instructor',
-  '/api/classSchedules/category/:category':
-    'GET: Obtener todos los horarios de clase de una categoría',
-  '/api/classSchedules/day/:dayOfWeek':
-    'GET: Obtener todos los horarios de clase de un día',
-  '/api/membership-plans':
-    'GET: Obtener todos los planes de membresía | POST: Crear nuevo plan de membresía',
-  '/api/membership-plans/:id':
-    'GET: Obtener un plan de membresía | PUT: Actualizar plan de membresía | DELETE: Eliminar plan de membresía',
-  '/api/payments': 'GET: Obtener todos los pagos | POST: Registrar nuevo pago',
-  '/api/payments/:id':
-    'GET: Obtener un pago | PATCH: Actualizar pago | DELETE: Eliminar pago',
-  '/api/classBookings':
-    'GET: Obtener todas las reservas de clase | POST: Crear nueva reserva de clase',
-  '/api/classBookings/:id':
-    'GET: Obtener una reserva de clase | PUT: Actualizar reserva de clase | DELETE: Eliminar reserva de clase',
-  '/api/classSessions':
-    'GET: Obtener todas las sesiones de clase | POST: Crear nueva sesión de clase',
-  '/api/classSessions/:id':
-    'GET: Obtener una sesión de clase | PUT: Actualizar sesión de clase | DELETE: Eliminar sesión de clase',
+  '/api/members/with-membership': 'GET: Obtener socios con membresía',
+  '/api/members/:id': 'GET: Obtener un socio | PATCH: Actualizar socio | DELETE: Eliminar socio',
+  '/api/memberships': 'GET: Obtener todas las membresías | POST: Crear nueva membresía',
+  '/api/memberships/member/:memberId': 'GET: Obtener membresía por socio',
+  '/api/memberships/:id': 'GET: Obtener una membresía | PATCH: Actualizar membresía | DELETE: Eliminar membresía',
+  '/api/memberships/:membershipId/payments': 'GET: Obtener pagos de una membresía | POST: Registrar pago en una membresía',
+  '/api/membership-plans': 'GET: Obtener planes de membresía | POST: Crear plan de membresía',
+  '/api/membership-plans/:id': 'GET: Obtener plan | PATCH: Actualizar plan | DELETE: Eliminar plan',
+  '/api/payments': 'GET: Obtener todos los pagos | POST: Registrar pago',
+  '/api/payments/:id': 'GET: Obtener un pago | PATCH: Actualizar pago | DELETE: Eliminar pago',
+  '/api/instructors': 'GET: Obtener todos los instructores | POST: Crear instructor',
+  '/api/instructors/:id': 'GET: Obtener instructor | PATCH/PUT: Actualizar instructor | DELETE: Eliminar instructor',
+  '/api/exercises': 'GET: Obtener todos los ejercicios | POST: Crear ejercicio',
+  '/api/exercises/:id': 'GET: Obtener ejercicio | PATCH: Actualizar ejercicio | DELETE: Eliminar ejercicio',
+  '/api/classSchedules': 'GET: Obtener horarios de clase | POST: Crear horario de clase',
+  '/api/classSchedules/:id': 'GET: Obtener horario | PUT: Actualizar horario | DELETE: Eliminar horario',
+  '/api/classSchedules/category/:category': 'GET: Obtener horarios por categoría',
+  '/api/classBookings': 'GET: Obtener reservas | POST: Crear reserva',
+  '/api/classBookings/:id': 'GET: Obtener reserva | PATCH/PUT: Actualizar reserva | DELETE: Eliminar reserva',
+  '/api/classSessions': 'GET: Obtener sesiones de clase | POST: Crear sesión',
+  '/api/classSessions/:id': 'GET: Obtener sesión | PUT: Actualizar sesión | DELETE: Eliminar sesión',
+  '/api/classSessions/instructor/:instructorId': 'GET: Obtener sesiones por instructor',
+  '/api/classSessions/schedule/:classScheduleId': 'GET: Obtener sesiones por horario',
+  '/api/routines': 'GET: Obtener rutinas | POST: Crear rutina',
+  '/api/routines/:id': 'GET: Obtener rutina | PATCH: Actualizar rutina | DELETE: Eliminar rutina',
+  '/api/routineExercise': 'GET: Obtener ejercicios de rutinas | POST: Crear ejercicio de rutina',
+  '/api/routineExercise/:id': 'GET: Obtener ejercicio de rutina | PATCH: Actualizar ejercicio | DELETE: Eliminar ejercicio',
+  '/api/routineExercise/routine/:routineId': 'GET: Obtener ejercicios por rutina',
 } as const;
 
 app.use(cors(corsOptions));

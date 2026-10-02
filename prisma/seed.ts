@@ -649,19 +649,36 @@ const routineTemplates = [
 async function main() {
   console.log("Seeding database...");
 
-  // 0. Admin User
-  console.log("Seeding admin user...");
-  const adminEmail = "admin@gym.com";
-  const existingAdmin = await prisma.user.findUnique({
-    where: { email: adminEmail },
-  });
-  if (!existingAdmin) {
-    const passwordHash = await bcrypt.hash("admin1234", 10);
-    await prisma.user.create({
-      data: {
-        email: adminEmail,
+  // 0. Demo users
+  console.log("Seeding demo users...");
+  const demoAccounts = [
+    { email: "admin@gym.com", password: "admin1234", role: "ADMIN" },
+    {
+      email: "gabrielmartinez@gmail.com",
+      password: "instructor1234",
+      role: "INSTRUCTOR",
+    },
+    {
+      email: "juan.perez@example.com",
+      password: "member1234",
+      role: "MEMBER",
+    },
+  ] as const;
+
+  for (const account of demoAccounts) {
+    const passwordHash = await bcrypt.hash(account.password, 10);
+    await prisma.user.upsert({
+      where: { email: account.email },
+      update: {
         passwordHash,
-        role: "ADMIN",
+        role: account.role,
+        accountStatus: "ACTIVE",
+        isActive: true,
+      },
+      create: {
+        email: account.email,
+        passwordHash,
+        role: account.role,
         accountStatus: "ACTIVE",
         isActive: true,
       },
