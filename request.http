@@ -1,6 +1,6 @@
 ### Variables
 @baseUrl = http://localhost:3000/api
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjE2LCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3OTE1MDQ4MzQsImV4cCI6MTc5MTU5MTIzNH0.3dvgu8UHJA3XvZ-Pzq5diONy45c-IAKGe-T732Wt4os
+@token = {{authToken}}
 ### 1. LOGIN COMO ADMIN
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
