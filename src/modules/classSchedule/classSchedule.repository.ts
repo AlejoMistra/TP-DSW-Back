@@ -50,6 +50,14 @@ export class ClassScheduleRepository {
     });
   }
 
+  async hasSessions(id: number): Promise<boolean> {
+    const session = await prisma.classSession.findFirst({
+      where: { classScheduleId: id, deletedAt: null },
+      select: { id: true },
+    });
+    return session !== null;
+  }
+
   async getByCategory(category: CreateClassScheduleInput['category']): Promise<ClassSchedule[]> {
     return prisma.classSchedule.findMany({
       where: { category, deletedAt: null },
