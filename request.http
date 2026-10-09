@@ -1,0 +1,45 @@
+### Variables
+@baseUrl = http://localhost:3000/api
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjE2LCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3OTE1MDQ4MzQsImV4cCI6MTc5MTU5MTIzNH0.3dvgu8UHJA3XvZ-Pzq5diONy45c-IAKGe-T732Wt4os
+### 1. LOGIN COMO ADMIN
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@gym.com",
+  "password": "admin1234"
+}
+
+### 2. VER TODOS LOS TIPOS DE CLASE (creados por el seed)
+GET {{baseUrl}}/classSchedules
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 3. INTENTAR BORRAR "Spinning Interval" (TIENE SESIONES) -> debe dar ERROR 400
+DELETE {{baseUrl}}/classSchedules/1
+Authorization: Bearer {{token}}
+
+### 4. INTENTAR BORRAR "Crossfit WOD" (TIENE SESIONES) -> debe dar ERROR 400
+DELETE {{baseUrl}}/classSchedules/7
+Authorization: Bearer {{token}}
+
+### 5. CREAR UN NUEVO TIPO DE CLASE SIN SESIONES
+POST {{baseUrl}}/classSchedules
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Test Sin Sesiones",
+  "description": "Tipo de clase sin sesiones asociadas",
+  "category": "YOGA",
+  "durationMinutes": 60,
+  "maxCapacity": 20
+}
+
+### 6. BORRAR EL NUEVO TIPO (SIN SESIONES) -> debe funcionar ✅
+DELETE {{baseUrl}}/classSchedules/13
+Authorization: Bearer {{token}}
+
+### 7. VERIFICAR QUE FUE BORRADO
+GET {{baseUrl}}/classSchedules/13
+Authorization: Bearer {{token}}
