@@ -37,8 +37,9 @@ function getInstructorUserFromReq(req: Request) {
 }
 
 export const findAll = async (req: Request, res: Response) => {
-  const page = req.query.page ? Number(req.query.page) : undefined;
-  const limit = req.query.limit ? Number(req.query.limit) : undefined;
+  const query = req.validated?.query as { page?: number; limit?: number } | undefined;
+  const page = query?.page ?? (req.query.page ? Number(req.query.page) : 1);
+  const limit = query?.limit ?? (req.query.limit ? Number(req.query.limit) : 10);
   const routines = await service.findAll(page, limit);
   res.status(200).json(routines);
 };

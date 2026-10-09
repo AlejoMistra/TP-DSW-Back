@@ -1,10 +1,15 @@
 import { prisma } from '../../lib/prisma.js';
 import type { Routine } from '../../generated/prisma/client.js';
 import type { CreateRoutineInput, UpdateRoutineInput } from './routine.schemas.js';
+import { getPaginationParams } from '../../shared/pagination.js';
 
 export class RoutineRepository {
   async findAll(page?: number, limit?: number): Promise<Routine[]> {
-    const options: any = {
+    const { take, skip } = getPaginationParams(page, limit);
+    return prisma.routine.findMany({
+      where: { deletedAt: null },
+      take,
+      skip,
       orderBy: { createdAt: 'desc' },
       include: {
         routineExercises: {
@@ -13,16 +18,13 @@ export class RoutineRepository {
           include: { exercise: true },
         },
       },
-    };
-    if (typeof page === 'number' && typeof limit === 'number') {
-      const take = Math.max(1, limit);
-      const skip = Math.max(0, (Math.max(1, page) - 1) * take);
-      options.take = take;
-      options.skip = skip;
-    } else if (typeof limit === 'number') {
-      options.take = Math.max(1, limit);
-    }
-    return prisma.routine.findMany(options);
+    });
+  }
+
+  async count(): Promise<number> {
+    return prisma.routine.count({
+      where: { deletedAt: null },
+    });
   }
 
 

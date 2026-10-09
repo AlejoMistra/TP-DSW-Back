@@ -5,11 +5,23 @@ import type {
   UpdateClassSessionInput,
 } from './classSession.schemas.js';
 
+import { getPaginationParams } from '../../shared/pagination.js';
+
 export class ClassSessionRepository {
-  async getAll(): Promise<(ClassSession & { classSchedule: ClassSchedule })[]> {
+  async getAll(page?: number, limit?: number): Promise<(ClassSession & { classSchedule: ClassSchedule })[]> {
+    const { take, skip } = getPaginationParams(page, limit);
     return prisma.classSession.findMany({
       where: { deletedAt: null },
+      take,
+      skip,
+      orderBy: { date: 'desc' },
       include: { classSchedule: true },
+    });
+  }
+
+  async count(): Promise<number> {
+    return prisma.classSession.count({
+      where: { deletedAt: null },
     });
   }
 

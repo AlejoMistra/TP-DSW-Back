@@ -16,6 +16,8 @@ import {
 import { ConflictError, NotFoundError } from '../../utils/errors.js';
 import { FREE_TRIAL_DAYS } from '../../shared/constants.js';
 
+import { type PaginatedResponse } from '../../shared/pagination.js';
+
 export type MemberWithMembershipAndPayment = MemberResponse & {
   membership: MembershipResponse;
   payment: PaymentResponse | null;
@@ -31,9 +33,18 @@ export class MemberService {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async getAll(): Promise<MemberResponse[]> {
-    const members = await this.memberRepository.getAll();
-    return members.map((member) => this.toResponse(member));
+  async getAll(page = 1, limit = 10): Promise<PaginatedResponse<MemberResponse>> {
+    const [members, total] = await Promise.all([
+      this.memberRepository.getAll(page, limit),
+      this.memberRepository.count(),
+    ]);
+    return {
+      items: members.map((member) => this.toResponse(member)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
   }
 
   async getById(id: number): Promise<MemberResponse> {
@@ -44,9 +55,13 @@ export class MemberService {
     return this.toResponse(member);
   }
 
-  async getAllWithMembership() {
-    const members = await this.memberRepository.getAllWithMembership();
-    return members.map((member) => {
+  async getAllWithMembership(page = 1, limit = 10): Promise<PaginatedResponse<any>> {
+    const [members, total] = await Promise.all([
+      this.memberRepository.getAllWithMembership(page, limit),
+      this.memberRepository.count(),
+    ]);
+
+    const items = members.map((member) => {
       const { membership, user, ...rest } = member;
       const baseMember = {
         ...rest,
@@ -65,6 +80,14 @@ export class MemberService {
         },
       };
     });
+
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
   }
 
   async create(input: CreateMemberInput): Promise<MemberWithMembershipAndPayment> {

@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { UserSchema } from '../../generated/zod/schemas/models/User.schema.js';
 import { IdSchema } from '../../shared/common.schemas.js';
+import { PaginationQuerySchema } from '../../shared/pagination.js';
+
+export const ListUsersSchema = z.object({
+  query: PaginationQuerySchema.optional(),
+});
 
 const userBaseSchema = UserSchema.pick({
   email: true,

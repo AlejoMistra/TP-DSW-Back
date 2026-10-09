@@ -3,6 +3,11 @@ import { MemberSchema } from '../../generated/zod/schemas/models/Member.schema.j
 import { MembershipSchema } from '../../generated/zod/schemas/models/Membership.schema.js';
 import { PaymentSchema } from '../../generated/zod/schemas/models/Payment.schema.js';
 import { IdSchema } from '../../shared/common.schemas.js';
+import { PaginationQuerySchema } from '../../shared/pagination.js';
+
+export const ListMembersSchema = z.object({
+  query: PaginationQuerySchema.optional(),
+});
 
 const memberBaseSchema = MemberSchema.pick({
   name: true,

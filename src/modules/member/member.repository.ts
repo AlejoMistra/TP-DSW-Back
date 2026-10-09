@@ -21,11 +21,22 @@ export type CreateMemberData = Omit<CreateMemberInput, 'membershipPlanId' | 'ema
 };
 export type UpdateMemberData = Omit<UpdateMemberInput, 'membershipPlanId' | 'email'>;
 
+import { getPaginationParams } from '../../shared/pagination.js';
+
 export class MemberRepository {
-  async getAll(): Promise<MemberWithUser[]> {
+  async getAll(page?: number, limit?: number): Promise<MemberWithUser[]> {
+    const { take, skip } = getPaginationParams(page, limit);
     return prisma.member.findMany({
       where: { deletedAt: null },
+      take,
+      skip,
       include: { user: true },
+    });
+  }
+
+  async count(): Promise<number> {
+    return prisma.member.count({
+      where: { deletedAt: null },
     });
   }
 
@@ -46,9 +57,12 @@ export class MemberRepository {
     });
   }
 
-  async getAllWithMembership(): Promise<MemberWithUserAndMembership[]> {
+  async getAllWithMembership(page?: number, limit?: number): Promise<MemberWithUserAndMembership[]> {
+    const { take, skip } = getPaginationParams(page, limit);
     return prisma.member.findMany({
       where: { deletedAt: null },
+      take,
+      skip,
       include: {
         user: true,
         membership: {

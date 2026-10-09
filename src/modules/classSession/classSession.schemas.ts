@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { ClassSessionSchema } from '../../generated/zod/schemas/models/ClassSession.schema.js';
 import { IdSchema } from '../../shared/common.schemas.js';
+import { PaginationQuerySchema } from '../../shared/pagination.js';
+
+export const ListClassSessionsSchema = z.object({
+  query: PaginationQuerySchema.optional(),
+});
 
 const classSessionBaseSchema = ClassSessionSchema.pick({
   classScheduleId: true,

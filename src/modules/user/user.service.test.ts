@@ -31,6 +31,7 @@ describe('UserService', () => {
   beforeEach(() => {
     userRepository = {
       getAll: vi.fn(),
+      count: vi.fn(),
       getOne: vi.fn(),
       findByEmail: vi.fn(),
       add: vi.fn(),
@@ -43,11 +44,13 @@ describe('UserService', () => {
   describe('getAll', () => {
     it('returns all users mapped to the response shape (no passwordHash)', async () => {
       userRepository.getAll.mockResolvedValue([buildUser(), buildUser({ id: 2 })]);
+      userRepository.count.mockResolvedValue(2);
 
       const result = await userService.getAll();
 
-      expect(result).toHaveLength(2);
-      expect(result[0]).not.toHaveProperty('passwordHash');
+      expect(result.items).toHaveLength(2);
+      expect(result.total).toBe(2);
+      expect(result.items[0]).not.toHaveProperty('passwordHash');
     });
   });
 

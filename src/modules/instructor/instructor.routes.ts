@@ -9,6 +9,7 @@ import {
   DeleteInstructorRequestSchema,
   GetInstructorByIdRequestSchema,
   UpdateInstructorSchema,
+  ListInstructorsSchema,
 } from './instructor.schemas.js';
 
 export const instructorRouter = Router();
@@ -18,6 +19,7 @@ instructorRouter.use(authenticate);
 instructorRouter.get(
   '/',
   authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER),
+  validate(ListInstructorsSchema),
   instructorController.getAll,
 );
 

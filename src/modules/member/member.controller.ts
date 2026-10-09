@@ -6,12 +6,16 @@ import type {
 } from './member.schemas.js';
 
 export const findAll = async (req: Request, res: Response) => {
-  const members = await memberService.getAll();
+  const page = req.query.page ? Number(req.query.page) : 1;
+  const limit = req.query.limit ? Number(req.query.limit) : 10;
+  const members = await memberService.getAll(page, limit);
   res.status(200).json(members);
 };
 
 export const findAllWithMembership = async (req: Request, res: Response) => {
-  const members = await memberService.getAllWithMembership();
+  const page = req.query.page ? Number(req.query.page) : 1;
+  const limit = req.query.limit ? Number(req.query.limit) : 10;
+  const members = await memberService.getAllWithMembership(page, limit);
   res.status(200).json(members);
 };
 
