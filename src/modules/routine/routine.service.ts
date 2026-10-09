@@ -43,12 +43,21 @@ export class RoutineService {
   }
 
   async create(input: CreateRoutineInput, user: { id: number; role?: string }): Promise<RoutineResponse | RoutineDetailResponse> {
-    if (!user || user.role !== 'instructor') {
+    if (!user || user.role?.toLowerCase() !== 'instructor') {
       throw new UnauthorizedError('Solo instructores pueden crear rutinas');
     }
 
-    const instr = await prisma.instructor.findUnique({ where: { id: input.instructorId } });
+    const instr = await prisma.instructor.findFirst({
+      where: {
+        deletedAt: null,
+        OR: [{ id: user.id }, { userId: user.id }],
+      },
+    });
     if (!instr) throw new NotFoundError('Instructor no encontrado');
+
+    if (input.instructorId && input.instructorId !== instr.id) {
+      throw new UnauthorizedError('No podés crear una rutina a nombre de otro instructor');
+    }
 
     const exercises = input.exercises ?? [];
     if (exercises.length > 0) {
@@ -66,7 +75,7 @@ export class RoutineService {
           name: input.name,
           description: input.description ?? null,
           difficulty: input.difficulty,
-          instructorId: input.instructorId,
+          instructorId: instr.id,
         },
       });
 

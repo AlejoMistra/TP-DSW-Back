@@ -19,12 +19,13 @@ function getIdFromReq(req: Request): number | null {
 
 function getInstructorUserFromReq(req: Request) {
   const userFromReq = (req as any).user as
-    | { id?: number; role?: string }
+    | { id?: number; userId?: number; role?: string }
     | undefined;
-  if (userFromReq?.id)
+  const currentUserId = userFromReq?.id ?? userFromReq?.userId;
+  if (currentUserId)
     return {
-      id: Number(userFromReq.id),
-      role: userFromReq.role ?? 'instructor',
+      id: Number(currentUserId),
+      role: (userFromReq?.role ?? 'instructor').toLowerCase(),
     };
 
   const instr =

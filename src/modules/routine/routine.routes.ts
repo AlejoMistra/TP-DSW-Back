@@ -17,6 +17,6 @@ routineRouter.use(authenticate);
 
 routineRouter.get('/', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), validate(ListRoutinesSchema), findAll);
 routineRouter.get('/:id', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), validate(GetRoutineByIdSchema), findOne);
-routineRouter.post('/', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR), validate(CreateRoutineSchema), create);
+routineRouter.post('/', authorize(UserRole.INSTRUCTOR), validate(CreateRoutineSchema), create);
 routineRouter.patch('/:id', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR), validate(UpdateRoutineSchema), update);
 routineRouter.delete('/:id', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR), remove);
