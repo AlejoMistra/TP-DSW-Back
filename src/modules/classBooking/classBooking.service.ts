@@ -9,12 +9,23 @@ import { ClassBookingRepository } from './classBooking.repository.js';
 import { prisma } from '../../lib/prisma.js';
 import { NotFoundError, ConflictError } from '../../utils/errors.js';
 
+import { type PaginatedResponse } from '../../shared/pagination.js';
+
 export class ClassBookingService {
   constructor(private readonly repository: ClassBookingRepository) {}
 
-  async getAll(): Promise<ClassBookingResponse[]> {
-    const classBookings = await this.repository.getAll();
-    return classBookings.map((classBooking) => this.toResponse(classBooking));
+  async getAll(page = 1, limit = 10): Promise<PaginatedResponse<ClassBookingResponse>> {
+    const [classBookings, total] = await Promise.all([
+      this.repository.getAll(page, limit),
+      this.repository.count(),
+    ]);
+    return {
+      items: classBookings.map((classBooking) => this.toResponse(classBooking)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
   }
 
   async getById(id: number): Promise<ClassBookingResponse> {

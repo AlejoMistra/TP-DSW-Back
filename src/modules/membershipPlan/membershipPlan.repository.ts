@@ -2,9 +2,23 @@ import { prisma } from '../../lib/prisma.js';
 import type { MembershipPlan } from '../../generated/prisma/client.js';
 import { CreateMembershipPlanInput, UpdateMembershipPlanInput } from './membershipPlan.schemas.js';
 
+import { getPaginationParams } from '../../shared/pagination.js';
+
 export class MembershipPlanRepository{
-  async findAll(): Promise<MembershipPlan[]> {
-    return prisma.membershipPlan.findMany();
+  async findAll(page?: number, limit?: number): Promise<MembershipPlan[]> {
+    const { take, skip } = getPaginationParams(page, limit);
+    return prisma.membershipPlan.findMany({
+      where: { deletedAt: null },
+      take,
+      skip,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async count(): Promise<number> {
+    return prisma.membershipPlan.count({
+      where: { deletedAt: null },
+    });
   }
 
   async findOne(id: number): Promise<MembershipPlan | null> {

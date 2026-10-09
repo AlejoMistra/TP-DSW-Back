@@ -5,9 +5,21 @@ import type {
   UpdateClassScheduleInput,
 } from './classSchedule.schemas.js';
 
+import { getPaginationParams } from '../../shared/pagination.js';
+
 export class ClassScheduleRepository {
-  async getAll(): Promise<ClassSchedule[]> {
+  async getAll(page?: number, limit?: number): Promise<ClassSchedule[]> {
+    const { take, skip } = getPaginationParams(page, limit);
     return prisma.classSchedule.findMany({
+      where: { deletedAt: null },
+      take,
+      skip,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async count(): Promise<number> {
+    return prisma.classSchedule.count({
       where: { deletedAt: null },
     });
   }

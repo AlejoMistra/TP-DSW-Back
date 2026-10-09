@@ -12,18 +12,27 @@ import {
   UpdateInstructorInput,
 } from './instructor.schemas.js';
 
+import { type PaginatedResponse } from '../../shared/pagination.js';
+
 export class InstructorService {
   constructor(
     private readonly repository: InstructorRepository,
     private readonly userRepository: UserRepository,
   ) {}
 
-  async getAll(): Promise<InstructorResponse[]> {
-    const instructors = await this.repository.getAll();
+  async getAll(page = 1, limit = 10): Promise<PaginatedResponse<InstructorResponse>> {
+    const [instructors, total] = await Promise.all([
+      this.repository.getAll(page, limit),
+      this.repository.count(),
+    ]);
 
-    return instructors.map((instructor) =>
-      this.toResponse(instructor),
-    );
+    return {
+      items: instructors.map((instructor) => this.toResponse(instructor)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
   }
 
   async getById(id: number): Promise<InstructorResponse> {

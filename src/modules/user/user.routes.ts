@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { create, findAll, findOne, remove, update } from './user.controller.js';
-import { CreateUserSchema, UpdateUserSchema, DeleteUserSchema } from './user.schemas.js';
+import { CreateUserSchema, UpdateUserSchema, DeleteUserSchema, ListUsersSchema } from './user.schemas.js';
 import { validate } from '../../middlewares/validate.middleware.js';
 import { authenticate } from '../../middlewares/authentication.middleware.js';
 import { authorize } from '../../middlewares/authorization.middleware.js';
@@ -10,7 +10,7 @@ export const userRouter = Router();
 
 userRouter.use(authenticate, authorize(UserRole.ADMIN));
 
-userRouter.get('/', findAll);
+userRouter.get('/', validate(ListUsersSchema), findAll);
 userRouter.get('/:id', findOne);
 userRouter.post('/', validate(CreateUserSchema), create);
 userRouter.patch('/:id', validate(UpdateUserSchema), update);

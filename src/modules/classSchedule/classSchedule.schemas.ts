@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { ClassScheduleSchema } from '../../generated/zod/schemas/models/ClassSchedule.schema.js';
 import { IdSchema } from '../../shared/common.schemas.js';
+import { PaginationQuerySchema } from '../../shared/pagination.js';
+
+export const ListClassSchedulesSchema = z.object({
+  query: PaginationQuerySchema.optional(),
+});
 
 const classScheduleBaseSchema = ClassScheduleSchema.pick({
   name: true,

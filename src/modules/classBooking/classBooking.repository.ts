@@ -2,9 +2,21 @@ import { prisma } from '../../lib/prisma.js';
 import type { CreateClassBookingInput, UpdateClassBookingInput } from './classBooking.schemas.js';
 import type { ClassBooking } from '../../generated/prisma/client.js';
 
+import { getPaginationParams } from '../../shared/pagination.js';
+
 export class ClassBookingRepository {
-  async getAll(): Promise<ClassBooking[]> {
+  async getAll(page?: number, limit?: number): Promise<ClassBooking[]> {
+    const { take, skip } = getPaginationParams(page, limit);
     return prisma.classBooking.findMany({
+      where: { deletedAt: null },
+      take,
+      skip,
+      orderBy: { bookingDate: 'desc' },
+    });
+  }
+
+  async count(): Promise<number> {
+    return prisma.classBooking.count({
       where: { deletedAt: null },
     });
   }

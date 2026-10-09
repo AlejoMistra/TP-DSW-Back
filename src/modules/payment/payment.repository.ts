@@ -7,15 +7,29 @@ import type { Payment, Prisma } from '../../generated/prisma/client.js';
 
 type DbClient = Prisma.TransactionClient | typeof prisma;
 
+import { getPaginationParams } from '../../shared/pagination.js';
+
 export class PaymentRepository {
-  async findAll(membershipId?: number): Promise<Payment[]> {
+  async findAll(membershipId?: number, page?: number, limit?: number): Promise<Payment[]> {
+    const { take, skip } = getPaginationParams(page, limit);
     return prisma.payment.findMany({
       where: {
         deletedAt: null,
         membershipId: membershipId ?? undefined,
       },
+      take,
+      skip,
       orderBy: {
         periodEnd: 'desc',
+      },
+    });
+  }
+
+  async count(membershipId?: number): Promise<number> {
+    return prisma.payment.count({
+      where: {
+        deletedAt: null,
+        membershipId: membershipId ?? undefined,
       },
     });
   }

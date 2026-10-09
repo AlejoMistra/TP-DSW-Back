@@ -12,6 +12,7 @@ import {
   GetMemberByIdRequestSchema,
   UpdateMemberSchema,
   DeleteMemberRequestSchema,
+  ListMembersSchema,
 } from './member.schemas.js';
 import { validate } from '../../middlewares/validate.middleware.js';
 import { authenticate } from '../../middlewares/authentication.middleware.js';
@@ -22,8 +23,8 @@ export const memberRouter = Router();
 
 memberRouter.use(authenticate);
 
-memberRouter.get('/', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR), findAll);
-memberRouter.get('/with-membership', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR), findAllWithMembership);
+memberRouter.get('/', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR), validate(ListMembersSchema), findAll);
+memberRouter.get('/with-membership', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR), validate(ListMembersSchema), findAllWithMembership);
 memberRouter.get('/:id', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), validate(GetMemberByIdRequestSchema), findOne);
 memberRouter.post('/', authorize(UserRole.ADMIN), validate(CreateMemberSchema), create);
 memberRouter.patch('/:id', authorize(UserRole.ADMIN, UserRole.MEMBER), validate(UpdateMemberSchema), update);

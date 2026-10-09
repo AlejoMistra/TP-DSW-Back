@@ -11,12 +11,24 @@ import type { RoutineRepository } from './routine.repository.js';
 import { prisma } from '../../lib/prisma.js';
 import { NotFoundError, UnauthorizedError } from '../../utils/errors.js';
 
+import { type PaginatedResponse } from '../../shared/pagination.js';
+
 export class RoutineService {
   constructor(private readonly repository: RoutineRepository) { }
 
-  async findAll(page?: number, limit?: number): Promise<(RoutineResponse | RoutineDetailResponse)[]> {
-    const routines = await this.repository.findAll(page, limit);
-    return routines.map((r) => RoutineDetailResponseSchema.parse(r));
+  async findAll(page = 1, limit = 10): Promise<PaginatedResponse<RoutineResponse | RoutineDetailResponse>> {
+    const [routines, total] = await Promise.all([
+      this.repository.findAll(page, limit),
+      this.repository.count(),
+    ]);
+
+    return {
+      items: routines.map((r) => RoutineDetailResponseSchema.parse(r)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
   }
 
 
