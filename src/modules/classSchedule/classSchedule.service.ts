@@ -7,7 +7,8 @@ import {
 } from './classSchedule.schemas.js';
 import { ClassScheduleRepository } from './classSchedule.repository.js';
 import { ClassCategory } from '../../generated/prisma/client.js';
-import { NotFoundError } from '../../utils/errors.js';
+import { BadRequestError, NotFoundError } from '../../utils/errors.js';
+import { prisma } from '../../lib/prisma.js';
 
 export class ClassScheduleService {
   constructor(
@@ -49,6 +50,20 @@ export class ClassScheduleService {
   async delete(id: number): Promise<void> {
     const existing = await this.classScheduleRepository.getById(id);
     if (!existing) throw new NotFoundError(`Tipo de clase con ID ${id} no encontrado`);
+
+    // Verificar si hay sesiones asociadas a este tipo de clase
+    const hasAnySessions = await prisma.classSession.findFirst({
+      where: {
+        classScheduleId: id,
+        deletedAt: null,
+      },
+    });
+
+    if (hasAnySessions) {
+      throw new BadRequestError(
+        'No se puede eliminar un tipo de clase que ya tiene sesiones asociadas.',
+      );
+    }
 
     await this.classScheduleRepository.delete(id);
   }
