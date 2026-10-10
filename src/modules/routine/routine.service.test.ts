@@ -89,6 +89,7 @@ describe('RoutineService', () => {
     };
     instructorRepository = {
       getAll: vi.fn(),
+      count: vi.fn(),
       getById: vi.fn(),
       findByUserId: vi.fn(),
       findByEmail: vi.fn(),
