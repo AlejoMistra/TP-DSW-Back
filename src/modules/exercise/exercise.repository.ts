@@ -1,7 +1,10 @@
 // name=src/modules/exercise/exercise.repository.ts
 import { prisma } from '../../lib/prisma.js';
 import type { Exercise } from '../../generated/prisma/client.js';
-import type { CreateExerciseInput, UpdateExerciseInput } from './exercise.schemas.js';
+import type {
+  CreateExerciseInput,
+  UpdateExerciseInput,
+} from './exercise.schemas.js';
 import { ConflictError } from '../../utils/errors.js';
 
 export class ExerciseRepository {
@@ -14,7 +17,10 @@ export class ExerciseRepository {
     const where: any = { deletedAt: null };
 
     if (filter?.muscleGroup) {
-      where.muscleGroup = { contains: String(filter.muscleGroup), mode: 'insensitive' };
+      where.muscleGroup = {
+        contains: String(filter.muscleGroup),
+        mode: 'insensitive',
+      };
     }
     if (filter?.difficultyLevel) {
       // normalizamos a mayúsculas para el enum de Prisma
@@ -38,11 +44,21 @@ export class ExerciseRepository {
     return prisma.exercise.findMany(findOptions);
   }
 
-  async count(filter?: { muscleGroup?: string; difficultyLevel?: string; name?: string }): Promise<number> {
+  async count(filter?: {
+    muscleGroup?: string;
+    difficultyLevel?: string;
+    name?: string;
+  }): Promise<number> {
     const where: any = { deletedAt: null };
-    if (filter?.muscleGroup) where.muscleGroup = { contains: String(filter.muscleGroup), mode: 'insensitive' };
-    if (filter?.difficultyLevel) where.difficultyLevel = String(filter.difficultyLevel).toUpperCase();
-    if (filter?.name) where.name = { contains: String(filter.name), mode: 'insensitive' };
+    if (filter?.muscleGroup)
+      where.muscleGroup = {
+        contains: String(filter.muscleGroup),
+        mode: 'insensitive',
+      };
+    if (filter?.difficultyLevel)
+      where.difficultyLevel = String(filter.difficultyLevel).toUpperCase();
+    if (filter?.name)
+      where.name = { contains: String(filter.name), mode: 'insensitive' };
     return prisma.exercise.count({ where });
   }
 
@@ -50,6 +66,16 @@ export class ExerciseRepository {
     // findUnique doesn't allow additional conditions; usamos findFirst para excluir soft-deleted
     return prisma.exercise.findFirst({
       where: { id, deletedAt: null },
+    });
+  }
+
+  async findByIds(ids: number[]): Promise<Exercise[]> {
+    if (!ids.length) return [];
+    return prisma.exercise.findMany({
+      where: {
+        id: { in: ids },
+        deletedAt: null,
+      },
     });
   }
 
@@ -64,7 +90,10 @@ export class ExerciseRepository {
         const existing = await tx.exercise.findFirst({
           where: { name, muscleGroup, deletedAt: null },
         });
-        if (existing) throw new ConflictError('Ejercicio con ese nombre y grupo muscular ya existe');
+        if (existing)
+          throw new ConflictError(
+            'Ejercicio con ese nombre y grupo muscular ya existe',
+          );
 
         return tx.exercise.create({
           data: {
@@ -78,7 +107,9 @@ export class ExerciseRepository {
     } catch (err: any) {
       // Si hay condición de carrera y Prisma arroja P2002, lo transformamos a ConflictError
       if ((err as any)?.code === 'P2002') {
-        throw new ConflictError('Ejercicio con ese nombre y grupo muscular ya existe');
+        throw new ConflictError(
+          'Ejercicio con ese nombre y grupo muscular ya existe',
+        );
       }
       throw err;
     }
@@ -87,12 +118,16 @@ export class ExerciseRepository {
   async update(id: number, exercise: UpdateExerciseInput): Promise<Exercise> {
     const newName = exercise.name?.trim();
     const newMuscleGroup = exercise.muscleGroup?.trim();
-    const newDifficulty = exercise.difficultyLevel ? String(exercise.difficultyLevel).toUpperCase() : undefined;
+    const newDifficulty = exercise.difficultyLevel
+      ? String(exercise.difficultyLevel).toUpperCase()
+      : undefined;
 
     try {
       return await prisma.$transaction(async (tx) => {
         // verificar existencia
-        const current = await tx.exercise.findFirst({ where: { id, deletedAt: null } });
+        const current = await tx.exercise.findFirst({
+          where: { id, deletedAt: null },
+        });
         if (!current) throw new Error('NOT_FOUND');
 
         // Si se modifica nombre o grupo muscular, validar conflicto con otros activos
@@ -101,16 +136,26 @@ export class ExerciseRepository {
           const finalMuscle = newMuscleGroup ?? current.muscleGroup;
 
           const conflict = await tx.exercise.findFirst({
-            where: { name: finalName, muscleGroup: finalMuscle, deletedAt: null, NOT: { id } },
+            where: {
+              name: finalName,
+              muscleGroup: finalMuscle,
+              deletedAt: null,
+              NOT: { id },
+            },
           });
-          if (conflict) throw new ConflictError('Otro ejercicio con ese nombre y grupo muscular ya existe');
+          if (conflict)
+            throw new ConflictError(
+              'Otro ejercicio con ese nombre y grupo muscular ya existe',
+            );
         }
 
         return tx.exercise.update({
           where: { id },
           data: {
             ...(newName ? { name: newName } : {}),
-            ...(exercise.description !== undefined ? { description: exercise.description } : {}),
+            ...(exercise.description !== undefined
+              ? { description: exercise.description }
+              : {}),
             ...(newMuscleGroup ? { muscleGroup: newMuscleGroup } : {}),
             ...(newDifficulty ? { difficultyLevel: newDifficulty as any } : {}),
           },
@@ -118,7 +163,9 @@ export class ExerciseRepository {
       });
     } catch (err: any) {
       if ((err as any)?.code === 'P2002') {
-        throw new ConflictError('Otro ejercicio con ese nombre y grupo muscular ya existe');
+        throw new ConflictError(
+          'Otro ejercicio con ese nombre y grupo muscular ya existe',
+        );
       }
       throw err;
     }

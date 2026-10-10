@@ -24,15 +24,12 @@ export const RoutineExerciseInput = z.object({
   notes: z.string().max(500).optional().nullable(),
 });
 
-
 // Create: campos en body (IDs como number)
 export const CreateRoutineSchema = z.object({
   body: z.object({
     name: z.string().min(1).max(200),
     description: z.string().max(1000).optional(),
     difficulty: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']),
-    // cuerpo exige number (no acepta "4")
-    instructorId: z.number().int().positive(),
     exercises: z.array(RoutineExerciseInput).optional(),
   }),
 });
@@ -56,8 +53,6 @@ export const UpdateRoutineSchema = z.object({
     difficulty: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']).optional(),
     // replace completo de exercises si se envía
     exercises: z.array(RoutineExerciseInput).optional(),
-    // instructorId opcional, pero si se envía debe ser number
-    instructorId: z.number().int().positive().optional(),
   }),
 });
 
