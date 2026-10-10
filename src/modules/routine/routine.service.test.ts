@@ -81,6 +81,7 @@ describe('RoutineService', () => {
   beforeEach(() => {
     routineRepository = {
       findAll: vi.fn(),
+      count: vi.fn(),
       findOne: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
@@ -113,18 +114,24 @@ describe('RoutineService', () => {
   });
 
   describe('findAll', () => {
-    it('devuelve todas las rutinas formateadas con el schema de detalle', async () => {
+    it('devuelve las rutinas paginadas con el schema de detalle', async () => {
       routineRepository.findAll.mockResolvedValue([
         buildRoutine(),
         buildRoutine({ id: 2, name: 'Rutina Pierna' }),
       ]);
+      routineRepository.count.mockResolvedValue(2);
 
-      const result = await service.findAll();
+      const result = await service.findAll(1, 10);
 
-      expect(result).toHaveLength(2);
-      expect(result[0].id).toBe(1);
-      expect(result[1].id).toBe(2);
-      expect(routineRepository.findAll).toHaveBeenCalledTimes(1);
+      expect(result.items).toHaveLength(2);
+      expect(result.total).toBe(2);
+      expect(result.page).toBe(1);
+      expect(result.limit).toBe(10);
+      expect(result.totalPages).toBe(1);
+      expect(result.items[0].id).toBe(1);
+      expect(result.items[1].id).toBe(2);
+      expect(routineRepository.findAll).toHaveBeenCalledWith(1, 10);
+      expect(routineRepository.count).toHaveBeenCalledTimes(1);
     });
   });
 
