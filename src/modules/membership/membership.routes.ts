@@ -5,6 +5,7 @@ import {
   GetMembershipByMemberIdRequestSchema,
   UpdateMembershipSchema,
   DeleteMembershipRequestSchema,
+  ListMembershipsSchema,
 } from './membership.schemas.js';
 import { membershipPaymentRouter } from '../payment/payment.routes.js';
 import {
@@ -24,7 +25,7 @@ export const membershipRouter = Router();
 
 membershipRouter.use(authenticate);
 
-membershipRouter.get('/', authorize(UserRole.ADMIN), findAll);
+membershipRouter.get('/', authorize(UserRole.ADMIN), validate(ListMembershipsSchema), findAll);
 membershipRouter.get('/member/:memberId', authorize(UserRole.ADMIN, UserRole.MEMBER), validate(GetMembershipByMemberIdRequestSchema), findByMemberId);
 membershipRouter.get('/:id', authorize(UserRole.ADMIN, UserRole.MEMBER), validate(GetMembershipByIdRequestSchema), findOne);
 membershipRouter.post('/', authorize(UserRole.ADMIN), validate(CreateMembershipSchema), create);

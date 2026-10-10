@@ -3,14 +3,25 @@ import { UserRepository } from './user.repository.js';
 import { CreateUserInput, UserResponse, UserResponseSchema, UpdateUserInput } from './user.schemas.js';
 import { ConflictError, NotFoundError } from '../../utils/errors.js';
 
+import { type PaginatedResponse } from '../../shared/pagination.js';
+
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository
   ){}
 
-  async getAll(): Promise<UserResponse[]> {
-    const users = await this.userRepository.getAll();
-    return users.map((user) => this.toResponse(user));
+  async getAll(page = 1, limit = 10): Promise<PaginatedResponse<UserResponse>> {
+    const [users, total] = await Promise.all([
+      this.userRepository.getAll(page, limit),
+      this.userRepository.count(),
+    ]);
+    return {
+      items: users.map((user) => this.toResponse(user)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
   }
   
   async getById(id: number): Promise<UserResponse | null> {

@@ -8,6 +8,7 @@ import {
 import type { Exercise } from '../../generated/prisma/client.js';
 import type { ExerciseRepository } from './exercise.repository.js';
 import { NotFoundError } from '../../utils/errors.js';
+import { type PaginatedResponse } from '../../shared/pagination.js';
 
 export class ExerciseService {
   constructor(private readonly repository: ExerciseRepository) {}
@@ -16,8 +17,10 @@ export class ExerciseService {
     filter?: { muscleGroup?: string; difficultyLevel?: string; name?: string };
     page?: number;
     limit?: number;
-  }): Promise<{ items: ExerciseResponse[]; total: number; page?: number; limit?: number }> {
-    const { filter, page, limit } = params ?? {};
+  }): Promise<PaginatedResponse<ExerciseResponse>> {
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 10;
+    const { filter } = params ?? {};
     const items = await this.repository.findAll({ filter, page, limit });
     const total = await this.repository.count(filter);
 
@@ -26,6 +29,7 @@ export class ExerciseService {
       total,
       page,
       limit,
+      totalPages: Math.ceil(total / limit) || 1,
     };
   }
 

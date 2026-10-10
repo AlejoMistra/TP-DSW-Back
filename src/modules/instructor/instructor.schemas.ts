@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { InstructorSchema } from '../../generated/zod/schemas/models/Instructor.schema.js';
 import { IdSchema } from '../../shared/common.schemas.js';
+import { PaginationQuerySchema } from '../../shared/pagination.js';
+
+export const ListInstructorsSchema = z.object({
+  query: PaginationQuerySchema.optional(),
+});
 
 const instructorBaseSchema = InstructorSchema.pick({
   name: true,

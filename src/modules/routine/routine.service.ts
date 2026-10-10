@@ -14,6 +14,8 @@ import {
   ForbiddenError,
 } from '../../utils/errors.js';
 
+import { type PaginatedResponse } from '../../shared/pagination.js';
+
 export class RoutineService {
   constructor(
     private readonly repository: RoutineRepository,
@@ -22,12 +24,23 @@ export class RoutineService {
   ) {}
 
   async findAll(
-    page?: number,
-    limit?: number,
-  ): Promise<(RoutineResponse | RoutineDetailResponse)[]> {
-    const routines = await this.repository.findAll(page, limit);
-    return routines.map((r) => RoutineDetailResponseSchema.parse(r));
+    page = 1,
+    limit = 10,
+  ): Promise<PaginatedResponse<RoutineResponse | RoutineDetailResponse>> {
+    const [routines, total] = await Promise.all([
+      this.repository.findAll(page, limit),
+      this.repository.count(),
+    ]);
+
+    return {
+      items: routines.map((r) => RoutineDetailResponseSchema.parse(r)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
   }
+
 
   async findOne(id: number): Promise<RoutineResponse | RoutineDetailResponse> {
     const routine = await this.repository.findOne(id);

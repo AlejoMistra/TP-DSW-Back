@@ -9,14 +9,25 @@ import { ClassScheduleRepository } from './classSchedule.repository.js';
 import { ClassCategory } from '../../generated/prisma/client.js';
 import { NotFoundError } from '../../utils/errors.js';
 
+import { type PaginatedResponse } from '../../shared/pagination.js';
+
 export class ClassScheduleService {
   constructor(
     private readonly classScheduleRepository: ClassScheduleRepository,
   ) {}
 
-  async getAll(): Promise<ClassScheduleResponse[]> {
-    const classes = await this.classScheduleRepository.getAll();
-    return classes.map((c) => this.toResponse(c));
+  async getAll(page = 1, limit = 10): Promise<PaginatedResponse<ClassScheduleResponse>> {
+    const [classes, total] = await Promise.all([
+      this.classScheduleRepository.getAll(page, limit),
+      this.classScheduleRepository.count(),
+    ]);
+    return {
+      items: classes.map((c) => this.toResponse(c)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
   }
 
   async getById(id: number): Promise<ClassScheduleResponse> {

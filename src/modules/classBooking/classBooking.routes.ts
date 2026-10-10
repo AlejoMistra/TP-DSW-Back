@@ -9,13 +9,14 @@ import {
   GetClassBookingByIdRequestSchema,
   UpdateClassBookingSchema,
   DeleteClassBookingRequestSchema,
+  ListClassBookingsSchema,
 } from './classBooking.schemas.js';
 
 export const classBookingRouter = Router();
 
 classBookingRouter.use(authenticate);
 
-classBookingRouter.get('/', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR), classBookingController.getAll);
+classBookingRouter.get('/', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR), validate(ListClassBookingsSchema), classBookingController.getAll);
 classBookingRouter.get('/:id', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), validate(GetClassBookingByIdRequestSchema), classBookingController.getById);
 classBookingRouter.post('/', authorize(UserRole.ADMIN, UserRole.MEMBER), validate(CreateClassBookingSchema), classBookingController.create);
 classBookingRouter.patch('/:id', authorize(UserRole.ADMIN, UserRole.MEMBER), validate(UpdateClassBookingSchema), classBookingController.update);

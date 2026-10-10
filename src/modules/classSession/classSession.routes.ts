@@ -11,13 +11,14 @@ import {
   GetClassSessionByScheduleRequestSchema,
   UpdateClassSessionSchema,
   DeleteClassSessionRequestSchema,
+  ListClassSessionsSchema,
 } from './classSession.schemas.js';
 
 export const classSessionRouter = Router();
 
 classSessionRouter.use(authenticate);
 
-classSessionRouter.get('/', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), classSessionController.getAll);
+classSessionRouter.get('/', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), validate(ListClassSessionsSchema), classSessionController.getAll);
 classSessionRouter.get('/:id', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), validate(GetClassSessionByIdRequestSchema), classSessionController.getById);
 classSessionRouter.get('/instructor/:instructorId', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), validate(GetClassSessionByInstructorRequestSchema), classSessionController.getByInstructor);
 classSessionRouter.get('/schedule/:classScheduleId', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), validate(GetClassSessionByScheduleRequestSchema), classSessionController.getBySchedule);

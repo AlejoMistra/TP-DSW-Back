@@ -8,6 +8,7 @@ import type {
   CreateRoutineInput,
   UpdateRoutineInput,
 } from './routine.schemas.js';
+import { getPaginationParams } from '../../shared/pagination.js';
 
 export type RoutineWithExercises = Routine & {
   routineExercises?: (RoutineExercise & { exercise?: Exercise })[];
@@ -22,8 +23,12 @@ export class RoutineRepository {
     page?: number,
     limit?: number,
   ): Promise<RoutineWithExercises[]> {
-    const options: any = {
+    const { take, skip } = getPaginationParams(page, limit);
+
+    return prisma.routine.findMany({
       where: { deletedAt: null },
+      take,
+      skip,
       orderBy: { createdAt: 'desc' },
       include: {
         routineExercises: {
@@ -32,17 +37,15 @@ export class RoutineRepository {
           include: { exercise: true },
         },
       },
-    };
-    if (typeof page === 'number' && typeof limit === 'number') {
-      const take = Math.max(1, limit);
-      const skip = Math.max(0, (Math.max(1, page) - 1) * take);
-      options.take = take;
-      options.skip = skip;
-    } else if (typeof limit === 'number') {
-      options.take = Math.max(1, limit);
-    }
-    return prisma.routine.findMany(options);
+    });
   }
+
+  async count(): Promise<number> {
+    return prisma.routine.count({
+      where: { deletedAt: null },
+    });
+  }
+
 
   async findOne(id: number): Promise<RoutineWithExercises | null> {
     return prisma.routine.findFirst({

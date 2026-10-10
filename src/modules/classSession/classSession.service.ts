@@ -11,6 +11,8 @@ import { InstructorRepository } from '../instructor/instructor.repository.js';
 import { calculateEndTime, doIntervalsOverlap } from '../../utils/timeUtils.js';
 import { NotFoundError, ConflictError} from '../../utils/errors.js';
 
+import { type PaginatedResponse } from '../../shared/pagination.js';
+
 export class ClassSessionService {
   constructor(
     private readonly repository: ClassSessionRepository,
@@ -18,9 +20,18 @@ export class ClassSessionService {
     private readonly instructorRepository: InstructorRepository,
   ) {}
 
-  async getAll(): Promise<ClassSessionResponse[]> {
-    const sessions = await this.repository.getAll();
-    return sessions.map((s) => this.toResponse(s));
+  async getAll(page = 1, limit = 10): Promise<PaginatedResponse<ClassSessionResponse>> {
+    const [sessions, total] = await Promise.all([
+      this.repository.getAll(page, limit),
+      this.repository.count(),
+    ]);
+    return {
+      items: sessions.map((s) => this.toResponse(s)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
   }
 
   async getById(id: number): Promise<ClassSessionResponse> {

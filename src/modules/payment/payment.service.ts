@@ -9,21 +9,32 @@ import type { Payment } from '../../generated/prisma/client.js';
 import { NotFoundError } from '../../utils/errors.js';
 import type { MembershipRepository } from '../membership/membership.repository.js';
 
+import { type PaginatedResponse } from '../../shared/pagination.js';
+
 export class PaymentService {
   constructor(
     private readonly repository: PaymentRepository,
     private readonly membershipRepository: MembershipRepository,
   ) {}
 
-  async findAll(membershipId?: number): Promise<PaymentResponse[]> {
+  async findAll(membershipId?: number, page = 1, limit = 10): Promise<PaginatedResponse<PaymentResponse>> {
     if (membershipId) {
       const membership = await this.membershipRepository.getById(membershipId);
       if (!membership) {
         throw new NotFoundError(`Membresía con ID ${membershipId} no encontrada`);
       }
     }
-    const payments = await this.repository.findAll(membershipId);
-    return payments.map((p) => this.toResponse(p));
+    const [payments, total] = await Promise.all([
+      this.repository.findAll(membershipId, page, limit),
+      this.repository.count(membershipId),
+    ]);
+    return {
+      items: payments.map((p) => this.toResponse(p)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
   }
 
   async findOne(id: number): Promise<PaymentResponse> {
