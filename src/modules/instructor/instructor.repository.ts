@@ -31,6 +31,16 @@ export class InstructorRepository {
     });
   }
 
+  async findByUserId(userId: number): Promise<InstructorWithUser | null> {
+    return prisma.instructor.findFirst({
+      where: {
+        userId,
+        deletedAt: null,
+      },
+      include: { user: true },
+    });
+  }
+
   async findByEmail(email: string): Promise<InstructorWithUser | null> {
     return prisma.instructor.findFirst({
       where: {
