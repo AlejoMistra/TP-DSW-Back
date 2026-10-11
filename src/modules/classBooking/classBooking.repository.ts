@@ -14,6 +14,18 @@ export class ClassBookingRepository {
       orderBy: { bookingDate: 'desc' },
     });
   }
+  
+  async getByUserId(userId: number): Promise<ClassBooking[]> {
+  return prisma.classBooking.findMany({
+    where: {
+      deletedAt: null,
+      member: {
+        userId,
+      },
+    },
+    orderBy: { bookingDate: 'desc' },
+  });
+}
 
   async count(): Promise<number> {
     return prisma.classBooking.count({

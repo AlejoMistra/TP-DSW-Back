@@ -28,6 +28,11 @@ export class ClassBookingService {
     };
   }
 
+  async getMine(userId: number): Promise<ClassBookingResponse[]> {
+  const classBookings = await this.repository.getByUserId(userId);
+  return classBookings.map((classBooking) => this.toResponse(classBooking));
+}
+
   async getById(id: number): Promise<ClassBookingResponse> {
     const classBooking = await this.repository.getById(id);
     if (!classBooking) throw new NotFoundError(`Asistencia a clase con ID ${id} no encontrada`);
