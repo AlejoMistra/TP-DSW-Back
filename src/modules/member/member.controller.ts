@@ -3,7 +3,22 @@ import { memberService } from '../../shared/instances.js';
 import type {
   CreateMemberInput,
   UpdateMemberInput,
+  UpdateMyProfileInput,
 } from './member.schemas.js';
+
+export const getMe = async (req: Request, res: Response) => {
+  const member = await memberService.getMe(req.user!.userId);
+  res.status(200).json(member);
+};
+
+export const updateMe = async (req: Request, res: Response) => {
+  const { body } = req.validated!;
+  const updatedMember = await memberService.updateMe(
+    req.user!.userId,
+    body as UpdateMyProfileInput,
+  );
+  res.status(200).json(updatedMember);
+};
 
 export const findAll = async (req: Request, res: Response) => {
   const page = req.query.page ? Number(req.query.page) : 1;

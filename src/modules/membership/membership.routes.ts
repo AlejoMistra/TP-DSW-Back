@@ -11,6 +11,7 @@ import { membershipPaymentRouter } from '../payment/payment.routes.js';
 import {
   findAll,
   findOne,
+  getMe,
   findByMemberId,
   create,
   update,
@@ -25,11 +26,42 @@ export const membershipRouter = Router();
 
 membershipRouter.use(authenticate);
 
-membershipRouter.get('/', authorize(UserRole.ADMIN), validate(ListMembershipsSchema), findAll);
-membershipRouter.get('/member/:memberId', authorize(UserRole.ADMIN, UserRole.MEMBER), validate(GetMembershipByMemberIdRequestSchema), findByMemberId);
-membershipRouter.get('/:id', authorize(UserRole.ADMIN, UserRole.MEMBER), validate(GetMembershipByIdRequestSchema), findOne);
-membershipRouter.post('/', authorize(UserRole.ADMIN), validate(CreateMembershipSchema), create);
-membershipRouter.patch('/:id', authorize(UserRole.ADMIN), validate(UpdateMembershipSchema), update);
-membershipRouter.delete('/:id', authorize(UserRole.ADMIN), validate(DeleteMembershipRequestSchema), remove);
+membershipRouter.get(
+  '/',
+  authorize(UserRole.ADMIN),
+  validate(ListMembershipsSchema),
+  findAll,
+);
+membershipRouter.get('/me', authorize(UserRole.MEMBER), getMe);
+membershipRouter.get(
+  '/member/:memberId',
+  authorize(UserRole.ADMIN),
+  validate(GetMembershipByMemberIdRequestSchema),
+  findByMemberId,
+);
+membershipRouter.get(
+  '/:id',
+  authorize(UserRole.ADMIN),
+  validate(GetMembershipByIdRequestSchema),
+  findOne,
+);
+membershipRouter.post(
+  '/',
+  authorize(UserRole.ADMIN),
+  validate(CreateMembershipSchema),
+  create,
+);
+membershipRouter.patch(
+  '/:id',
+  authorize(UserRole.ADMIN),
+  validate(UpdateMembershipSchema),
+  update,
+);
+membershipRouter.delete(
+  '/:id',
+  authorize(UserRole.ADMIN),
+  validate(DeleteMembershipRequestSchema),
+  remove,
+);
 
 membershipRouter.use('/:membershipId/payments', membershipPaymentRouter);

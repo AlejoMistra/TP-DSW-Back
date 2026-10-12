@@ -58,7 +58,19 @@ export const MemberResponseSchema = MemberSchema.omit({
   email: z.string().email(),
 });
 
+export const UpdateMyProfileSchema = z.object({
+  body: memberBaseSchema
+    .omit({ status: true })
+    .partial()
+    .extend({
+      email: z.string().email('Email inválido').optional(),
+    }),
+});
+
 export type CreateMemberInput = z.infer<typeof CreateMemberSchema>['body'];
 export type UpdateMemberInput = z.infer<typeof UpdateMemberSchema>['body'];
 export type MemberResponse = z.infer<typeof MemberResponseSchema>;
 export type MemberPaymentInput = z.infer<typeof memberPaymentInputSchema>;
+export type UpdateMyProfileInput = z.infer<
+  typeof UpdateMyProfileSchema
+>['body'];

@@ -179,6 +179,8 @@ Volver a ejecutar `pnpm db:seed` restablece estas credenciales.
 ### Members
 
 - `GET /api/members`
+- `GET /api/members/me`
+- `PATCH /api/members/me`
 - `GET /api/members/with-membership`
 - `GET /api/members/:id`
 - `POST /api/members`
@@ -188,6 +190,7 @@ Volver a ejecutar `pnpm db:seed` restablece estas credenciales.
 ### Memberships
 
 - `GET /api/memberships`
+- `GET /api/memberships/me`
 - `GET /api/memberships/member/:memberId`
 - `GET /api/memberships/:id`
 - `POST /api/memberships`
@@ -207,6 +210,7 @@ Volver a ejecutar `pnpm db:seed` restablece estas credenciales.
 ### Payments
 
 - `GET /api/payments`
+- `GET /api/payments/me`
 - `GET /api/payments/:id`
 - `POST /api/payments`
 - `PATCH /api/payments/:id`
