@@ -30,7 +30,6 @@ Además, se observan estos patrones de soporte:
 - `src/shared/instances.ts`: composición e inyección manual de dependencias (instanciación de repositorios, servicios y controladores).
 - `src/lib/prisma.ts`: instancia compartida de Prisma Client configurada con `@prisma/adapter-mariadb`.
 
-
 ## Estructura principal
 
 ```text
@@ -99,6 +98,7 @@ Además, se observan estos patrones de soporte:
 `src/generated/prisma` y `src/generated/zod` se generan con `pnpm db:generate`.
 
 Cada módulo implementa:
+
 - `[dominio].routes.ts`: definición de rutas y middlewares de validación
 - `[dominio].controller.ts`: controladores HTTP
 - `[dominio].service.ts`: lógica de negocio
@@ -148,11 +148,11 @@ El servidor queda disponible en `http://localhost:3000`.
 
 El seeder crea e inicializa users para los tres roles:
 
-| Rol | Email | Contraseña |
-| --- | --- | --- |
-| Administrador | `admin@gym.com` | `admin1234` |
-| Instructor | `gabrielmartinez@gmail.com` | `instructor1234` |
-| Socio | `juan.perez@example.com` | `member1234` |
+| Rol           | Email                       | Contraseña       |
+| ------------- | --------------------------- | ---------------- |
+| Administrador | `admin@gym.com`             | `admin1234`      |
+| Instructor    | `gabrielmartinez@gmail.com` | `instructor1234` |
+| Socio         | `juan.perez@example.com`    | `member1234`     |
 
 Volver a ejecutar `pnpm db:seed` restablece estas credenciales.
 
@@ -268,9 +268,9 @@ Volver a ejecutar `pnpm db:seed` restablece estas credenciales.
 ### Class bookings
 
 - `GET /api/classBookings`
+- `GET /api/classBookings/me`
 - `GET /api/classBookings/:id`
 - `POST /api/classBookings`
 - `PATCH /api/classBookings/:id`
 - `PUT /api/classBookings/:id`
 - `DELETE /api/classBookings/:id`
-

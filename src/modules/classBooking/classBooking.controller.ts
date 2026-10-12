@@ -1,6 +1,9 @@
 import type { Request, Response } from 'express';
 import { ClassBookingService } from './classBooking.service.js';
-import type { CreateClassBookingInput, UpdateClassBookingInput } from './classBooking.schemas.js';
+import type {
+  CreateClassBookingInput,
+  UpdateClassBookingInput,
+} from './classBooking.schemas.js';
 import { UnauthorizedError } from '../../utils/errors.js';
 
 export class ClassBookingController {
@@ -14,13 +17,13 @@ export class ClassBookingController {
   };
 
   getMine = async (req: Request, res: Response) => {
-  if (!req.user) {
-    throw new UnauthorizedError('Usuario no autenticado');
-  }
+    if (!req.user) {
+      throw new UnauthorizedError('Usuario no autenticado');
+    }
 
-  const items = await this.service.getMine(req.user.userId);
-  res.status(200).json(items);
-};
+    const items = await this.service.getMine(req.user.userId);
+    res.status(200).json(items);
+  };
 
   getById = async (req: Request, res: Response) => {
     const { id } = req.validated!.params as { id: number };
@@ -37,7 +40,10 @@ export class ClassBookingController {
   update = async (req: Request, res: Response) => {
     const { id } = req.validated!.params as { id: number };
     const { body } = req.validated!;
-    const updated = await this.service.update(id, body as UpdateClassBookingInput);
+    const updated = await this.service.update(
+      id,
+      body as UpdateClassBookingInput,
+    );
     res.status(200).json(updated);
   };
 
