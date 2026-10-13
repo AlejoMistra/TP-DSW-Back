@@ -1,6 +1,10 @@
 import type { Request, Response } from 'express';
 import { ClassSessionService } from './classSession.service.js';
-import type { CreateClassSessionInput, UpdateClassSessionInput } from './classSession.schemas.js';
+import type {
+  CreateClassSessionInput,
+  UpdateClassSessionInput,
+  RecurrenceScope,
+} from './classSession.schemas.js';
 
 export class ClassSessionController {
   constructor(private readonly service: ClassSessionService) {}
@@ -30,6 +34,7 @@ export class ClassSessionController {
     res.status(200).json(items);
   };
 
+  // Sin recurrence devuelve un objeto; con recurrence, un array con todas las sesiones generadas
   create = async (req: Request, res: Response) => {
     const { body } = req.validated!;
     const created = await this.service.create(body as CreateClassSessionInput);
@@ -38,14 +43,20 @@ export class ClassSessionController {
 
   update = async (req: Request, res: Response) => {
     const { id } = req.validated!.params as { id: number };
-    const { body } = req.validated!;
-    const updated = await this.service.update(id, body as UpdateClassSessionInput);
-    res.status(200).json(updated);
+    const { body, query } = req.validated!;
+    const { scope, confirm } = query as { scope: RecurrenceScope; confirm: boolean };
+
+    const updated = await this.service.updateWithScope(id, body as UpdateClassSessionInput, scope, confirm);
+
+    // scope=THIS mantiene la respuesta actual (un objeto); all/following devuelven un array
+    res.status(200).json(scope === 'THIS' ? updated[0] : updated);
   };
 
   delete = async (req: Request, res: Response) => {
     const { id } = req.validated!.params as { id: number };
-    await this.service.delete(id);
+    const { scope, confirm } = req.validated!.query as { scope: RecurrenceScope; confirm: boolean };
+
+    await this.service.deleteWithScope(id, scope, confirm);
     res.status(204).send();
   };
 }

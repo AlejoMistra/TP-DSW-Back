@@ -15,8 +15,30 @@ const classSessionBaseSchema = ClassSessionSchema.pick({
   status: true,
 });
 
+const recurrenceSchema = z.object({
+  frequency: z.enum(['DAILY', 'WEEKLY', 'MONTHLY']),
+  interval: z.number().int().min(1).max(12).default(1),
+  endDate: z.coerce.date(),
+});
+
+export const RecurrenceScopeSchema = z.enum(['THIS', 'ALL', 'FOLLOWING']).default('THIS');
+
+// Query común para editar/cancelar y eliminar con alcance
+const scopeQuerySchema = z.object({
+  scope: RecurrenceScopeSchema,
+  confirm: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
+});
+
 export const CreateClassSessionSchema = z.object({
-  body: classSessionBaseSchema,
+  body: classSessionBaseSchema
+    .extend({ recurrence: recurrenceSchema.optional() })
+    .refine((data) => !data.recurrence || data.recurrence.endDate >= data.date, {
+      message: 'La fecha de fin de la recurrencia no puede ser anterior a la fecha de la sesión',
+      path: ['recurrence', 'endDate'],
+    }),
 });
 
 export const GetClassSessionByIdRequestSchema = z.object({
@@ -38,10 +60,12 @@ export const GetClassSessionByScheduleRequestSchema = z.object({
 export const UpdateClassSessionSchema = z.object({
   params: IdSchema,
   body: classSessionBaseSchema.partial(),
+  query: scopeQuerySchema,
 });
 
 export const DeleteClassSessionRequestSchema = z.object({
   params: IdSchema,
+  query: scopeQuerySchema,
 });
 
 export const ClassSessionResponseSchema = ClassSessionSchema.omit({
@@ -53,3 +77,6 @@ export const ClassSessionResponseSchema = ClassSessionSchema.omit({
 export type CreateClassSessionInput = z.infer<typeof CreateClassSessionSchema>['body'];
 export type UpdateClassSessionInput = z.infer<typeof UpdateClassSessionSchema>['body'];
 export type ClassSessionResponse = z.infer<typeof ClassSessionResponseSchema>;
+
+export type RecurrenceScope = z.infer<typeof RecurrenceScopeSchema>;
+export type RecurrenceInput = NonNullable<CreateClassSessionInput['recurrence']>;
