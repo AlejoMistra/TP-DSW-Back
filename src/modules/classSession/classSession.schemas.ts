@@ -13,8 +13,13 @@ export const RecurrenceInputSchema = z.object({
   endDate: z.coerce.date(),
 });
 
+export const ListClassSessionsQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(1000).default(500),
+});
+
 export const ListClassSessionsSchema = z.object({
-  query: PaginationQuerySchema.optional(),
+  query: ListClassSessionsQuerySchema.optional(),
 });
 
 const classSessionBaseSchema = ClassSessionSchema.pick({
@@ -69,6 +74,16 @@ export const UpdateClassSessionSchema = z.object({
 export const DeleteClassSessionRequestSchema = z.object({
   params: IdSchema,
   query: z
+    .object({
+      scope: RecurrenceScopeSchema.default('this'),
+    })
+    .optional(),
+});
+
+// CANCEL con soporte de alcance en body
+export const CancelClassSessionRequestSchema = z.object({
+  params: IdSchema,
+  body: z
     .object({
       scope: RecurrenceScopeSchema.default('this'),
     })

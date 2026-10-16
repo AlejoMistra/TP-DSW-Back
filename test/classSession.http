@@ -1,5 +1,5 @@
 @baseUrl = http://localhost:3000/api/classSessions
-@adminToken = TU_TOKEN_ADMIN_AQUI
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc5MjExODg0MiwiZXhwIjoxNzkyMjA1MjQyfQ.P7mlHEfRpJoqua3rcMkVjETqB7qeXkSaO3hlqJjhuTY
 
 ### 1. Obtener todas las sesiones de clases (Público autenticado: Admin, Instructor, Socio)
 GET {{baseUrl}}
@@ -30,13 +30,13 @@ Authorization: Bearer {{adminToken}}
 {
   "classScheduleId": 1,
   "instructorId": 1,
-  "date": "2026-11-02",
+  "date": "2026-12-07",
   "startTime": "09:00",
   "recurrence": {
     "frequency": "WEEKLY",
     "interval": 1,
     "daysOfWeek": [1, 3, 5],
-    "endDate": "2026-11-30"
+    "endDate": "2026-12-30"
   }
 }
 

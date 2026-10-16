@@ -11,7 +11,7 @@ export class ClassSessionController {
 
   getAll = async (req: Request, res: Response) => {
     const page = req.query.page ? Number(req.query.page) : 1;
-    const limit = req.query.limit ? Number(req.query.limit) : 10;
+    const limit = req.query.limit ? Number(req.query.limit) : 500;
     const items = await this.service.getAll(page, limit);
     res.status(200).json(items);
   };
@@ -62,8 +62,14 @@ export class ClassSessionController {
   };
 
   cancel = async (req: Request, res: Response) => {
-    const { id } = req.validated!.params as { id: number };
-    const scope = (req.body?.scope as RecurrenceScope) || 'this';
+    const params = (req.validated?.params || req.params) as {
+      id: number | string;
+    };
+    const id = Number(params.id);
+    const body = (req.validated?.body || req.body) as {
+      scope?: RecurrenceScope;
+    };
+    const scope = body?.scope || 'this';
     await this.service.cancel(id, scope);
     res.status(200).json({ message: 'Sesión(es) cancelada(s) correctamente' });
   };

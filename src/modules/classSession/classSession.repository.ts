@@ -12,8 +12,8 @@ import { getPaginationParams } from '../../shared/pagination.js';
 
 export class ClassSessionRepository {
   async getAll(
-    page?: number,
-    limit?: number,
+    page = 1,
+    limit = 500,
   ): Promise<
     (ClassSession & {
       classSchedule: ClassSchedule;
@@ -25,7 +25,7 @@ export class ClassSessionRepository {
       where: { deletedAt: null },
       take,
       skip,
-      orderBy: { date: 'desc' },
+      orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
       include: { classSchedule: true, recurrence: true },
     });
   }
@@ -36,9 +36,7 @@ export class ClassSessionRepository {
     });
   }
 
-  async getById(
-    id: number,
-  ): Promise<
+  async getById(id: number): Promise<
     | (ClassSession & {
         classSchedule: ClassSchedule;
         recurrence?: ClassSessionRecurrence | null;
@@ -51,9 +49,7 @@ export class ClassSessionRepository {
     });
   }
 
-  async getByInstructor(
-    instructorId: number,
-  ): Promise<
+  async getByInstructor(instructorId: number): Promise<
     (ClassSession & {
       classSchedule: ClassSchedule;
       recurrence?: ClassSessionRecurrence | null;
@@ -61,13 +57,12 @@ export class ClassSessionRepository {
   > {
     return prisma.classSession.findMany({
       where: { instructorId, deletedAt: null },
+      orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
       include: { classSchedule: true, recurrence: true },
     });
   }
 
-  async getBySchedule(
-    classScheduleId: number,
-  ): Promise<
+  async getBySchedule(classScheduleId: number): Promise<
     (ClassSession & {
       classSchedule: ClassSchedule;
       recurrence?: ClassSessionRecurrence | null;
@@ -75,6 +70,7 @@ export class ClassSessionRepository {
   > {
     return prisma.classSession.findMany({
       where: { classScheduleId, deletedAt: null },
+      orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
       include: { classSchedule: true, recurrence: true },
     });
   }
@@ -155,6 +151,34 @@ export class ClassSessionRepository {
     }
   > {
     return prisma.$transaction(async (tx) => {
+      // Si existen sesiones dadas de baja (soft-deleted) para este instructor, horario y fechas,
+      // se purgan para evitar violar la restricción UNIQUE de MySQL al recrear la serie
+      if (sessionsData.length > 0 && sessionsData[0].instructorId) {
+        const instId = sessionsData[0].instructorId;
+        const targetDates = sessionsData.map((s) => s.date);
+        const startTime = sessionsData[0].startTime;
+
+        await tx.classBooking.deleteMany({
+          where: {
+            classSession: {
+              instructorId: instId,
+              date: { in: targetDates },
+              startTime,
+              deletedAt: { not: null },
+            },
+          },
+        });
+
+        await tx.classSession.deleteMany({
+          where: {
+            instructorId: instId,
+            date: { in: targetDates },
+            startTime,
+            deletedAt: { not: null },
+          },
+        });
+      }
+
       const recurrence = await tx.classSessionRecurrence.create({
         data: recurrenceData,
       });
@@ -188,6 +212,30 @@ export class ClassSessionRepository {
       recurrence?: ClassSessionRecurrence | null;
     }
   > {
+    // Si existe una sesión previa soft-deleted para este instructor, fecha y horario,
+    // se purga para evitar colisión con el índice UNIQUE de MySQL
+    if (input.instructorId) {
+      await prisma.classBooking.deleteMany({
+        where: {
+          classSession: {
+            instructorId: input.instructorId,
+            date: input.date,
+            startTime: input.startTime,
+            deletedAt: { not: null },
+          },
+        },
+      });
+
+      await prisma.classSession.deleteMany({
+        where: {
+          instructorId: input.instructorId,
+          date: input.date,
+          startTime: input.startTime,
+          deletedAt: { not: null },
+        },
+      });
+    }
+
     return prisma.classSession.create({
       data: {
         classSchedule: { connect: { id: input.classScheduleId } },

@@ -11,6 +11,7 @@ import {
   GetClassSessionByScheduleRequestSchema,
   UpdateClassSessionSchema,
   DeleteClassSessionRequestSchema,
+  CancelClassSessionRequestSchema,
   CheckAffectedBookingsSchema,
   ListClassSessionsSchema,
 } from './classSession.schemas.js';
@@ -67,6 +68,7 @@ classSessionRouter.put(
 classSessionRouter.patch(
   '/:id/cancel',
   authorize(UserRole.ADMIN),
+  validate(CancelClassSessionRequestSchema),
   classSessionController.cancel,
 );
 classSessionRouter.delete(
