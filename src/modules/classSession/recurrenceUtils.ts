@@ -1,8 +1,8 @@
 import { BadRequestError } from '../../utils/errors.js';
 
 export interface RecurrenceConfig {
-  frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY';
-  interval: number;
+  frequency?: 'WEEKLY';
+  interval?: number;
   daysOfWeek?: number[]; // 1 = Lunes, 2 = Martes, ..., 7 = Domingo
   startDate: Date | string;
   endDate: Date | string;
@@ -22,7 +22,7 @@ export function normalizeDateToUTC(dateInput: Date | string): Date {
 }
 
 /**
- * Genera el array de fechas que caen dentro de la serie recurrente
+ * Genera el array de fechas que caen dentro de la serie recurrente semanal
  */
 export function generateRecurrenceDates(config: RecurrenceConfig): Date[] {
   const start = normalizeDateToUTC(config.startDate);
@@ -43,54 +43,29 @@ export function generateRecurrenceDates(config: RecurrenceConfig): Date[] {
     );
   }
 
-  const interval = config.interval > 0 ? config.interval : 1;
   const dates: Date[] = [];
   const current = new Date(start);
 
-  if (config.frequency === 'DAILY') {
-    while (current <= end) {
-      dates.push(new Date(current));
-      current.setUTCDate(current.getUTCDate() + interval);
-      if (dates.length > MAX_SESSIONS_LIMIT) {
-        throw new BadRequestError(
-          `La serie supera el límite de ${MAX_SESSIONS_LIMIT} clases`,
-        );
-      }
-    }
-  } else if (config.frequency === 'WEEKLY') {
-    // Si no se proveyeron días específicos, usar el día de la semana de startDate
-    // JS getUTCDay: 0=Domingo, 1=Lunes... Convertir a 1=Lunes ... 7=Domingo
-    const fallbackDay = start.getUTCDay() === 0 ? 7 : start.getUTCDay();
-    const targetDays =
-      config.daysOfWeek && config.daysOfWeek.length > 0
-        ? config.daysOfWeek
-        : [fallbackDay];
+  // Si no se proveyeron días específicos, usar el día de la semana de startDate
+  // JS getUTCDay: 0=Domingo, 1=Lunes... Convertir a 1=Lunes ... 7=Domingo
+  const fallbackDay = start.getUTCDay() === 0 ? 7 : start.getUTCDay();
+  const targetDays =
+    config.daysOfWeek && config.daysOfWeek.length > 0
+      ? config.daysOfWeek
+      : [fallbackDay];
 
-    // Iterar día a día en el rango
-    while (current <= end) {
-      const dayOfWeek = current.getUTCDay() === 0 ? 7 : current.getUTCDay();
-      if (targetDays.includes(dayOfWeek)) {
-        dates.push(new Date(current));
-        if (dates.length > MAX_SESSIONS_LIMIT) {
-          throw new BadRequestError(
-            `La serie supera el límite de ${MAX_SESSIONS_LIMIT} clases`,
-          );
-        }
-      }
-      current.setUTCDate(current.getUTCDate() + 1);
-    }
-  } else if (config.frequency === 'MONTHLY') {
-    const dayOfMonth = start.getUTCDate();
-    while (current <= end) {
+  // Iterar día a día en el rango y seleccionar los días de la semana configurados
+  while (current <= end) {
+    const dayOfWeek = current.getUTCDay() === 0 ? 7 : current.getUTCDay();
+    if (targetDays.includes(dayOfWeek)) {
       dates.push(new Date(current));
-      current.setUTCMonth(current.getUTCMonth() + interval);
-      current.setUTCDate(dayOfMonth);
       if (dates.length > MAX_SESSIONS_LIMIT) {
         throw new BadRequestError(
           `La serie supera el límite de ${MAX_SESSIONS_LIMIT} clases`,
         );
       }
     }
+    current.setUTCDate(current.getUTCDate() + 1);
   }
 
   if (dates.length === 0) {

@@ -208,7 +208,7 @@ model ClassSession {
   recurrence    ClassSessionRecurrence? @relation(fields: [recurrenceId], references: [id])
   bookings      ClassBooking[]
 
-  @@unique([instructorId, date, startTime]) // mismo instructor no puede estar en dos sesiones al mismo tiempo
+  @@index([instructorId, date])
   @@index([classScheduleId])
   @@index([recurrenceId])
   @@map("class_sessions")

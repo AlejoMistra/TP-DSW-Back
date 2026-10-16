@@ -3,13 +3,15 @@ import { ClassSessionSchema } from '../../generated/zod/schemas/models/ClassSess
 import { IdSchema } from '../../shared/common.schemas.js';
 import { PaginationQuerySchema } from '../../shared/pagination.js';
 
-export const RecurrenceFrequencySchema = z.enum(['DAILY', 'WEEKLY', 'MONTHLY']);
+export const RecurrenceFrequencySchema = z.enum(['WEEKLY']).default('WEEKLY');
 export const RecurrenceScopeSchema = z.enum(['this', 'following', 'all']);
 
 export const RecurrenceInputSchema = z.object({
-  frequency: RecurrenceFrequencySchema,
+  frequency: RecurrenceFrequencySchema.default('WEEKLY'),
   interval: z.coerce.number().int().min(1).default(1),
-  daysOfWeek: z.array(z.coerce.number().int().min(1).max(7)).optional(), // 1=Lun, 7=Dom
+  daysOfWeek: z
+    .array(z.coerce.number().int().min(1).max(7))
+    .min(1, 'Debe seleccionar al menos un día de la semana'), // 1=Lun, 7=Dom
   endDate: z.coerce.date(),
 });
 

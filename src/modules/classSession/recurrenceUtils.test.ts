@@ -5,24 +5,6 @@ import {
 } from './recurrenceUtils.js';
 
 describe('recurrenceUtils', () => {
-  it('should generate daily dates correctly', () => {
-    const dates = generateRecurrenceDates({
-      frequency: 'DAILY',
-      interval: 1,
-      startDate: new Date('2026-05-01T00:00:00Z'),
-      endDate: new Date('2026-05-05T00:00:00Z'),
-    });
-
-    expect(dates).toHaveLength(5);
-    expect(dates.map((d) => d.toISOString().split('T')[0])).toEqual([
-      '2026-05-01',
-      '2026-05-02',
-      '2026-05-03',
-      '2026-05-04',
-      '2026-05-05',
-    ]);
-  });
-
   it('should generate weekly dates for specific days of week (Lunes, Miércoles, Viernes)', () => {
     // 2026-05-04 is a Monday
     // 2026-05-15 is a Friday
@@ -46,11 +28,27 @@ describe('recurrenceUtils', () => {
     ]);
   });
 
+  it('should fallback to startDate day of week if daysOfWeek is empty', () => {
+    // 2026-05-04 is a Monday, 3 Mondays in range
+    const dates = generateRecurrenceDates({
+      frequency: 'WEEKLY',
+      startDate: new Date('2026-05-04T00:00:00Z'),
+      endDate: new Date('2026-05-18T00:00:00Z'),
+    });
+
+    expect(dates).toHaveLength(3);
+    expect(dates.map((d) => d.toISOString().split('T')[0])).toEqual([
+      '2026-05-04',
+      '2026-05-11',
+      '2026-05-18',
+    ]);
+  });
+
   it('should throw error if endDate is before startDate', () => {
     expect(() =>
       generateRecurrenceDates({
-        frequency: 'DAILY',
-        interval: 1,
+        frequency: 'WEEKLY',
+        daysOfWeek: [1],
         startDate: new Date('2026-05-10T00:00:00Z'),
         endDate: new Date('2026-05-01T00:00:00Z'),
       }),
@@ -62,8 +60,8 @@ describe('recurrenceUtils', () => {
   it('should throw error if range exceeds 3 months', () => {
     expect(() =>
       generateRecurrenceDates({
-        frequency: 'DAILY',
-        interval: 1,
+        frequency: 'WEEKLY',
+        daysOfWeek: [1],
         startDate: new Date('2026-01-01T00:00:00Z'),
         endDate: new Date('2026-05-01T00:00:00Z'),
       }),
