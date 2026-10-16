@@ -2,11 +2,16 @@ import { z } from 'zod';
 import { MemberSchema } from '../../generated/zod/schemas/models/Member.schema.js';
 import { MembershipSchema } from '../../generated/zod/schemas/models/Membership.schema.js';
 import { PaymentSchema } from '../../generated/zod/schemas/models/Payment.schema.js';
+import { MembershipStatusSchema } from '../../generated/zod/schemas/enums/MembershipStatus.schema.js';
 import { IdSchema } from '../../shared/common.schemas.js';
 import { PaginationQuerySchema } from '../../shared/pagination.js';
 
+export const ListMembersQuerySchema = PaginationQuerySchema.extend({
+  membershipStatus: MembershipStatusSchema.optional(),
+});
+
 export const ListMembersSchema = z.object({
-  query: PaginationQuerySchema.optional(),
+  query: ListMembersQuerySchema.optional(),
 });
 
 const memberBaseSchema = MemberSchema.pick({

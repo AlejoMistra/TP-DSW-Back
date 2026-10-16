@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import type { MembershipStatus } from '../../generated/prisma/client.js';
 import { memberService } from '../../shared/instances.js';
 import type {
   CreateMemberInput,
@@ -30,7 +31,12 @@ export const findAll = async (req: Request, res: Response) => {
 export const findAllWithMembership = async (req: Request, res: Response) => {
   const page = req.query.page ? Number(req.query.page) : 1;
   const limit = req.query.limit ? Number(req.query.limit) : 10;
-  const members = await memberService.getAllWithMembership(page, limit);
+  const membershipStatus = req.query.membershipStatus as MembershipStatus | undefined;
+  const members = await memberService.getAllWithMembership(
+    page,
+    limit,
+    membershipStatus,
+  );
   res.status(200).json(members);
 };
 
