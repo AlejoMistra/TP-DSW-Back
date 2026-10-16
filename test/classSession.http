@@ -1,37 +1,99 @@
 @baseUrl = http://localhost:3000/api/classSessions
+@adminToken = TU_TOKEN_ADMIN_AQUI
 
-### 1. Obtener todas las sesiones de clases
+### 1. Obtener todas las sesiones de clases (Público autenticado: Admin, Instructor, Socio)
 GET {{baseUrl}}
+Authorization: Bearer {{adminToken}}
 
 ### 2. Obtener una sesión por ID
 GET {{baseUrl}}/1
+Authorization: Bearer {{adminToken}}
 
-### 3. Crear una sesión de clase válida
+### 3. Crear una sesión individual
 POST {{baseUrl}}
 Content-Type: application/json
+Authorization: Bearer {{adminToken}}
 
 {
-  "classScheduleId": 2,
-  "date": "2026-10-15",
-  "startTime": "10:00",
+  "classScheduleId": 1,
   "instructorId": 1,
+  "date": "2026-11-02",
+  "startTime": "10:00",
   "status": "SCHEDULED"
 }
 
-### 4. Actualizar una sesión existente
-PUT {{baseUrl}}/1
+### 4. Crear una serie recurrente SEMANAL (Lunes, Miércoles, Viernes)
+POST {{baseUrl}}
 Content-Type: application/json
+Authorization: Bearer {{adminToken}}
 
 {
-  "startTime": "11:00",
-  "instructorId": 1
+  "classScheduleId": 1,
+  "instructorId": 1,
+  "date": "2026-11-02",
+  "startTime": "09:00",
+  "recurrence": {
+    "frequency": "WEEKLY",
+    "interval": 1,
+    "daysOfWeek": [1, 3, 5],
+    "endDate": "2026-11-30"
+  }
 }
 
-### 5. Eliminar una sesión de clase
-DELETE {{baseUrl}}/1
+### 5. Consultar reservas confirmadas afectadas antes de editar/eliminar (scope: this / following / all)
+GET {{baseUrl}}/1/affected-bookings?scope=all
+Authorization: Bearer {{adminToken}}
 
-### 6. Obtener sesiones por instructor
+### 6. Actualizar sesión puntual con alcance 'this' (Se desvincula de la serie)
+PUT {{baseUrl}}/1
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "startTime": "11:30",
+  "instructorId": 1,
+  "scope": "this"
+}
+
+### 7. Actualizar serie con alcance 'following' (Corta y crea nueva serie para futuras)
+PUT {{baseUrl}}/2
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "startTime": "15:00",
+  "instructorId": 2,
+  "scope": "following"
+}
+
+### 8. Actualizar serie con alcance 'all' (Todas las futuras >= hoy)
+PUT {{baseUrl}}/2
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "startTime": "08:00",
+  "instructorId": 1,
+  "scope": "all"
+}
+
+### 9. Cancelar sesión/serie con alcance (Cancela sesiones y reservas confirmadas)
+PATCH {{baseUrl}}/2/cancel
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "scope": "following"
+}
+
+### 10. Eliminar sesión/serie con alcance (Soft-delete y cancelación de reservas)
+DELETE {{baseUrl}}/2?scope=this
+Authorization: Bearer {{adminToken}}
+
+### 11. Obtener sesiones por instructor
 GET {{baseUrl}}/instructor/1
+Authorization: Bearer {{adminToken}}
 
-### 7. Obtener sesiones por clase
-GET {{baseUrl}}/schedule/2
+### 12. Obtener sesiones por tipo de clase
+GET {{baseUrl}}/schedule/1
+Authorization: Bearer {{adminToken}}

@@ -3,6 +3,16 @@ import { ClassSessionSchema } from '../../generated/zod/schemas/models/ClassSess
 import { IdSchema } from '../../shared/common.schemas.js';
 import { PaginationQuerySchema } from '../../shared/pagination.js';
 
+export const RecurrenceFrequencySchema = z.enum(['DAILY', 'WEEKLY', 'MONTHLY']);
+export const RecurrenceScopeSchema = z.enum(['this', 'following', 'all']);
+
+export const RecurrenceInputSchema = z.object({
+  frequency: RecurrenceFrequencySchema,
+  interval: z.coerce.number().int().min(1).default(1),
+  daysOfWeek: z.array(z.coerce.number().int().min(1).max(7)).optional(), // 1=Lun, 7=Dom
+  endDate: z.coerce.date(),
+});
+
 export const ListClassSessionsSchema = z.object({
   query: PaginationQuerySchema.optional(),
 });
@@ -16,7 +26,9 @@ const classSessionBaseSchema = ClassSessionSchema.pick({
 });
 
 export const CreateClassSessionSchema = z.object({
-  body: classSessionBaseSchema,
+  body: classSessionBaseSchema.extend({
+    recurrence: RecurrenceInputSchema.optional(),
+  }),
 });
 
 export const GetClassSessionByIdRequestSchema = z.object({
@@ -35,21 +47,54 @@ export const GetClassSessionByScheduleRequestSchema = z.object({
   }),
 });
 
+// UPDATE: No permite classScheduleId para proteger capacidad y reservas
 export const UpdateClassSessionSchema = z.object({
   params: IdSchema,
-  body: classSessionBaseSchema.partial(),
+  body: z.object({
+    instructorId: z.coerce.number().int().positive().nullable().optional(),
+    date: z.coerce.date().optional(),
+    startTime: z
+      .string()
+      .regex(
+        /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
+        'El formato de hora debe ser HH:mm',
+      )
+      .optional(),
+    status: z.enum(['SCHEDULED', 'CANCELLED']).optional(),
+    scope: RecurrenceScopeSchema.default('this'),
+  }),
 });
 
+// DELETE con soporte de alcance en query
 export const DeleteClassSessionRequestSchema = z.object({
   params: IdSchema,
+  query: z
+    .object({
+      scope: RecurrenceScopeSchema.default('this'),
+    })
+    .optional(),
+});
+
+// Verificación previa de impacto de reservas confirmadas
+export const CheckAffectedBookingsSchema = z.object({
+  params: IdSchema,
+  query: z.object({
+    scope: RecurrenceScopeSchema.default('this'),
+  }),
 });
 
 export const ClassSessionResponseSchema = ClassSessionSchema.omit({
   deletedAt: true,
 }).extend({
   endTime: z.string(),
+  recurrenceId: z.number().nullable().optional(),
 });
 
-export type CreateClassSessionInput = z.infer<typeof CreateClassSessionSchema>['body'];
-export type UpdateClassSessionInput = z.infer<typeof UpdateClassSessionSchema>['body'];
+export type CreateClassSessionInput = z.infer<
+  typeof CreateClassSessionSchema
+>['body'];
+export type UpdateClassSessionInput = z.infer<
+  typeof UpdateClassSessionSchema
+>['body'];
+export type RecurrenceScope = z.infer<typeof RecurrenceScopeSchema>;
 export type ClassSessionResponse = z.infer<typeof ClassSessionResponseSchema>;

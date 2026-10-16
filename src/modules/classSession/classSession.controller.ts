@@ -1,6 +1,10 @@
 import type { Request, Response } from 'express';
 import { ClassSessionService } from './classSession.service.js';
-import type { CreateClassSessionInput, UpdateClassSessionInput } from './classSession.schemas.js';
+import type {
+  CreateClassSessionInput,
+  UpdateClassSessionInput,
+  RecurrenceScope,
+} from './classSession.schemas.js';
 
 export class ClassSessionController {
   constructor(private readonly service: ClassSessionService) {}
@@ -25,7 +29,9 @@ export class ClassSessionController {
   };
 
   getBySchedule = async (req: Request, res: Response) => {
-    const { classScheduleId } = req.validated!.params as { classScheduleId: number };
+    const { classScheduleId } = req.validated!.params as {
+      classScheduleId: number;
+    };
     const items = await this.service.getBySchedule(classScheduleId);
     res.status(200).json(items);
   };
@@ -36,16 +42,36 @@ export class ClassSessionController {
     res.status(201).json(created);
   };
 
+  getAffectedBookings = async (req: Request, res: Response) => {
+    const { id } = req.validated!.params as { id: number };
+    const { scope } = (req.validated?.query || {}) as {
+      scope?: RecurrenceScope;
+    };
+    const result = await this.service.getAffectedBookings(id, scope || 'this');
+    res.status(200).json(result);
+  };
+
   update = async (req: Request, res: Response) => {
     const { id } = req.validated!.params as { id: number };
     const { body } = req.validated!;
-    const updated = await this.service.update(id, body as UpdateClassSessionInput);
+    const updated = await this.service.update(
+      id,
+      body as UpdateClassSessionInput,
+    );
     res.status(200).json(updated);
+  };
+
+  cancel = async (req: Request, res: Response) => {
+    const { id } = req.validated!.params as { id: number };
+    const scope = (req.body?.scope as RecurrenceScope) || 'this';
+    await this.service.cancel(id, scope);
+    res.status(200).json({ message: 'Sesión(es) cancelada(s) correctamente' });
   };
 
   delete = async (req: Request, res: Response) => {
     const { id } = req.validated!.params as { id: number };
-    await this.service.delete(id);
+    const scope = (req.query.scope as RecurrenceScope) || 'this';
+    await this.service.delete(id, scope);
     res.status(204).send();
   };
 }
