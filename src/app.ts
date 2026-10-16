@@ -34,11 +34,14 @@ const availableEndpoints = {
   '/api/users/:id':
     'GET: Obtener usuario | PATCH: Actualizar usuario | DELETE: Eliminar usuario',
   '/api/members': 'GET: Obtener todos los socios | POST: Crear nuevo socio',
+  '/api/members/me':
+    'GET: Obtener perfil del socio autenticado | PATCH: Actualizar perfil propio',
   '/api/members/with-membership': 'GET: Obtener socios con membresía',
   '/api/members/:id':
     'GET: Obtener un socio | PATCH: Actualizar socio | DELETE: Eliminar socio',
   '/api/memberships':
     'GET: Obtener todas las membresías | POST: Crear nueva membresía',
+  '/api/memberships/me': 'GET: Obtener membresía del socio autenticado',
   '/api/memberships/member/:memberId': 'GET: Obtener membresía por socio',
   '/api/memberships/:id':
     'GET: Obtener una membresía | PATCH: Actualizar membresía | DELETE: Eliminar membresía',
@@ -49,6 +52,7 @@ const availableEndpoints = {
   '/api/membership-plans/:id':
     'GET: Obtener plan | PATCH: Actualizar plan | DELETE: Eliminar plan',
   '/api/payments': 'GET: Obtener todos los pagos | POST: Registrar pago',
+  '/api/payments/me': 'GET: Obtener pagos del socio autenticado',
   '/api/payments/:id':
     'GET: Obtener un pago | PATCH: Actualizar pago | DELETE: Eliminar pago',
   '/api/instructors':

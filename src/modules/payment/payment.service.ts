@@ -45,6 +45,11 @@ export class PaymentService {
     return this.toResponse(payment);
   }
 
+  async getMe(userId: number): Promise<PaymentResponse[]> {
+    const payments = await this.repository.findByUserId(userId);
+    return payments.map((p) => this.toResponse(p));
+  }
+
   async create(input: CreatePaymentInput): Promise<PaymentResponse> {
     const membership = await this.membershipRepository.getById(input.membershipId);
     if (!membership) {

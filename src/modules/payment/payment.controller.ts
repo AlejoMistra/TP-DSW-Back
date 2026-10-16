@@ -22,6 +22,11 @@ export const findOne = async (req: Request, res: Response) => {
   res.status(200).json(payment);
 };
 
+export const getMe = async (req: Request, res: Response) => {
+  const payments = await paymentService.getMe(req.user!.userId);
+  res.status(200).json(payments);
+};
+
 export const create = async (req: Request, res: Response) => {
   const validated = req.validated as { body: CreatePaymentInput; params?: { membershipId?: number } };
   const membershipId = validated.params?.membershipId ?? validated.body.membershipId;

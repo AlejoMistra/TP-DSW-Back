@@ -82,23 +82,57 @@ Authorization: Bearer {{memberToken}}
   "durationMonths": 1
 }
 
+### 8. Socio intenta ver a otro socio por ID (Prevención IDOR: Solo ADMIN o INSTRUCTOR) -> 403 FORBIDDEN
+GET {{baseUrl}}/members/2
+Authorization: Bearer {{memberToken}}
+
+### 9. Socio intenta ver membresía por ID (Prevención IDOR: Solo ADMIN) -> 403 FORBIDDEN
+GET {{baseUrl}}/memberships/1
+Authorization: Bearer {{memberToken}}
+
+### 10. Socio intenta ver un pago por ID (Prevención IDOR: Solo ADMIN) -> 403 FORBIDDEN
+GET {{baseUrl}}/payments/1
+Authorization: Bearer {{memberToken}}
+
 
 ### ========================================================
 ### CASOS DE PRUEBA: ACCESO PERMITIDO (200 / 201 OK)
 ### ========================================================
 
-### 8. Admin accede a listar usuarios -> 200 OK
+### 11. Admin accede a listar usuarios -> 200 OK
 GET {{baseUrl}}/users
 Authorization: Bearer {{adminToken}}
 
-### 9. Socio accede a ver ejercicios -> 200 OK
+### 12. Socio accede a ver ejercicios -> 200 OK
 GET {{baseUrl}}/exercises
 Authorization: Bearer {{memberToken}}
 
-### 10. Socio accede a ver planes de membresía -> 200 OK
+### 13. Socio accede a ver planes de membresía -> 200 OK
 GET {{baseUrl}}/membership-plans
 Authorization: Bearer {{memberToken}}
 
-### 11. Socio accede a ver horarios de clase -> 200 OK
+### 14. Socio accede a ver horarios de clase -> 200 OK
 GET {{baseUrl}}/classSchedules
 Authorization: Bearer {{memberToken}}
+
+### 15. Socio consulta su propio perfil (/me) -> 200 OK
+GET {{baseUrl}}/members/me
+Authorization: Bearer {{memberToken}}
+
+### 16. Socio actualiza su propio perfil (/me) -> 200 OK
+PATCH {{baseUrl}}/members/me
+Content-Type: application/json
+Authorization: Bearer {{memberToken}}
+
+{
+  "phone": "3415551234"
+}
+
+### 17. Socio consulta su propia membresía (/me) -> 200 OK
+GET {{baseUrl}}/memberships/me
+Authorization: Bearer {{memberToken}}
+
+### 18. Socio consulta sus propios pagos (/me) -> 200 OK
+GET {{baseUrl}}/payments/me
+Authorization: Bearer {{memberToken}}
+
