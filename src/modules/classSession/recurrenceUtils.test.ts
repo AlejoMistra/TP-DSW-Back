@@ -57,14 +57,14 @@ describe('recurrenceUtils', () => {
     );
   });
 
-  it('should throw error if range exceeds 3 months', () => {
+  it('should throw error if range exceeds 1 month', () => {
     expect(() =>
       generateRecurrenceDates({
         frequency: 'WEEKLY',
         daysOfWeek: [1],
         startDate: new Date('2026-01-01T00:00:00Z'),
-        endDate: new Date('2026-05-01T00:00:00Z'),
+        endDate: new Date('2026-03-01T00:00:00Z'),
       }),
-    ).toThrow('La recurrencia no puede extenderse más allá de 3 meses');
+    ).toThrow('La recurrencia no puede extenderse más allá de 1 mes');
   });
 });

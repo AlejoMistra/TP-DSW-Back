@@ -8,8 +8,8 @@ export interface RecurrenceConfig {
   endDate: Date | string;
 }
 
-const MAX_SESSIONS_LIMIT = 100;
-const MAX_MONTHS_LIMIT = 3;
+const MAX_SESSIONS_LIMIT = 35;
+const MAX_MONTHS_LIMIT = 1;
 
 /**
  * Normaliza una fecha a las 00:00:00 UTC para evitar desfases horarios
@@ -34,12 +34,12 @@ export function generateRecurrenceDates(config: RecurrenceConfig): Date[] {
     );
   }
 
-  // Validar tope de 3 meses
+  // Validar tope de 1 mes
   const maxAllowedDate = new Date(start);
   maxAllowedDate.setUTCMonth(maxAllowedDate.getUTCMonth() + MAX_MONTHS_LIMIT);
   if (end > maxAllowedDate) {
     throw new BadRequestError(
-      `La recurrencia no puede extenderse más allá de ${MAX_MONTHS_LIMIT} meses`,
+      `La recurrencia no puede extenderse más allá de ${MAX_MONTHS_LIMIT} mes`,
     );
   }
 
