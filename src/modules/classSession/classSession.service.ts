@@ -267,7 +267,7 @@ export class ClassSessionService {
         );
       }
 
-      const updated = await this.repository.updateSingleDetached(id, {
+      const updated = await this.repository.updateSingleSession(id, {
         instructorId,
         date: input.date,
         startTime: input.startTime,

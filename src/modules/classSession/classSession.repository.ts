@@ -307,9 +307,9 @@ export class ClassSessionRepository {
   }
 
   /**
-   * Actualiza una sesión puntual con alcance 'this' (desvinculándola de la serie)
+   * Actualiza una sesión puntual con alcance 'this' (manteniendo su vinculación a la serie)
    */
-  async updateSingleDetached(
+  async updateSingleSession(
     id: number,
     data: {
       instructorId?: number | null;
@@ -331,7 +331,6 @@ export class ClassSessionRepository {
         date: data.date,
         startTime: data.startTime,
         status: data.status,
-        recurrenceId: null, // Desvinculada de la serie
       },
       include: { classSchedule: true, recurrence: true },
     });
