@@ -187,6 +187,22 @@ model ClassSchedule {
   @@map("class_schedules")
 }
 
+model ClassSessionRecurrence {
+  id        Int                 @id @default(autoincrement())
+  frequency RecurrenceFrequency
+  interval  Int                 @default(1)
+  startDate DateTime
+  endDate   DateTime
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  sessions ClassSession[]
+
+  @@map("class_session_recurrences")
+}
+
 model ClassSession {
   id                Int         @id @default(autoincrement())
   classScheduleId   Int
@@ -206,8 +222,12 @@ model ClassSession {
   classSchedule ClassSchedule  @relation(fields: [classScheduleId], references: [id])
   bookings      ClassBooking[]
 
+  recurrenceId Int?
+  recurrence   ClassSessionRecurrence? @relation(fields: [recurrenceId], references: [id])
+
   @@unique([instructorId, date, startTime]) // mismo instructor no puede estar en dos sesiones al mismo tiempo
   @@index([classScheduleId])
+  @@index([recurrenceId])
   @@map("class_sessions")
 }
 
@@ -362,4 +382,10 @@ enum UserRole {
   ADMIN
   INSTRUCTOR
   MEMBER
+}
+
+enum RecurrenceFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
 }

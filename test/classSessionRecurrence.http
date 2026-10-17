@@ -1,0 +1,186 @@
+@baseUrl = http://localhost:3000/api
+
+### 0. Login como ADMIN
+# @name loginAdmin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@gym.com",
+  "password": "admin1234"
+}
+
+### Token
+@adminToken = {{loginAdmin.response.body.token}}
+
+### 1. Crear serie SEMANAL de lunes (esperado: 201 y un ARRAY de 9 sesiones con el mismo recurrenceId)
+# @name createSeries
+POST {{baseUrl}}/classSessions
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "classScheduleId": 1,
+  "instructorId": 1,
+  "date": "2028-09-05",
+  "startTime": "10:00",
+  "recurrence": { "frequency": "WEEKLY", "interval": 1, "endDate": "2028-10-31" }
+}
+
+### IDs de la serie para las pruebas siguientes
+@firstId = {{createSeries.response.body.$[0].id}}
+@fourthId = {{createSeries.response.body.$[3].id}}
+@lastId = {{createSeries.response.body.$[8].id}}
+
+### 2. Repetir exactamente lo mismo (esperado: 409 con TODAS las fechas en conflicto, y no se crea nada)
+POST {{baseUrl}}/classSessions
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "classScheduleId": 1,
+  "instructorId": 1,
+  "date": "2027-11-02",
+  "startTime": "10:00",
+  "recurrence": { "frequency": "WEEKLY", "interval": 1, "endDate": "2027-12-28" }
+}
+
+### 3. Sesion suelta, sin recurrence (esperado: 201 y un OBJETO, igual que antes; recurrenceId = null)
+POST {{baseUrl}}/classSessions
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "classScheduleId": 1,
+  "instructorId": 1,
+  "date": "2027-11-03",
+  "startTime": "10:00"
+}
+
+### 4. endDate anterior a la fecha (esperado: 400 de validacion)
+POST {{baseUrl}}/classSessions
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "classScheduleId": 1,
+  "instructorId": 1,
+  "date": "2026-11-10",
+  "startTime": "15:00",
+  "recurrence": { "frequency": "DAILY", "endDate": "2026-11-01" }
+}
+
+### 5. Serie MENSUAL (esperado: 201, una sesion por mes)
+POST {{baseUrl}}/classSessions
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "classScheduleId": 1,
+  "instructorId": 1,
+  "date": "2027-11-05",
+  "startTime": "22:00",
+  "recurrence": { "frequency": "MONTHLY", "endDate": "2028-03-05" }
+}
+
+### 6. Editar SOLO la cuarta sesion (esperado: 200 y un OBJETO)
+PUT {{baseUrl}}/classSessions/{{fourthId}}?scope=THIS
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{ "startTime": "12:00" }
+
+### 7. Editar la cuarta y las siguientes (esperado: 200 y un ARRAY; la serie se parte en dos)
+PUT {{baseUrl}}/classSessions/{{fourthId}}?scope=FOLLOWING
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{ "startTime": "16:00" }
+
+### 8. Editar todas las futuras (esperado: 200 y un ARRAY)
+PUT {{baseUrl}}/classSessions/{{firstId}}?scope=ALL
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{ "startTime": "17:00" }
+
+### 9. Cambiar la fecha en una serie con scope=ALL (esperado: 400)
+PUT {{baseUrl}}/classSessions/{{firstId}}?scope=ALL
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{ "date": "2026-11-04" }
+
+### 10. Ver las sesiones del tipo de clase (mira recurrenceId y startTime de cada una)
+GET {{baseUrl}}/classSessions/schedule/1
+Authorization: Bearer {{adminToken}}
+
+### 11. Eliminar solo la ultima (esperado: 204)
+DELETE {{baseUrl}}/classSessions/{{lastId}}?scope=THIS
+Authorization: Bearer {{adminToken}}
+
+### 12. Eliminar la cuarta y las siguientes (esperado: 204)
+DELETE {{baseUrl}}/classSessions/{{fourthId}}?scope=FOLLOWING
+Authorization: Bearer {{adminToken}}
+
+### 13. Eliminar toda la serie (esperado: 204)
+DELETE {{baseUrl}}/classSessions/{{firstId}}?scope=ALL
+Authorization: Bearer {{adminToken}}
+
+### IDs extra
+@fifthId = {{createSeries.response.body.$[4].id}}
+
+### B0. Ver la sesión 5 antes de reservar (esperado: remainingCapacity 3)
+GET {{baseUrl}}/classSessions/{{fifthId}}
+Authorization: Bearer {{adminToken}}
+
+### B1. Reservar la sesión 5 con el socio 1 (esperado: 201)
+# @name createBooking
+POST {{baseUrl}}/classBookings
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+ "memberId": 1,
+ "classSessionId": {{fifthId}}
+}
+
+###
+@bookingId = {{createBooking.response.body.id}}
+
+### B2. Ver la reserva ANTES de partir la serie
+GET {{baseUrl}}/classBookings/{{bookingId}}
+Authorization: Bearer {{adminToken}}
+
+### B3. Partir la serie desde la cuarta (la sesión 5 queda afectada)
+PUT {{baseUrl}}/classSessions/{{fourthId}}?scope=FOLLOWING
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{ "startTime": "16:00" }
+
+### B4. Ver la reserva DESPUÉS
+GET {{baseUrl}}/classBookings/{{bookingId}}
+Authorization: Bearer {{adminToken}}
+
+### B5. Cancelar la sesión 5 SIN confirm (esperado: 409)
+PUT {{baseUrl}}/classSessions/{{fifthId}}?scope=THIS
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{ "status": "CANCELLED" }
+
+### B6. Cancelar CON confirm (esperado: 200)
+PUT {{baseUrl}}/classSessions/{{fifthId}}?scope=THIS&confirm=true
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{ "status": "CANCELLED" }
+
+### B7. Ver la reserva (esperado: CANCELLED)
+GET {{baseUrl}}/classBookings/{{bookingId}}
+Authorization: Bearer {{adminToken}}
+
+### B8. Ver la sesión 5 después de cancelar (esperado: status CANCELLED y remainingCapacity 3)
+GET {{baseUrl}}/classSessions/{{fifthId}}
+Authorization: Bearer {{adminToken}}

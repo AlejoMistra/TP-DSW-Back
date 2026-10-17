@@ -38,3 +38,9 @@ export class BadRequestError extends AppError {
     super(message, 400, 'BAD_REQUEST');
   }
 }
+
+export class ConfirmationRequiredError extends AppError {
+  constructor(message = 'Se requiere confirmación para continuar') {
+    super(message, 409, 'CONFIRMATION_REQUIRED');
+  }
+}
