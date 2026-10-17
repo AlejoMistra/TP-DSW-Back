@@ -24,3 +24,4 @@ CREATE INDEX `class_sessions_recurrenceId_idx` ON `class_sessions`(`recurrenceId
 
 -- AddForeignKey
 ALTER TABLE `class_sessions` ADD CONSTRAINT `class_sessions_recurrenceId_fkey` FOREIGN KEY (`recurrenceId`) REFERENCES `class_session_recurrences`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `class_sessions` ADD CONSTRAINT `class_sessions_recurrenceId_fkey` FOREIGN KEY (`recurrenceId`) REFERENCES `class_session_recurrences`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;

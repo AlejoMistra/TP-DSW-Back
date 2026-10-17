@@ -76,7 +76,10 @@ export class ClassSessionController {
 
   delete = async (req: Request, res: Response) => {
     const { id } = req.validated!.params as { id: number };
-    const scope = (req.query.scope as RecurrenceScope) || 'this';
+    const scope =
+      ((req.validated?.query as any)?.scope as RecurrenceScope) ||
+      (req.query.scope as RecurrenceScope) ||
+      'this';
     await this.service.delete(id, scope);
     res.status(204).send();
   };

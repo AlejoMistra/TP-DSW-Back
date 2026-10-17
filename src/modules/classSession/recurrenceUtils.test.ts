@@ -11,7 +11,6 @@ describe('recurrenceUtils', () => {
     // In this 2-week range: Mon 4, Wed 6, Fri 8, Mon 11, Wed 13, Fri 15 = 6 dates
     const dates = generateRecurrenceDates({
       frequency: 'WEEKLY',
-      interval: 1,
       daysOfWeek: [1, 3, 5],
       startDate: new Date('2026-05-04T00:00:00Z'),
       endDate: new Date('2026-05-15T00:00:00Z'),

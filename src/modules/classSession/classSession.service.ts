@@ -126,7 +126,6 @@ export class ClassSessionService {
     if (input.recurrence) {
       const dates = generateRecurrenceDates({
         frequency: input.recurrence.frequency,
-        interval: input.recurrence.interval ?? 1,
         daysOfWeek: input.recurrence.daysOfWeek,
         startDate: input.date,
         endDate: input.recurrence.endDate,
@@ -166,7 +165,6 @@ export class ClassSessionService {
 
       const recurrenceData = {
         frequency: input.recurrence.frequency,
-        interval: input.recurrence.interval ?? 1,
         daysOfWeek: input.recurrence.daysOfWeek
           ? input.recurrence.daysOfWeek.join(',')
           : null,
@@ -252,7 +250,7 @@ export class ClassSessionService {
         );
     }
 
-    // 1. Scope THIS: Modifica solo esta sesión y la desvincula de la recurrencia
+    // 1. Scope THIS: Modifica solo esta sesión conservando su vinculación a la serie
     if (scope === 'this' || !existing.recurrenceId) {
       const dateToCheck = input.date ?? existing.date;
       const startTimeToCheck = input.startTime ?? existing.startTime;

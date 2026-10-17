@@ -8,7 +8,6 @@ export const RecurrenceScopeSchema = z.enum(['this', 'following', 'all']);
 
 export const RecurrenceInputSchema = z.object({
   frequency: RecurrenceFrequencySchema.default('WEEKLY'),
-  interval: z.coerce.number().int().min(1).default(1),
   daysOfWeek: z
     .array(z.coerce.number().int().min(1).max(7))
     .min(1, 'Debe seleccionar al menos un día de la semana'), // 1=Lun, 7=Dom

@@ -9,6 +9,7 @@ import type {
   RecurrenceScope,
 } from './classSession.schemas.js';
 import { getPaginationParams } from '../../shared/pagination.js';
+import { normalizeDateToUTC } from './recurrenceUtils.js';
 
 export class ClassSessionRepository {
   async getAll(
@@ -131,7 +132,6 @@ export class ClassSessionRepository {
   async createRecurrentSeries(
     recurrenceData: {
       frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY';
-      interval: number;
       daysOfWeek?: string | null;
       startDate: Date;
       endDate: Date;
@@ -212,42 +212,44 @@ export class ClassSessionRepository {
       recurrence?: ClassSessionRecurrence | null;
     }
   > {
-    // Si existe una sesión previa soft-deleted para este instructor, fecha y horario,
-    // se purga para evitar colisión con el índice UNIQUE de MySQL
-    if (input.instructorId) {
-      await prisma.classBooking.deleteMany({
-        where: {
-          classSession: {
+    return prisma.$transaction(async (tx) => {
+      // Si existe una sesión previa soft-deleted para este instructor, fecha y horario,
+      // se purga para evitar colisión con el índice UNIQUE de MySQL
+      if (input.instructorId) {
+        await tx.classBooking.deleteMany({
+          where: {
+            classSession: {
+              instructorId: input.instructorId,
+              date: input.date,
+              startTime: input.startTime,
+              deletedAt: { not: null },
+            },
+          },
+        });
+
+        await tx.classSession.deleteMany({
+          where: {
             instructorId: input.instructorId,
             date: input.date,
             startTime: input.startTime,
             deletedAt: { not: null },
           },
-        },
-      });
+        });
+      }
 
-      await prisma.classSession.deleteMany({
-        where: {
-          instructorId: input.instructorId,
+      return tx.classSession.create({
+        data: {
+          classSchedule: { connect: { id: input.classScheduleId } },
+          instructor: input.instructorId
+            ? { connect: { id: input.instructorId } }
+            : undefined,
           date: input.date,
           startTime: input.startTime,
-          deletedAt: { not: null },
+          remainingCapacity,
+          status: input.status ?? 'SCHEDULED',
         },
+        include: { classSchedule: true, recurrence: true },
       });
-    }
-
-    return prisma.classSession.create({
-      data: {
-        classSchedule: { connect: { id: input.classScheduleId } },
-        instructor: input.instructorId
-          ? { connect: { id: input.instructorId } }
-          : undefined,
-        date: input.date,
-        startTime: input.startTime,
-        remainingCapacity,
-        status: input.status ?? 'SCHEDULED',
-      },
-      include: { classSchedule: true, recurrence: true },
     });
   }
 
@@ -277,9 +279,8 @@ export class ClassSessionRepository {
       });
     }
 
-    // scope === 'all': sesiones de hoy en adelante (>= hoy 00:00:00)
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
+    // scope === 'all': sesiones de hoy en adelante (>= hoy 00:00:00 UTC)
+    const startOfToday = normalizeDateToUTC(new Date());
 
     return prisma.classSession.findMany({
       where: {
@@ -373,24 +374,42 @@ export class ClassSessionRepository {
     },
   ): Promise<void> {
     await prisma.$transaction(async (tx) => {
-      // 1. Acotar fecha fin de la serie original al día anterior
-      const previousDay = new Date(cutDate);
-      previousDay.setUTCDate(previousDay.getUTCDate() - 1);
-
       const oldRecurrence = await tx.classSessionRecurrence.findUniqueOrThrow({
         where: { id: oldRecurrenceId },
       });
+
+      // Si la fecha de corte es igual o anterior al inicio de la serie original (o se bifurcan todas las sesiones),
+      // no creamos una serie nueva con fechas invertidas, sino que actualizamos las sesiones de la serie in-place
+      const cutDateNorm = new Date(cutDate).getTime();
+      const startDateNorm = new Date(oldRecurrence.startDate).getTime();
+
+      if (cutDateNorm <= startDateNorm) {
+        await tx.classSession.updateMany({
+          where: { id: { in: sessionIdsToFork } },
+          data: {
+            ...(updates.instructorId !== undefined && {
+              instructorId: updates.instructorId,
+            }),
+            ...(updates.startTime && { startTime: updates.startTime }),
+            ...(updates.status && { status: updates.status }),
+          },
+        });
+        return;
+      }
+
+      // 1. Acotar fecha fin de la serie original al día anterior
+      const previousDay = new Date(cutDate);
+      previousDay.setUTCDate(previousDay.getUTCDate() - 1);
 
       await tx.classSessionRecurrence.update({
         where: { id: oldRecurrenceId },
         data: { endDate: previousDay },
       });
 
-      // 2. Crear nueva recurrencia que hereda frecuencia/intervalo pero arranca en cutDate
+      // 2. Crear nueva recurrencia que hereda frecuencia/días pero arranca en cutDate
       const newRecurrence = await tx.classSessionRecurrence.create({
         data: {
           frequency: oldRecurrence.frequency,
-          interval: oldRecurrence.interval,
           daysOfWeek: oldRecurrence.daysOfWeek,
           startDate: cutDate,
           endDate: oldRecurrence.endDate,

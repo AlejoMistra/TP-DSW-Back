@@ -2,7 +2,6 @@ import { BadRequestError } from '../../utils/errors.js';
 
 export interface RecurrenceConfig {
   frequency?: 'WEEKLY';
-  interval?: number;
   daysOfWeek?: number[]; // 1 = Lunes, 2 = Martes, ..., 7 = Domingo
   startDate: Date | string;
   endDate: Date | string;

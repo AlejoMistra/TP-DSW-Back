@@ -217,7 +217,6 @@ model ClassSession {
 model ClassSessionRecurrence {
   id         Int                 @id @default(autoincrement())
   frequency  RecurrenceFrequency
-  interval   Int                 @default(1)
   daysOfWeek String?             // ej: "1,3,5" (1=Lunes ... 7=Domingo)
   /// @zod.custom.use(z.coerce.date())
   startDate  DateTime
