@@ -34,6 +34,10 @@ export const UserResponseSchema = UserSchema.omit({
   deletedAt: true,
 });
 
+export const GetUserByIdRequestSchema = z.object({
+  params: IdSchema,
+});
+
 export type CreateUserInput = z.infer<typeof CreateUserSchema>['body'];
 export type UpdateUserInput = z.infer<typeof UpdateUserSchema>['body'];
 export type UserResponse = z.infer<typeof UserResponseSchema>;

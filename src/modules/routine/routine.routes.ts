@@ -45,4 +45,9 @@ routineRouter.patch(
   validate(UpdateRoutineSchema),
   update,
 );
-routineRouter.delete('/:id', authorize(UserRole.INSTRUCTOR), remove);
+routineRouter.delete(
+  '/:id',
+  validate(GetRoutineByIdSchema),
+  authorize(UserRole.INSTRUCTOR),
+  remove,
+);
