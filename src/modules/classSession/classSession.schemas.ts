@@ -4,7 +4,10 @@ import { IdSchema } from '../../shared/common.schemas.js';
 import { PaginationQuerySchema } from '../../shared/pagination.js';
 
 export const ListClassSessionsQuerySchema = PaginationQuerySchema.extend({
-  date: z.string().optional(),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'El formato de fecha debe ser YYYY-MM-DD')
+    .optional(),
 });
 
 export const ListClassSessionsSchema = z.object({
@@ -56,6 +59,10 @@ export const ClassSessionResponseSchema = ClassSessionSchema.omit({
   instructor: z.any().optional().nullable(),
 });
 
-export type CreateClassSessionInput = z.infer<typeof CreateClassSessionSchema>['body'];
-export type UpdateClassSessionInput = z.infer<typeof UpdateClassSessionSchema>['body'];
+export type CreateClassSessionInput = z.infer<
+  typeof CreateClassSessionSchema
+>['body'];
+export type UpdateClassSessionInput = z.infer<
+  typeof UpdateClassSessionSchema
+>['body'];
 export type ClassSessionResponse = z.infer<typeof ClassSessionResponseSchema>;

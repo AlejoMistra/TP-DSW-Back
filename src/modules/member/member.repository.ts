@@ -81,7 +81,7 @@ export class MemberRepository {
       where: {
         deletedAt: null,
         ...(membershipStatus && {
-          membership: { status: membershipStatus },
+          membership: { status: membershipStatus, deletedAt: null },
         }),
       },
       take,
@@ -98,12 +98,14 @@ export class MemberRepository {
     });
   }
 
-  async countWithMembership(membershipStatus?: MembershipStatus): Promise<number> {
+  async countWithMembership(
+    membershipStatus?: MembershipStatus,
+  ): Promise<number> {
     return prisma.member.count({
       where: {
         deletedAt: null,
         ...(membershipStatus && {
-          membership: { status: membershipStatus },
+          membership: { status: membershipStatus, deletedAt: null },
         }),
       },
     });
