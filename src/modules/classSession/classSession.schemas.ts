@@ -17,6 +17,10 @@ export const RecurrenceInputSchema = z.object({
 export const ListClassSessionsQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(1000).default(500),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'El formato de fecha debe ser YYYY-MM-DD')
+    .optional(),
 });
 
 export const ListClassSessionsSchema = z.object({
@@ -104,6 +108,8 @@ export const ClassSessionResponseSchema = ClassSessionSchema.omit({
 }).extend({
   endTime: z.string(),
   recurrenceId: z.number().nullable().optional(),
+  classSchedule: z.any().optional(),
+  instructor: z.any().optional().nullable(),
 });
 
 export type CreateClassSessionInput = z.infer<

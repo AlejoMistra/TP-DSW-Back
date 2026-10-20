@@ -3,7 +3,11 @@ import type {
   UpdateMembershipInput,
 } from './membership.schemas.js';
 import { prisma } from '../../lib/prisma.js';
-import type { Membership, MembershipStatus, Prisma } from '../../generated/prisma/client.js';
+import type {
+  Membership,
+  MembershipStatus,
+  Prisma,
+} from '../../generated/prisma/client.js';
 
 type DbClient = Prisma.TransactionClient | typeof prisma;
 
@@ -41,6 +45,15 @@ export class MembershipRepository {
   async getByMemberId(memberId: number): Promise<Membership | null> {
     return prisma.membership.findFirst({
       where: { memberId, deletedAt: null },
+    });
+  }
+
+  async getByUserId(userId: number): Promise<Membership | null> {
+    return prisma.membership.findFirst({
+      where: {
+        deletedAt: null,
+        member: { userId },
+      },
     });
   }
 

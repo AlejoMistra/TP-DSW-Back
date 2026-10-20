@@ -10,6 +10,7 @@ import {
   ClassSession,
   ClassSchedule,
   ClassSessionRecurrence,
+  Instructor,
 } from '../../generated/prisma/client.js';
 import { ClassScheduleRepository } from '../classSchedule/classSchedule.repository.js';
 import { InstructorRepository } from '../instructor/instructor.repository.js';
@@ -32,10 +33,11 @@ export class ClassSessionService {
   async getAll(
     page = 1,
     limit = 10,
+    date?: string,
   ): Promise<PaginatedResponse<ClassSessionResponse>> {
     const [sessions, total] = await Promise.all([
-      this.repository.getAll(page, limit),
-      this.repository.count(),
+      this.repository.getAll(page, limit, date),
+      this.repository.count(date),
     ]);
     return {
       items: sessions.map((s) => this.toResponse(s)),
@@ -387,6 +389,7 @@ export class ClassSessionService {
     session: ClassSession & {
       classSchedule: ClassSchedule;
       recurrence?: ClassSessionRecurrence | null;
+      instructor?: Instructor | null;
     },
   ): ClassSessionResponse {
     const endTime = calculateEndTime(

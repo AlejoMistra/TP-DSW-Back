@@ -18,6 +18,11 @@ export const findOne = async (req: Request, res: Response) => {
   res.status(200).json(membership);
 };
 
+export const getMe = async (req: Request, res: Response) => {
+  const membership = await membershipService.getMe(req.user!.userId);
+  res.status(200).json(membership);
+};
+
 export const findByMemberId = async (req: Request, res: Response) => {
   const { memberId } = req.params;
   const membership = await membershipService.getByMemberId(Number(memberId));
@@ -26,7 +31,9 @@ export const findByMemberId = async (req: Request, res: Response) => {
 
 export const create = async (req: Request, res: Response) => {
   const { body } = req.validated!;
-  const membership = await membershipService.create(body as CreateMembershipInput);
+  const membership = await membershipService.create(
+    body as CreateMembershipInput,
+  );
   res.status(201).json(membership);
 };
 

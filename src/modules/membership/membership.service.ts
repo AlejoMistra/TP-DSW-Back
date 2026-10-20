@@ -20,7 +20,10 @@ export class MembershipService {
     private readonly memberRepository?: MemberRepository,
   ) {}
 
-  async getAll(page = 1, limit = 10): Promise<PaginatedResponse<MembershipResponse>> {
+  async getAll(
+    page = 1,
+    limit = 10,
+  ): Promise<PaginatedResponse<MembershipResponse>> {
     const [memberships, total] = await Promise.all([
       this.repository.getAll(page, limit),
       this.repository.count(),
@@ -49,6 +52,16 @@ export class MembershipService {
     if (!membership) {
       throw new NotFoundError(
         `Membresía para el miembro con ID ${memberId} no encontrada`,
+      );
+    }
+    return this.toResponse(membership);
+  }
+
+  async getMe(userId: number): Promise<MembershipResponse> {
+    const membership = await this.repository.getByUserId(userId);
+    if (!membership) {
+      throw new NotFoundError(
+        'Membresía no encontrada para el socio autenticado',
       );
     }
     return this.toResponse(membership);

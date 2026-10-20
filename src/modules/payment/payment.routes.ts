@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { findAll, findOne, create, update, remove } from './payment.controller.js';
+import { findAll, findOne, getMe, create, update, remove } from './payment.controller.js';
 import {
   CreatePaymentSchema,
   GetPaymentByIdRequestSchema,
@@ -17,7 +17,8 @@ export const paymentRouter = Router();
 paymentRouter.use(authenticate);
 
 paymentRouter.get('/', authorize(UserRole.ADMIN), validate(PaymentQuerySchema), findAll);
-paymentRouter.get('/:id', authorize(UserRole.ADMIN, UserRole.MEMBER), validate(GetPaymentByIdRequestSchema), findOne);
+paymentRouter.get('/me', authorize(UserRole.MEMBER), getMe);
+paymentRouter.get('/:id', authorize(UserRole.ADMIN), validate(GetPaymentByIdRequestSchema), findOne);
 paymentRouter.post('/', authorize(UserRole.ADMIN), validate(CreatePaymentSchema), create);
 paymentRouter.patch('/:id', authorize(UserRole.ADMIN), validate(UpdatePaymentSchema), update);
 paymentRouter.delete('/:id', authorize(UserRole.ADMIN), validate(DeletePaymentRequestSchema), remove);
@@ -26,6 +27,6 @@ export const membershipPaymentRouter = Router({ mergeParams: true });
 
 membershipPaymentRouter.use(authenticate);
 
-membershipPaymentRouter.get('/', authorize(UserRole.ADMIN, UserRole.MEMBER), findAll);
+membershipPaymentRouter.get('/', authorize(UserRole.ADMIN), findAll);
 membershipPaymentRouter.post('/', authorize(UserRole.ADMIN), validate(CreatePaymentSchema), create);
 

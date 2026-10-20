@@ -3,6 +3,7 @@ import type {
   ClassSession,
   ClassSchedule,
   ClassSessionRecurrence,
+  Instructor,
 } from '../../generated/prisma/client.js';
 import type {
   CreateClassSessionInput,
@@ -11,29 +12,47 @@ import type {
 import { getPaginationParams } from '../../shared/pagination.js';
 import { normalizeDateToUTC } from './recurrenceUtils.js';
 
+function buildDateFilter(date?: string) {
+  if (!date) return undefined;
+  const start = new Date(`${date}T00:00:00.000Z`);
+  const end = new Date(`${date}T23:59:59.999Z`);
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return undefined;
+  return { gte: start, lte: end };
+}
+
 export class ClassSessionRepository {
   async getAll(
     page = 1,
     limit = 500,
+    date?: string,
   ): Promise<
     (ClassSession & {
       classSchedule: ClassSchedule;
       recurrence?: ClassSessionRecurrence | null;
+      instructor: Instructor | null;
     })[]
   > {
     const { take, skip } = getPaginationParams(page, limit);
+    const dateFilter = buildDateFilter(date);
     return prisma.classSession.findMany({
-      where: { deletedAt: null },
+      where: {
+        deletedAt: null,
+        ...(dateFilter && { date: dateFilter }),
+      },
       take,
       skip,
-      orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
-      include: { classSchedule: true, recurrence: true },
+      orderBy: date ? [{ startTime: 'asc' }] : [{ date: 'desc' }],
+      include: { classSchedule: true, recurrence: true, instructor: true },
     });
   }
 
-  async count(): Promise<number> {
+  async count(date?: string): Promise<number> {
+    const dateFilter = buildDateFilter(date);
     return prisma.classSession.count({
-      where: { deletedAt: null },
+      where: {
+        deletedAt: null,
+        ...(dateFilter && { date: dateFilter }),
+      },
     });
   }
 
@@ -41,12 +60,13 @@ export class ClassSessionRepository {
     | (ClassSession & {
         classSchedule: ClassSchedule;
         recurrence?: ClassSessionRecurrence | null;
+        instructor: Instructor | null;
       })
     | null
   > {
     return prisma.classSession.findFirst({
       where: { id, deletedAt: null },
-      include: { classSchedule: true, recurrence: true },
+      include: { classSchedule: true, recurrence: true, instructor: true },
     });
   }
 
@@ -54,12 +74,13 @@ export class ClassSessionRepository {
     (ClassSession & {
       classSchedule: ClassSchedule;
       recurrence?: ClassSessionRecurrence | null;
+      instructor: Instructor | null;
     })[]
   > {
     return prisma.classSession.findMany({
       where: { instructorId, deletedAt: null },
       orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
-      include: { classSchedule: true, recurrence: true },
+      include: { classSchedule: true, recurrence: true, instructor: true },
     });
   }
 
@@ -67,12 +88,13 @@ export class ClassSessionRepository {
     (ClassSession & {
       classSchedule: ClassSchedule;
       recurrence?: ClassSessionRecurrence | null;
+      instructor: Instructor | null;
     })[]
   > {
     return prisma.classSession.findMany({
       where: { classScheduleId, deletedAt: null },
       orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
-      include: { classSchedule: true, recurrence: true },
+      include: { classSchedule: true, recurrence: true, instructor: true },
     });
   }
 

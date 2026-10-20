@@ -213,13 +213,40 @@ const classSchedules = [
 ];
 
 const getSessionDate = (dayOffset: number) => {
-  const date = new Date(now);
-  date.setDate(date.getDate() + dayOffset);
-  date.setHours(0, 0, 0, 0);
-  return date;
+  const d = new Date(now);
+  d.setDate(d.getDate() + dayOffset);
+  return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0));
 };
 
 const classSessionsData = [
+  {
+    scheduleName: "HIIT Cardio",
+    date: getSessionDate(0),
+    startTime: "09:00",
+    status: "SCHEDULED" as const,
+    bookings: [
+      { memberEmail: "juan.perez@example.com", status: "CONFIRMED" as const },
+    ],
+  },
+  {
+    scheduleName: "Spinning Interval",
+    date: getSessionDate(0),
+    startTime: "18:00",
+    status: "SCHEDULED" as const,
+    bookings: [
+      { memberEmail: "maria.gomez@example.com", status: "CONFIRMED" as const },
+      { memberEmail: "carlos.fernandez@example.com", status: "CONFIRMED" as const },
+    ],
+  },
+  {
+    scheduleName: "Yoga Vinyasa",
+    date: getSessionDate(0),
+    startTime: "19:30",
+    status: "SCHEDULED" as const,
+    bookings: [
+      { memberEmail: "juan.perez@example.com", status: "CONFIRMED" as const },
+    ],
+  },
   {
     scheduleName: "Spinning Interval",
     date: getSessionDate(1),

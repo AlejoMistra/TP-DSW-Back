@@ -1,4 +1,5 @@
 import { prisma } from '../../lib/prisma.js';
+import type { MembershipStatus } from '../../generated/prisma/client.js';
 import { MemberRepository, MemberWithUser } from './member.repository.js';
 import { UserRepository } from '../user/user.repository.js';
 import { MembershipRepository } from '../membership/membership.repository.js';
@@ -6,12 +7,16 @@ import { MembershipService } from '../membership/membership.service.js';
 import { MembershipResponse } from '../membership/membership.schemas.js';
 import { MembershipPlanRepository } from '../membershipPlan/membershipPlan.repository.js';
 import { PaymentRepository } from '../payment/payment.repository.js';
-import { PaymentResponse, PaymentResponseSchema } from '../payment/payment.schemas.js';
+import {
+  PaymentResponse,
+  PaymentResponseSchema,
+} from '../payment/payment.schemas.js';
 import {
   CreateMemberInput,
   MemberResponse,
   MemberResponseSchema,
   UpdateMemberInput,
+  UpdateMyProfileInput,
 } from './member.schemas.js';
 import { ConflictError, NotFoundError } from '../../utils/errors.js';
 import { FREE_TRIAL_DAYS } from '../../shared/constants.js';
@@ -33,7 +38,10 @@ export class MemberService {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async getAll(page = 1, limit = 10): Promise<PaginatedResponse<MemberResponse>> {
+  async getAll(
+    page = 1,
+    limit = 10,
+  ): Promise<PaginatedResponse<MemberResponse>> {
     const [members, total] = await Promise.all([
       this.memberRepository.getAll(page, limit),
       this.memberRepository.count(),
@@ -55,10 +63,33 @@ export class MemberService {
     return this.toResponse(member);
   }
 
-  async getAllWithMembership(page = 1, limit = 10): Promise<PaginatedResponse<any>> {
+  async getMe(userId: number): Promise<MemberResponse> {
+    const member = await this.memberRepository.getByUserId(userId);
+    if (!member) {
+      throw new NotFoundError('Socio no encontrado');
+    }
+    return this.toResponse(member);
+  }
+
+  async updateMe(
+    userId: number,
+    input: UpdateMyProfileInput,
+  ): Promise<MemberResponse> {
+    const member = await this.memberRepository.getByUserId(userId);
+    if (!member) {
+      throw new NotFoundError('Socio no encontrado');
+    }
+    return this.update(member.id, input);
+  }
+
+  async getAllWithMembership(
+    page = 1,
+    limit = 10,
+    membershipStatus?: MembershipStatus,
+  ): Promise<PaginatedResponse<any>> {
     const [members, total] = await Promise.all([
-      this.memberRepository.getAllWithMembership(page, limit),
-      this.memberRepository.count(),
+      this.memberRepository.getAllWithMembership(page, limit, membershipStatus),
+      this.memberRepository.countWithMembership(membershipStatus),
     ]);
 
     const items = members.map((member) => {
@@ -90,7 +121,9 @@ export class MemberService {
     };
   }
 
-  async create(input: CreateMemberInput): Promise<MemberWithMembershipAndPayment> {
+  async create(
+    input: CreateMemberInput,
+  ): Promise<MemberWithMembershipAndPayment> {
     const existingUser = await this.userRepository.findByEmail(input.email);
     if (existingUser) {
       throw new ConflictError('El email ingresado ya existe');
@@ -98,70 +131,82 @@ export class MemberService {
 
     const { membershipPlanId, payment, email, ...memberData } = input;
 
-    const membershipPlan = await this.membershipPlanRepository.findOne(membershipPlanId);
+    const membershipPlan =
+      await this.membershipPlanRepository.findOne(membershipPlanId);
     if (!membershipPlan) {
-      throw new NotFoundError(`Plan de membresía con ID ${membershipPlanId} no encontrado`);
+      throw new NotFoundError(
+        `Plan de membresía con ID ${membershipPlanId} no encontrado`,
+      );
     }
 
     // Member + User + Membership se crean atómicamente dentro de la misma transacción.
-    const { member, membership, createdPayment } = await prisma.$transaction(async (tx) => {
-      const newUser = await this.userRepository.add(
-        {
-          email,
-          passwordHash: null,
-          accountStatus: 'PENDING_ACTIVATION',
-          role: 'MEMBER',
-          isActive: true,
-        },
-        tx,
-      );
+    const { member, membership, createdPayment } = await prisma.$transaction(
+      async (tx) => {
+        const newUser = await this.userRepository.add(
+          {
+            email,
+            passwordHash: null,
+            accountStatus: 'PENDING_ACTIVATION',
+            role: 'MEMBER',
+            isActive: true,
+          },
+          tx,
+        );
 
-      const newMember = await this.memberRepository.add(
-        {
-          ...memberData,
-          userId: newUser.id,
-        },
-        tx,
-      );
+        const newMember = await this.memberRepository.add(
+          {
+            ...memberData,
+            userId: newUser.id,
+          },
+          tx,
+        );
 
-      const startDate = new Date();
-      const endDate = new Date(startDate);
-      endDate.setDate(
-        endDate.getDate() + (payment ? membershipPlan.durationDays : FREE_TRIAL_DAYS),
-      );
+        const startDate = new Date();
+        const endDate = new Date(startDate);
+        endDate.setDate(
+          endDate.getDate() +
+            (payment ? membershipPlan.durationDays : FREE_TRIAL_DAYS),
+        );
 
-      const newMembership = await this.membershipRepository.create(
-        {
-          memberId: newMember.id,
-          membershipPlanId,
-          startDate,
-          endDate,
-          status: 'ACTIVE',
-        },
-        tx,
-      );
+        const newMembership = await this.membershipRepository.create(
+          {
+            memberId: newMember.id,
+            membershipPlanId,
+            startDate,
+            endDate,
+            status: 'ACTIVE',
+          },
+          tx,
+        );
 
-      const newPayment = payment
-        ? await this.paymentRepository.create(
-            {
-              membershipId: newMembership.id,
-              amount: payment.amount,
-              method: payment.method,
-              paymentDate: payment.paymentDate,
-              periodStart: startDate,
-              periodEnd: endDate,
-            },
-            tx,
-          )
-        : null;
+        const newPayment = payment
+          ? await this.paymentRepository.create(
+              {
+                membershipId: newMembership.id,
+                amount: payment.amount,
+                method: payment.method,
+                paymentDate: payment.paymentDate,
+                periodStart: startDate,
+                periodEnd: endDate,
+              },
+              tx,
+            )
+          : null;
 
-      return { member: newMember, membership: newMembership, createdPayment: newPayment };
-    });
+        return {
+          member: newMember,
+          membership: newMembership,
+          createdPayment: newPayment,
+        };
+      },
+    );
 
     return {
       ...this.toResponse(member),
       membership: this.membershipService.toResponse(membership),
-      payment: createdPayment ? PaymentResponseSchema.parse(createdPayment) : null,
+      payment: createdPayment
+        ? PaymentResponseSchema.parse(createdPayment)
+        : null,
     };
   }
 
@@ -180,11 +225,16 @@ export class MemberService {
       }
     }
 
-    let membershipPlan: Awaited<ReturnType<typeof this.membershipPlanRepository.findOne>> = null;
-    let membership: Awaited<ReturnType<typeof this.membershipRepository.getByMemberId>> = null;
+    let membershipPlan: Awaited<
+      ReturnType<typeof this.membershipPlanRepository.findOne>
+    > = null;
+    let membership: Awaited<
+      ReturnType<typeof this.membershipRepository.getByMemberId>
+    > = null;
 
     if (membershipPlanId !== undefined) {
-      membershipPlan = await this.membershipPlanRepository.findOne(membershipPlanId);
+      membershipPlan =
+        await this.membershipPlanRepository.findOne(membershipPlanId);
       if (!membershipPlan) {
         throw new NotFoundError(
           `Plan de membresía con ID ${membershipPlanId} no encontrado`,
@@ -193,7 +243,9 @@ export class MemberService {
 
       membership = await this.membershipRepository.getByMemberId(id);
       if (!membership) {
-        throw new NotFoundError(`Membresía para el socio con ID ${id} no encontrada`);
+        throw new NotFoundError(
+          `Membresía para el socio con ID ${id} no encontrada`,
+        );
       }
     }
 
@@ -208,7 +260,8 @@ export class MemberService {
         const startDate = new Date();
         const endDate = new Date(startDate);
         endDate.setDate(
-          endDate.getDate() + (payment ? membershipPlan.durationDays : FREE_TRIAL_DAYS),
+          endDate.getDate() +
+            (payment ? membershipPlan.durationDays : FREE_TRIAL_DAYS),
         );
 
         await this.membershipRepository.update(
