@@ -122,9 +122,32 @@ export class MemberService {
   async create(
     input: CreateMemberInput,
   ): Promise<MemberWithMembershipAndPayment> {
+    const existingMemberByDoc = await this.memberRepository.findByDoc(
+      input.docType,
+      input.docNumber,
+    );
+    if (existingMemberByDoc) {
+      throw new ConflictError('Ya existe un socio activo con ese documento');
+    }
+
     const existingUser = await this.userRepository.findByEmail(input.email);
-    if (existingUser) {
+    if (existingUser && existingUser.deletedAt === null) {
       throw new ConflictError('El email ingresado ya existe');
+    }
+
+    // Comprobar si existe un socio previamente dado de baja (por DNI o por Email)
+    let deletedMember = await this.memberRepository.findByDocWithDeleted(
+      input.docType,
+      input.docNumber,
+    );
+    if (!deletedMember || deletedMember.deletedAt === null) {
+      if (existingUser && existingUser.deletedAt !== null) {
+        deletedMember = await this.memberRepository.getByUserIdWithDeleted(
+          existingUser.id,
+        );
+      } else {
+        deletedMember = null;
+      }
     }
 
     const { membershipPlanId, payment, email, ...memberData } = input;
@@ -135,6 +158,107 @@ export class MemberService {
       throw new NotFoundError(
         `Plan de membresía con ID ${membershipPlanId} no encontrado`,
       );
+    }
+
+    // Si encontramos un socio eliminado, lo reactivamos
+    if (deletedMember) {
+      const { member, membership, createdPayment } = await prisma.$transaction(
+        async (tx) => {
+          await this.userRepository.update(
+            deletedMember.userId,
+            {
+              email,
+              passwordHash: null,
+              accountStatus: 'PENDING_ACTIVATION',
+              role: 'MEMBER',
+              isActive: true,
+              deletedAt: null,
+              failedLoginAttempts: 0,
+              lockedUntil: null,
+            },
+            tx,
+          );
+
+          const reactivatedMember = await this.memberRepository.update(
+            deletedMember.id,
+            {
+              ...memberData,
+              docType: input.docType,
+              docNumber: input.docNumber,
+              status: 'ACTIVE',
+              deletedAt: null,
+            },
+            tx,
+          );
+
+          const startDate = new Date();
+          const endDate = new Date(startDate);
+          endDate.setDate(
+            endDate.getDate() +
+              (payment ? membershipPlan.durationDays : FREE_TRIAL_DAYS),
+          );
+
+          const existingMembership =
+            await this.membershipRepository.getByMemberIdWithDeleted(
+              deletedMember.id,
+              tx,
+            );
+
+          let activeMembership;
+          if (existingMembership) {
+            activeMembership = await this.membershipRepository.update(
+              existingMembership.id,
+              {
+                membershipPlanId,
+                startDate,
+                endDate,
+                status: 'ACTIVE',
+                deletedAt: null,
+              },
+              tx,
+            );
+          } else {
+            activeMembership = await this.membershipRepository.create(
+              {
+                memberId: deletedMember.id,
+                membershipPlanId,
+                startDate,
+                endDate,
+                status: 'ACTIVE',
+              },
+              tx,
+            );
+          }
+
+          const newPayment = payment
+            ? await this.paymentRepository.create(
+                {
+                  membershipId: activeMembership.id,
+                  amount: payment.amount,
+                  method: payment.method,
+                  paymentDate: payment.paymentDate,
+                  periodStart: startDate,
+                  periodEnd: endDate,
+                },
+                tx,
+              )
+            : null;
+
+          return {
+            member: reactivatedMember,
+            membership: activeMembership,
+            createdPayment: newPayment,
+          };
+        },
+      );
+
+      return {
+        ...this.toResponse(member),
+        membership: this.membershipService.toResponse(membership),
+        payment: createdPayment
+          ? PaymentResponseSchema.parse(createdPayment)
+          : null,
+      };
     }
 
     // Member + User + Membership se crean atómicamente dentro de la misma transacción.
@@ -154,6 +278,8 @@ export class MemberService {
         const newMember = await this.memberRepository.add(
           {
             ...memberData,
+            docType: input.docType,
+            docNumber: input.docNumber,
             userId: newUser.id,
           },
           tx,
@@ -218,8 +344,25 @@ export class MemberService {
 
     if (email !== undefined && email !== member.user.email) {
       const existingUser = await this.userRepository.findByEmail(email);
-      if (existingUser) {
+      if (existingUser && existingUser.deletedAt === null && existingUser.id !== member.userId) {
         throw new ConflictError('El email ingresado ya existe');
+      }
+    }
+
+    if (
+      memberData.docNumber !== undefined &&
+      (memberData.docNumber !== member.docNumber ||
+        (memberData.docType !== undefined && memberData.docType !== member.docType))
+    ) {
+      const docTypeToCheck = memberData.docType ?? member.docType;
+      const existingMemberDoc = await this.memberRepository.findByDoc(
+        docTypeToCheck,
+        memberData.docNumber,
+      );
+      if (existingMemberDoc && existingMemberDoc.id !== id) {
+        throw new ConflictError(
+          'Ya existe otro socio registrado con ese documento',
+        );
       }
     }
 

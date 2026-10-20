@@ -87,8 +87,8 @@ export class AuthService {
       );
     }
 
-    // 3. If isActive === false -> account disabled
-    if (!user.isActive) {
+    // 3. If isActive === false or deletedAt is set -> account disabled
+    if (!user.isActive || user.deletedAt !== null) {
       throw new ForbiddenError(
         'Cuenta deshabilitada, contacta a la administración',
       );

@@ -84,6 +84,16 @@ describe('AuthService', () => {
       ).rejects.toThrow(ForbiddenError);
     });
 
+    it('throws ForbiddenError when account is soft-deleted', async () => {
+      authRepository.findByEmailWithRelations.mockResolvedValue(
+        buildUser({ deletedAt: new Date(), isActive: true }),
+      );
+
+      await expect(
+        authService.login({ email: 'member@example.com', password: 'x' }),
+      ).rejects.toThrow(ForbiddenError);
+    });
+
     it('throws ForbiddenError when account is locked', async () => {
       authRepository.findByEmailWithRelations.mockResolvedValue(
         buildUser({ lockedUntil: new Date(Date.now() + 60_000) }),

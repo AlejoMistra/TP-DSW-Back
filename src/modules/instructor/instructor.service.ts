@@ -50,13 +50,68 @@ export class InstructorService {
   async create(
     input: CreateInstructorInput,
   ): Promise<InstructorResponse> {
-    const existing = await this.userRepository.findByEmail(input.email);
+    const existingInstructorByDoc = await this.repository.findByDoc(
+      input.docType,
+      input.docNumber,
+    );
+    if (existingInstructorByDoc) {
+      throw new ConflictError('Ya existe un profesor activo con ese documento');
+    }
 
-    if (existing) {
+    const existingUser = await this.userRepository.findByEmail(input.email);
+    if (existingUser && existingUser.deletedAt === null) {
       throw new ConflictError('Email ya registrado');
     }
 
+    // Comprobar si existe un profesor previamente dado de baja (por DNI o por Email)
+    let deletedInstructor = await this.repository.findByDocWithDeleted(
+      input.docType,
+      input.docNumber,
+    );
+    if (!deletedInstructor || deletedInstructor.deletedAt === null) {
+      if (existingUser && existingUser.deletedAt !== null) {
+        deletedInstructor = await this.repository.getByUserIdWithDeleted(
+          existingUser.id,
+        );
+      } else {
+        deletedInstructor = null;
+      }
+    }
+
     const { email, ...instructorData } = input;
+
+    // Si encontramos un profesor eliminado, lo reactivamos
+    if (deletedInstructor) {
+      const reactivatedInstructor = await prisma.$transaction(async (tx) => {
+        await this.userRepository.update(
+          deletedInstructor.userId,
+          {
+            email,
+            passwordHash: null,
+            accountStatus: 'PENDING_ACTIVATION',
+            role: 'INSTRUCTOR',
+            isActive: true,
+            deletedAt: null,
+            failedLoginAttempts: 0,
+            lockedUntil: null,
+          },
+          tx,
+        );
+
+        return this.repository.update(
+          deletedInstructor.id,
+          {
+            ...instructorData,
+            docType: input.docType,
+            docNumber: input.docNumber,
+            deletedAt: null,
+          },
+          tx,
+        );
+      });
+
+      return this.toResponse(reactivatedInstructor);
+    }
 
     const createdInstructor = await prisma.$transaction(async (tx) => {
       const newUser = await this.userRepository.add(
@@ -73,6 +128,8 @@ export class InstructorService {
       return this.repository.create(
         {
           ...instructorData,
+          docType: input.docType,
+          docNumber: input.docNumber,
           userId: newUser.id,
         },
         tx,
@@ -100,8 +157,30 @@ export class InstructorService {
       const instructorWithEmail =
         await this.userRepository.findByEmail(email);
 
-      if (instructorWithEmail) {
+      if (
+        instructorWithEmail &&
+        instructorWithEmail.deletedAt === null &&
+        instructorWithEmail.id !== existing.userId
+      ) {
         throw new ConflictError('Email ya registrado');
+      }
+    }
+
+    if (
+      instructorData.docNumber !== undefined &&
+      (instructorData.docNumber !== existing.docNumber ||
+        (instructorData.docType !== undefined &&
+          instructorData.docType !== existing.docType))
+    ) {
+      const docTypeToCheck = instructorData.docType ?? existing.docType;
+      const existingInstructorDoc = await this.repository.findByDoc(
+        docTypeToCheck,
+        instructorData.docNumber,
+      );
+      if (existingInstructorDoc && existingInstructorDoc.id !== id) {
+        throw new ConflictError(
+          'Ya existe otro profesor registrado con ese documento',
+        );
       }
     }
 
