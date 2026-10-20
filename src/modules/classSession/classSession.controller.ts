@@ -8,7 +8,8 @@ export class ClassSessionController {
   getAll = async (req: Request, res: Response) => {
     const page = req.query.page ? Number(req.query.page) : 1;
     const limit = req.query.limit ? Number(req.query.limit) : 10;
-    const items = await this.service.getAll(page, limit);
+    const date = req.query.date as string | undefined;
+    const items = await this.service.getAll(page, limit, date);
     res.status(200).json(items);
   };
 

@@ -20,10 +20,10 @@ export class ClassSessionService {
     private readonly instructorRepository: InstructorRepository,
   ) {}
 
-  async getAll(page = 1, limit = 10): Promise<PaginatedResponse<ClassSessionResponse>> {
+  async getAll(page = 1, limit = 10, date?: string): Promise<PaginatedResponse<ClassSessionResponse>> {
     const [sessions, total] = await Promise.all([
-      this.repository.getAll(page, limit),
-      this.repository.count(),
+      this.repository.getAll(page, limit, date),
+      this.repository.count(date),
     ]);
     return {
       items: sessions.map((s) => this.toResponse(s)),
@@ -114,7 +114,7 @@ export class ClassSessionService {
     await this.repository.delete(id);
   }
 
-  private toResponse(session: ClassSession & { classSchedule: ClassSchedule }): ClassSessionResponse {
+  private toResponse(session: ClassSession & { classSchedule: ClassSchedule; instructor?: any }): ClassSessionResponse {
     const endTime = calculateEndTime(session.startTime, session.classSchedule.durationMinutes);
     return ClassSessionResponseSchema.parse({
       id: session.id,
@@ -128,6 +128,8 @@ export class ClassSessionService {
       createdAt: session.createdAt,
       updatedAt: session.updatedAt,
       deletedAt: session.deletedAt,
+      classSchedule: session.classSchedule,
+      instructor: session.instructor,
     });
   }
 }
