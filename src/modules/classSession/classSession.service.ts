@@ -180,7 +180,7 @@ export class ClassSessionService {
         date: d,
         startTime: input.startTime,
         remainingCapacity: schedule.maxCapacity,
-        status: 'SCHEDULED' as const,
+        status: (input.status ?? 'SCHEDULED') as 'SCHEDULED' | 'CANCELLED',
       }));
 
       const createdFirst = await this.repository.createRecurrentSeries(
@@ -239,116 +239,124 @@ export class ClassSessionService {
 
     const scope: RecurrenceScope = input.scope || 'this';
     const schedule = existing.classSchedule;
-    const instructorId =
-      input.instructorId !== undefined
-        ? input.instructorId
-        : existing.instructorId;
 
-    if (instructorId) {
-      const instructor = await this.instructorRepository.getById(instructorId);
+    // Si la actualización es para cancelar, delegamos en cancel() que ya maneja reservas y cupo
+    if (input.status === 'CANCELLED') {
+      await this.cancel(id, scope);
+      const reloaded = await this.repository.getById(id);
+      return this.toResponse(reloaded!);
+    }
+
+    if (input.instructorId) {
+      const instructor = await this.instructorRepository.getById(
+        input.instructorId,
+      );
       if (!instructor)
         throw new NotFoundError(
-          `Instructor con ID ${instructorId} no encontrado`,
+          `Instructor con ID ${input.instructorId} no encontrado`,
         );
     }
 
-    // 1. Scope THIS: Modifica solo esta sesión conservando su vinculación a la serie
+    // 1. Scope THIS
     if (scope === 'this' || !existing.recurrenceId) {
-      const dateToCheck = input.date ?? existing.date;
-      const startTimeToCheck = input.startTime ?? existing.startTime;
-
-      if (instructorId) {
+      const instructorToCheck =
+        input.instructorId !== undefined
+          ? input.instructorId
+          : existing.instructorId;
+      if (instructorToCheck) {
         await this.checkInstructorOverlap(
-          instructorId,
-          dateToCheck,
-          startTimeToCheck,
+          instructorToCheck,
+          input.date ?? existing.date,
+          input.startTime ?? existing.startTime,
           schedule.durationMinutes,
           id,
         );
       }
 
       const updated = await this.repository.updateSingleSession(id, {
-        instructorId,
+        instructorId: input.instructorId,
         date: input.date,
         startTime: input.startTime,
         status: input.status,
       });
-
       return this.toResponse(updated);
     }
 
-    // 2. Obtener sesiones alcanzadas para all o following
+    // 2. Scopes ALL o FOLLOWING
     const targetSessions = await this.repository.getSessionsByScope(
       existing,
       scope,
     );
     const targetSessionIds = targetSessions.map((s) => s.id);
-    const targetDates = targetSessions.map((s) => s.date);
-    const newStartTime = input.startTime ?? existing.startTime;
 
-    // Validar solapamientos del instructor para todas las sesiones alcanzadas
-    if (instructorId) {
-      const existingInstructorSessions =
-        await this.repository.findActiveSessionsByInstructorInDates(
-          instructorId,
-          targetDates,
+    // Comentario #4: Conflicto interno si cambiamos horario y hay más de una clase el mismo día
+    if (input.startTime) {
+      const dates = targetSessions.map(
+        (s) => new Date(s.date).toISOString().split('T')[0],
+      );
+      if (new Set(dates).size !== dates.length) {
+        throw new ConflictError(
+          'Conflicto interno en la serie: existen múltiples clases en la misma fecha.',
         );
+      }
+    }
 
-      for (const targetDate of targetDates) {
-        const targetDateStr = new Date(targetDate).toISOString().split('T')[0];
-        const sameDaySessions = existingInstructorSessions.filter(
-          (s) =>
-            new Date(s.date).toISOString().split('T')[0] === targetDateStr &&
-            !targetSessionIds.includes(s.id),
-        );
-
-        for (const s of sameDaySessions) {
-          const overlap = doIntervalsOverlap(
-            newStartTime,
-            schedule.durationMinutes,
-            s.startTime,
-            s.classSchedule.durationMinutes,
+    // Comentarios #8 y #9: Validar solapamientos externos con instructor y horario efectivos
+    if (input.startTime !== undefined || input.instructorId !== undefined) {
+      for (const s of targetSessions) {
+        const effInstructor =
+          input.instructorId !== undefined
+            ? input.instructorId
+            : s.instructorId;
+        const effStartTime = input.startTime ?? s.startTime;
+        if (effInstructor) {
+          const overlaps =
+            await this.repository.findActiveSessionsByInstructorAndDate(
+              effInstructor,
+              s.date,
+            );
+          const hasCollision = overlaps.some(
+            (o) =>
+              !targetSessionIds.includes(o.id) &&
+              doIntervalsOverlap(
+                effStartTime,
+                schedule.durationMinutes,
+                o.startTime,
+                o.classSchedule.durationMinutes,
+              ),
           );
-
-          if (overlap) {
+          if (hasCollision) {
+            const dateStr = new Date(s.date).toISOString().split('T')[0];
             throw new ConflictError(
-              `El instructor tiene una clase solapada el ${targetDateStr} a las ${s.startTime}. Actualización cancelada.`,
+              `El instructor tiene una clase solapada el ${dateStr}. Actualización cancelada.`,
             );
           }
         }
       }
     }
 
-    // 3. Scope ALL: Actualiza todas las sesiones futuras in-place
+    // Actualización en Repository: pasamos input.instructorId directamente (sin fallback a existing)
     if (scope === 'all') {
       await this.repository.updateSessionsInPlace(targetSessionIds, {
-        instructorId,
+        instructorId: input.instructorId,
         startTime: input.startTime,
         status: input.status,
       });
-
-      const reloaded = await this.repository.getById(id);
-      return this.toResponse(reloaded!);
-    }
-
-    // 4. Scope FOLLOWING: Corta la serie y abre una nueva desde esta sesión
-    if (scope === 'following') {
+    } else if (scope === 'following') {
       await this.repository.cutAndForkSeries(
         existing.recurrenceId,
         existing.date,
         targetSessionIds,
         {
-          instructorId,
+          instructorId: input.instructorId,
           startTime: input.startTime,
           status: input.status,
         },
       );
-
-      const reloaded = await this.repository.getById(id);
-      return this.toResponse(reloaded!);
     }
 
-    throw new BadRequestError('Alcance no soportado');
+    const reloaded = await this.repository.getById(id);
+    return this.toResponse(reloaded!);
   }
 
   /**

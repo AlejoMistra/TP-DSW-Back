@@ -164,7 +164,7 @@ export class ClassSessionRepository {
       date: Date;
       startTime: string;
       remainingCapacity: number;
-      status: 'SCHEDULED';
+      status: 'SCHEDULED' | 'CANCELLED';
     }[],
   ): Promise<
     ClassSession & {
@@ -173,34 +173,6 @@ export class ClassSessionRepository {
     }
   > {
     return prisma.$transaction(async (tx) => {
-      // Si existen sesiones dadas de baja (soft-deleted) para este instructor, horario y fechas,
-      // se purgan para evitar violar la restricción UNIQUE de MySQL al recrear la serie
-      if (sessionsData.length > 0 && sessionsData[0].instructorId) {
-        const instId = sessionsData[0].instructorId;
-        const targetDates = sessionsData.map((s) => s.date);
-        const startTime = sessionsData[0].startTime;
-
-        await tx.classBooking.deleteMany({
-          where: {
-            classSession: {
-              instructorId: instId,
-              date: { in: targetDates },
-              startTime,
-              deletedAt: { not: null },
-            },
-          },
-        });
-
-        await tx.classSession.deleteMany({
-          where: {
-            instructorId: instId,
-            date: { in: targetDates },
-            startTime,
-            deletedAt: { not: null },
-          },
-        });
-      }
-
       const recurrence = await tx.classSessionRecurrence.create({
         data: recurrenceData,
       });
@@ -234,44 +206,18 @@ export class ClassSessionRepository {
       recurrence?: ClassSessionRecurrence | null;
     }
   > {
-    return prisma.$transaction(async (tx) => {
-      // Si existe una sesión previa soft-deleted para este instructor, fecha y horario,
-      // se purga para evitar colisión con el índice UNIQUE de MySQL
-      if (input.instructorId) {
-        await tx.classBooking.deleteMany({
-          where: {
-            classSession: {
-              instructorId: input.instructorId,
-              date: input.date,
-              startTime: input.startTime,
-              deletedAt: { not: null },
-            },
-          },
-        });
-
-        await tx.classSession.deleteMany({
-          where: {
-            instructorId: input.instructorId,
-            date: input.date,
-            startTime: input.startTime,
-            deletedAt: { not: null },
-          },
-        });
-      }
-
-      return tx.classSession.create({
-        data: {
-          classSchedule: { connect: { id: input.classScheduleId } },
-          instructor: input.instructorId
-            ? { connect: { id: input.instructorId } }
-            : undefined,
-          date: input.date,
-          startTime: input.startTime,
-          remainingCapacity,
-          status: input.status ?? 'SCHEDULED',
-        },
-        include: { classSchedule: true, recurrence: true },
-      });
+    return prisma.classSession.create({
+      data: {
+        classSchedule: { connect: { id: input.classScheduleId } },
+        instructor: input.instructorId
+          ? { connect: { id: input.instructorId } }
+          : undefined,
+        date: input.date,
+        startTime: input.startTime,
+        remainingCapacity,
+        status: input.status ?? 'SCHEDULED',
+      },
+      include: { classSchedule: true, recurrence: true },
     });
   }
 
@@ -479,10 +425,21 @@ export class ClassSessionRepository {
         where: { classSessionId: { in: sessionIds }, status: 'CONFIRMED' },
         data: { status: 'CANCELLED' },
       });
-      await tx.classSession.updateMany({
+
+      const sessions = await tx.classSession.findMany({
         where: { id: { in: sessionIds } },
-        data: { status: 'CANCELLED' },
+        include: { classSchedule: true },
       });
+
+      for (const s of sessions) {
+        await tx.classSession.update({
+          where: { id: s.id },
+          data: {
+            status: 'CANCELLED',
+            remainingCapacity: s.classSchedule.maxCapacity,
+          },
+        });
+      }
     });
   }
 

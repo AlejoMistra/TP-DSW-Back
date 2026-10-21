@@ -58,22 +58,32 @@ export const GetClassSessionByScheduleRequestSchema = z.object({
 });
 
 // UPDATE: No permite classScheduleId para proteger capacidad y reservas
-export const UpdateClassSessionSchema = z.object({
-  params: IdSchema,
-  body: z.object({
-    instructorId: z.coerce.number().int().positive().nullable().optional(),
-    date: z.coerce.date().optional(),
-    startTime: z
-      .string()
-      .regex(
-        /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
-        'El formato de hora debe ser HH:mm',
-      )
-      .optional(),
-    status: z.enum(['SCHEDULED', 'CANCELLED']).optional(),
-    scope: RecurrenceScopeSchema.default('this'),
-  }),
-});
+export const UpdateClassSessionSchema = z
+  .object({
+    params: IdSchema,
+    body: z.object({
+      instructorId: z.coerce.number().int().positive().nullable().optional(),
+      date: z.coerce.date().optional(),
+      startTime: z
+        .string()
+        .regex(
+          /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
+          'El formato de hora debe ser HH:mm',
+        )
+        .optional(),
+      status: z.enum(['SCHEDULED', 'CANCELLED']).optional(),
+      scope: RecurrenceScopeSchema.default('this'),
+    }),
+  })
+  .refine(
+    (data) =>
+      !(data.body.date && data.body.scope && data.body.scope !== 'this'),
+    {
+      message:
+        'El cambio de fecha solo está permitido con alcance "this" (sesión individual)',
+      path: ['body', 'date'],
+    },
+  );
 
 // DELETE con soporte de alcance en query
 export const DeleteClassSessionRequestSchema = z.object({
