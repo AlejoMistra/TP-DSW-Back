@@ -153,7 +153,6 @@ export class ClassSessionRepository {
    */
   async createRecurrentSeries(
     recurrenceData: {
-      frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY';
       daysOfWeek?: string | null;
       startDate: Date;
       endDate: Date;
@@ -170,6 +169,7 @@ export class ClassSessionRepository {
     ClassSession & {
       classSchedule: ClassSchedule;
       recurrence?: ClassSessionRecurrence | null;
+      instructor?: Instructor | null;
     }
   > {
     return prisma.$transaction(async (tx) => {
@@ -187,7 +187,7 @@ export class ClassSessionRepository {
       const firstSession = await tx.classSession.findFirstOrThrow({
         where: { recurrenceId: recurrence.id },
         orderBy: { date: 'asc' },
-        include: { classSchedule: true, recurrence: true },
+        include: { classSchedule: true, recurrence: true, instructor: true },
       });
 
       return firstSession;
@@ -204,6 +204,7 @@ export class ClassSessionRepository {
     ClassSession & {
       classSchedule: ClassSchedule;
       recurrence?: ClassSessionRecurrence | null;
+      instructor?: Instructor | null;
     }
   > {
     return prisma.classSession.create({
@@ -217,7 +218,7 @@ export class ClassSessionRepository {
         remainingCapacity,
         status: input.status ?? 'SCHEDULED',
       },
-      include: { classSchedule: true, recurrence: true },
+      include: { classSchedule: true, recurrence: true, instructor: true },
     });
   }
 
@@ -290,6 +291,7 @@ export class ClassSessionRepository {
     ClassSession & {
       classSchedule: ClassSchedule;
       recurrence?: ClassSessionRecurrence | null;
+      instructor?: Instructor | null;
     }
   > {
     return prisma.classSession.update({
@@ -301,7 +303,7 @@ export class ClassSessionRepository {
         startTime: data.startTime,
         status: data.status,
       },
-      include: { classSchedule: true, recurrence: true },
+      include: { classSchedule: true, recurrence: true, instructor: true },
     });
   }
 
@@ -374,10 +376,9 @@ export class ClassSessionRepository {
         data: { endDate: previousDay },
       });
 
-      // 2. Crear nueva recurrencia que hereda frecuencia/días pero arranca en cutDate
+      // 2. Crear nueva recurrencia que hereda días pero arranca en cutDate
       const newRecurrence = await tx.classSessionRecurrence.create({
         data: {
-          frequency: oldRecurrence.frequency,
           daysOfWeek: oldRecurrence.daysOfWeek,
           startDate: cutDate,
           endDate: oldRecurrence.endDate,

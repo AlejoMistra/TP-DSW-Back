@@ -3,11 +3,9 @@ import { ClassSessionSchema } from '../../generated/zod/schemas/models/ClassSess
 import { IdSchema } from '../../shared/common.schemas.js';
 import { PaginationQuerySchema } from '../../shared/pagination.js';
 
-export const RecurrenceFrequencySchema = z.enum(['WEEKLY']).default('WEEKLY');
 export const RecurrenceScopeSchema = z.enum(['this', 'following', 'all']);
 
 export const RecurrenceInputSchema = z.object({
-  frequency: RecurrenceFrequencySchema.default('WEEKLY'),
   daysOfWeek: z
     .array(z.coerce.number().int().min(1).max(7))
     .min(1, 'Debe seleccionar al menos un día de la semana'), // 1=Lun, 7=Dom
@@ -120,6 +118,7 @@ export const ClassSessionResponseSchema = ClassSessionSchema.omit({
   recurrenceId: z.number().nullable().optional(),
   classSchedule: z.any().optional(),
   instructor: z.any().optional().nullable(),
+  recurrence: z.any().optional().nullable(),
 });
 
 export type CreateClassSessionInput = z.infer<

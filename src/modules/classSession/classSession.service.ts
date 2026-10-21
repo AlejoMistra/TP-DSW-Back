@@ -127,7 +127,6 @@ export class ClassSessionService {
     // 1. Creación masiva recurrente
     if (input.recurrence) {
       const dates = generateRecurrenceDates({
-        frequency: input.recurrence.frequency,
         daysOfWeek: input.recurrence.daysOfWeek,
         startDate: input.date,
         endDate: input.recurrence.endDate,
@@ -166,7 +165,6 @@ export class ClassSessionService {
       }
 
       const recurrenceData = {
-        frequency: input.recurrence.frequency,
         daysOfWeek: input.recurrence.daysOfWeek
           ? input.recurrence.daysOfWeek.join(',')
           : null,
@@ -236,6 +234,17 @@ export class ClassSessionService {
     const existing = await this.repository.getById(id);
     if (!existing)
       throw new NotFoundError(`Sesión de clase con ID ${id} no encontrada`);
+
+    // Validación: No permitir modificar la fecha de sesiones periódicas
+    if (existing.recurrenceId && input.date !== undefined) {
+      const existingDateStr = new Date(existing.date).toISOString().split('T')[0];
+      const inputDateStr = new Date(input.date).toISOString().split('T')[0];
+      if (existingDateStr !== inputDateStr) {
+        throw new BadRequestError(
+          'No está permitido modificar la fecha de una sesión periódica. Para cambiarla de día, cancele la sesión y agende una nueva clase.',
+        );
+      }
+    }
 
     const scope: RecurrenceScope = input.scope || 'this';
     const schedule = existing.classSchedule;
@@ -416,7 +425,9 @@ export class ClassSessionService {
       status: session.status,
       createdAt: session.createdAt,
       updatedAt: session.updatedAt,
-      deletedAt: session.deletedAt,
+      classSchedule: session.classSchedule,
+      instructor: session.instructor,
+      recurrence: session.recurrence,
     });
   }
 }

@@ -215,9 +215,8 @@ model ClassSession {
 }
 
 model ClassSessionRecurrence {
-  id         Int                 @id @default(autoincrement())
-  frequency  RecurrenceFrequency
-  daysOfWeek String?             // ej: "1,3,5" (1=Lunes ... 7=Domingo)
+  id         Int       @id @default(autoincrement())
+  daysOfWeek String?   // ej: "1,3,5" (1=Lunes ... 7=Domingo)
   /// @zod.custom.use(z.coerce.date())
   startDate  DateTime
   /// @zod.custom.use(z.coerce.date())
@@ -377,12 +376,6 @@ enum PaymentMethod {
 enum Status {
   ACTIVE
   INACTIVE
-}
-
-enum RecurrenceFrequency {
-  DAILY
-  WEEKLY
-  MONTHLY
 }
 
 enum UserRole {

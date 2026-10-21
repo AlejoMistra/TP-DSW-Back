@@ -10,7 +10,6 @@ describe('recurrenceUtils', () => {
     // 2026-05-15 is a Friday
     // In this 2-week range: Mon 4, Wed 6, Fri 8, Mon 11, Wed 13, Fri 15 = 6 dates
     const dates = generateRecurrenceDates({
-      frequency: 'WEEKLY',
       daysOfWeek: [1, 3, 5],
       startDate: new Date('2026-05-04T00:00:00Z'),
       endDate: new Date('2026-05-15T00:00:00Z'),
@@ -30,7 +29,6 @@ describe('recurrenceUtils', () => {
   it('should fallback to startDate day of week if daysOfWeek is empty', () => {
     // 2026-05-04 is a Monday, 3 Mondays in range
     const dates = generateRecurrenceDates({
-      frequency: 'WEEKLY',
       startDate: new Date('2026-05-04T00:00:00Z'),
       endDate: new Date('2026-05-18T00:00:00Z'),
     });
@@ -46,7 +44,6 @@ describe('recurrenceUtils', () => {
   it('should throw error if endDate is before startDate', () => {
     expect(() =>
       generateRecurrenceDates({
-        frequency: 'WEEKLY',
         daysOfWeek: [1],
         startDate: new Date('2026-05-10T00:00:00Z'),
         endDate: new Date('2026-05-01T00:00:00Z'),
@@ -59,7 +56,6 @@ describe('recurrenceUtils', () => {
   it('should throw error if range exceeds 1 month', () => {
     expect(() =>
       generateRecurrenceDates({
-        frequency: 'WEEKLY',
         daysOfWeek: [1],
         startDate: new Date('2026-01-01T00:00:00Z'),
         endDate: new Date('2026-03-01T00:00:00Z'),
