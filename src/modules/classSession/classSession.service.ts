@@ -416,7 +416,9 @@ export class ClassSessionService {
       status: session.status,
       createdAt: session.createdAt,
       updatedAt: session.updatedAt,
-      deletedAt: session.deletedAt,
+      classSchedule: session.classSchedule,
+      instructor: session.instructor,
+      recurrence: session.recurrence,
     });
   }
 }

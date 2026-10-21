@@ -170,6 +170,7 @@ export class ClassSessionRepository {
     ClassSession & {
       classSchedule: ClassSchedule;
       recurrence?: ClassSessionRecurrence | null;
+      instructor?: Instructor | null;
     }
   > {
     return prisma.$transaction(async (tx) => {
@@ -187,7 +188,7 @@ export class ClassSessionRepository {
       const firstSession = await tx.classSession.findFirstOrThrow({
         where: { recurrenceId: recurrence.id },
         orderBy: { date: 'asc' },
-        include: { classSchedule: true, recurrence: true },
+        include: { classSchedule: true, recurrence: true, instructor: true },
       });
 
       return firstSession;
@@ -204,6 +205,7 @@ export class ClassSessionRepository {
     ClassSession & {
       classSchedule: ClassSchedule;
       recurrence?: ClassSessionRecurrence | null;
+      instructor?: Instructor | null;
     }
   > {
     return prisma.classSession.create({
@@ -217,7 +219,7 @@ export class ClassSessionRepository {
         remainingCapacity,
         status: input.status ?? 'SCHEDULED',
       },
-      include: { classSchedule: true, recurrence: true },
+      include: { classSchedule: true, recurrence: true, instructor: true },
     });
   }
 
@@ -290,6 +292,7 @@ export class ClassSessionRepository {
     ClassSession & {
       classSchedule: ClassSchedule;
       recurrence?: ClassSessionRecurrence | null;
+      instructor?: Instructor | null;
     }
   > {
     return prisma.classSession.update({
@@ -301,7 +304,7 @@ export class ClassSessionRepository {
         startTime: data.startTime,
         status: data.status,
       },
-      include: { classSchedule: true, recurrence: true },
+      include: { classSchedule: true, recurrence: true, instructor: true },
     });
   }
 

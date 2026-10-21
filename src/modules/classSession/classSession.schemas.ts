@@ -120,6 +120,7 @@ export const ClassSessionResponseSchema = ClassSessionSchema.omit({
   recurrenceId: z.number().nullable().optional(),
   classSchedule: z.any().optional(),
   instructor: z.any().optional().nullable(),
+  recurrence: z.any().optional().nullable(),
 });
 
 export type CreateClassSessionInput = z.infer<
