@@ -235,6 +235,17 @@ export class ClassSessionService {
     if (!existing)
       throw new NotFoundError(`Sesión de clase con ID ${id} no encontrada`);
 
+    // Validación: No permitir modificar la fecha de sesiones periódicas
+    if (existing.recurrenceId && input.date !== undefined) {
+      const existingDateStr = new Date(existing.date).toISOString().split('T')[0];
+      const inputDateStr = new Date(input.date).toISOString().split('T')[0];
+      if (existingDateStr !== inputDateStr) {
+        throw new BadRequestError(
+          'No está permitido modificar la fecha de una sesión periódica. Para cambiarla de día, cancele la sesión y agende una nueva clase.',
+        );
+      }
+    }
+
     const scope: RecurrenceScope = input.scope || 'this';
     const schedule = existing.classSchedule;
 

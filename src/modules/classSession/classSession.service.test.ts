@@ -239,4 +239,39 @@ describe('ClassSessionService - Collision and Recurrence Logic', () => {
       );
     });
   });
+
+  describe('recurring date immutability', () => {
+    it('throws BadRequestError when attempting to change date on a recurring session', async () => {
+      sessionRepo.getById.mockResolvedValue(baseSession);
+
+      await expect(
+        service.update(1, {
+          date: new Date('2026-11-03T10:00:00Z'),
+          scope: 'this',
+        }),
+      ).rejects.toThrow(
+        'No está permitido modificar la fecha de una sesión periódica. Para cambiarla de día, cancele la sesión y agende una nueva clase.',
+      );
+    });
+
+    it('allows changing date on a non-recurring (puntual) session', async () => {
+      const singleSession = { ...baseSession, recurrenceId: null, recurrence: null };
+      sessionRepo.getById.mockResolvedValue(singleSession);
+      sessionRepo.updateSingleSession.mockResolvedValue({
+        ...singleSession,
+        date: new Date('2026-11-03T10:00:00Z'),
+      });
+
+      await service.update(1, {
+        date: new Date('2026-11-03T10:00:00Z'),
+        scope: 'this',
+      });
+
+      expect(sessionRepo.updateSingleSession).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ date: new Date('2026-11-03T10:00:00Z') }),
+      );
+    });
+  });
 });
+
