@@ -153,7 +153,6 @@ export class ClassSessionRepository {
    */
   async createRecurrentSeries(
     recurrenceData: {
-      frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY';
       daysOfWeek?: string | null;
       startDate: Date;
       endDate: Date;
@@ -377,10 +376,9 @@ export class ClassSessionRepository {
         data: { endDate: previousDay },
       });
 
-      // 2. Crear nueva recurrencia que hereda frecuencia/días pero arranca en cutDate
+      // 2. Crear nueva recurrencia que hereda días pero arranca en cutDate
       const newRecurrence = await tx.classSessionRecurrence.create({
         data: {
-          frequency: oldRecurrence.frequency,
           daysOfWeek: oldRecurrence.daysOfWeek,
           startDate: cutDate,
           endDate: oldRecurrence.endDate,

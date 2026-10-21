@@ -127,7 +127,6 @@ export class ClassSessionService {
     // 1. Creación masiva recurrente
     if (input.recurrence) {
       const dates = generateRecurrenceDates({
-        frequency: input.recurrence.frequency,
         daysOfWeek: input.recurrence.daysOfWeek,
         startDate: input.date,
         endDate: input.recurrence.endDate,
@@ -166,7 +165,6 @@ export class ClassSessionService {
       }
 
       const recurrenceData = {
-        frequency: input.recurrence.frequency,
         daysOfWeek: input.recurrence.daysOfWeek
           ? input.recurrence.daysOfWeek.join(',')
           : null,

@@ -90,7 +90,6 @@ describe('ClassSessionService - Collision and Recurrence Logic', () => {
     classSchedule: mockSchedule,
     recurrence: {
       id: 100,
-      frequency: 'WEEKLY' as const,
       daysOfWeek: '1',
       startDate: new Date('2026-11-02T10:00:00Z'),
       endDate: new Date('2026-11-30T10:00:00Z'),
