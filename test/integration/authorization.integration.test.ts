@@ -222,6 +222,67 @@ describe('Authorization & authentication middleware — mocked Prisma', () => {
 
       expect(res.status).toBe(200);
     });
+
+    it('is forbidden from GET /api/instructors (ADMIN only)', async () => {
+      const res = await request
+        .get('/api/instructors')
+        .set(authHeader(instructorToken));
+      expect(res.status).toBe(403);
+      expect(res.body.code).toBe('FORBIDDEN');
+    });
+
+    it('is forbidden from GET /api/classSessions/instructor/1 (ADMIN only)', async () => {
+      const res = await request
+        .get('/api/classSessions/instructor/1')
+        .set(authHeader(instructorToken));
+      expect(res.status).toBe(403);
+      expect(res.body.code).toBe('FORBIDDEN');
+    });
+
+    it('can GET /api/instructors/me', async () => {
+      prismaMock.instructor.findFirst.mockResolvedValue({
+        id: 2,
+        userId: 2,
+        name: 'Gabriel',
+        surname: 'Martinez',
+        phone: '1122334455',
+        docNumber: '25111222',
+        docType: 'DNI',
+        joinDate: new Date(),
+        deletedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        user: {
+          id: 2,
+          email: 'gabrielmartinez@gmail.com',
+          role: 'INSTRUCTOR',
+          password: 'hashedpassword',
+          deletedAt: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      } as any);
+
+      const res = await request
+        .get('/api/instructors/me')
+        .set(authHeader(instructorToken));
+      expect(res.status).toBe(200);
+      expect(res.body.name).toBe('Gabriel');
+    });
+
+    it('can GET /api/classSessions/me', async () => {
+      prismaMock.instructor.findFirst.mockResolvedValue({
+        id: 2,
+        userId: 2,
+      } as any);
+      prismaMock.classSession.findMany.mockResolvedValue([]);
+
+      const res = await request
+        .get('/api/classSessions/me')
+        .set(authHeader(instructorToken));
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
   });
 
   describe('ADMIN role', () => {
@@ -229,6 +290,17 @@ describe('Authorization & authentication middleware — mocked Prisma', () => {
       prismaMock.user.findMany.mockResolvedValue([]);
 
       const res = await request.get('/api/users').set(authHeader(adminToken));
+
+      expect(res.status).toBe(200);
+    });
+
+    it('can GET /api/instructors', async () => {
+      prismaMock.instructor.findMany.mockResolvedValue([]);
+      prismaMock.instructor.count.mockResolvedValue(0);
+
+      const res = await request
+        .get('/api/instructors')
+        .set(authHeader(adminToken));
 
       expect(res.status).toBe(200);
     });
