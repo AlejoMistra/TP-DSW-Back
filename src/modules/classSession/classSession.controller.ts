@@ -23,6 +23,11 @@ export class ClassSessionController {
     res.status(200).json(item);
   };
 
+  getMine = async (req: Request, res: Response) => {
+    const items = await this.service.getMine(req.user!.userId);
+    res.status(200).json(items);
+  };
+
   getByInstructor = async (req: Request, res: Response) => {
     const { instructorId } = req.validated!.params as { instructorId: number };
     const items = await this.service.getByInstructor(instructorId);

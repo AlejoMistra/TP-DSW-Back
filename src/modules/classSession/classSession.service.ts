@@ -55,6 +55,15 @@ export class ClassSessionService {
     return this.toResponse(session);
   }
 
+  async getMine(userId: number): Promise<ClassSessionResponse[]> {
+    const instructor = await this.instructorRepository.findByUserId(userId);
+    if (!instructor) {
+      throw new NotFoundError(`Instructor no encontrado para la clase actual`);
+    }
+    const sessions = await this.repository.getByInstructor(instructor.id);
+    return sessions.map((s) => this.toResponse(s));
+  }
+
   async getByInstructor(instructorId: number): Promise<ClassSessionResponse[]> {
     const sessions = await this.repository.getByInstructor(instructorId);
     return sessions.map((s) => this.toResponse(s));
@@ -237,7 +246,9 @@ export class ClassSessionService {
 
     // Validación: No permitir modificar la fecha de sesiones periódicas
     if (existing.recurrenceId && input.date !== undefined) {
-      const existingDateStr = new Date(existing.date).toISOString().split('T')[0];
+      const existingDateStr = new Date(existing.date)
+        .toISOString()
+        .split('T')[0];
       const inputDateStr = new Date(input.date).toISOString().split('T')[0];
       if (existingDateStr !== inputDateStr) {
         throw new BadRequestError(

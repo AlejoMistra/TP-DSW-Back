@@ -22,6 +22,7 @@ export interface AuthResponse {
     email: string;
     role: string;
     memberId: number | null;
+    instructorId: number | null;
   };
 }
 
@@ -31,33 +32,39 @@ export class AuthService {
   async activateAccount(
     input: ActivateAccountInput,
   ): Promise<{ message: string }> {
-    const user = await this.authRepository.findByEmailWithRelations(input.email);
+    const user = await this.authRepository.findByEmailWithRelations(
+      input.email,
+    );
 
     if (!user) {
-      throw new BadRequestError("No se pudieron verificar los datos");
+      throw new BadRequestError('No se pudieron verificar los datos');
     }
 
     if (user.accountStatus === 'ACTIVE') {
-      throw new BadRequestError('La cuenta ya está activada, por favor inicia sesión');
+      throw new BadRequestError(
+        'La cuenta ya está activada, por favor inicia sesión',
+      );
     }
 
     if (user.accountStatus !== 'PENDING_ACTIVATION') {
-      throw new BadRequestError("No se pudieron verificar los datos");
+      throw new BadRequestError('No se pudieron verificar los datos');
     }
 
     const identityEntity = user.member ?? user.instructor;
     if (!identityEntity) {
-      throw new BadRequestError("No se pudieron verificar los datos");
+      throw new BadRequestError('No se pudieron verificar los datos');
     }
 
     const normalize = (str: string) => str.trim().toLowerCase();
-    const nameMatches = normalize(identityEntity.name) === normalize(input.name);
+    const nameMatches =
+      normalize(identityEntity.name) === normalize(input.name);
     const surnameMatches =
       normalize(identityEntity.surname) === normalize(input.surname);
-    const docMatches = identityEntity.docNumber.trim() === input.docNumber.trim();
+    const docMatches =
+      identityEntity.docNumber.trim() === input.docNumber.trim();
 
     if (!nameMatches || !surnameMatches || !docMatches) {
-      throw new BadRequestError("No se pudieron verificar los datos");
+      throw new BadRequestError('No se pudieron verificar los datos');
     }
 
     const passwordHash = await bcrypt.hash(
@@ -73,7 +80,9 @@ export class AuthService {
   }
 
   async login(input: LoginInput): Promise<AuthResponse> {
-    const user = await this.authRepository.findByEmailWithRelations(input.email);
+    const user = await this.authRepository.findByEmailWithRelations(
+      input.email,
+    );
 
     // 1. Find User by email -> if not found, generic error
     if (!user) {
@@ -148,8 +157,8 @@ export class AuthService {
         email: user.email,
         role: user.role,
         memberId: user.member?.id ?? null,
+        instructorId: user.instructor?.id ?? null,
       },
     };
   }
 }
-

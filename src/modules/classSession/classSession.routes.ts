@@ -27,6 +27,13 @@ classSessionRouter.get(
   validate(ListClassSessionsSchema),
   classSessionController.getAll,
 );
+
+classSessionRouter.get(
+  '/me',
+  authorize(UserRole.INSTRUCTOR),
+  classSessionController.getMine,
+);
+
 classSessionRouter.get(
   '/:id',
   authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER),
@@ -35,7 +42,7 @@ classSessionRouter.get(
 );
 classSessionRouter.get(
   '/instructor/:instructorId',
-  authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER),
+  authorize(UserRole.ADMIN),
   validate(GetClassSessionByInstructorRequestSchema),
   classSessionController.getByInstructor,
 );

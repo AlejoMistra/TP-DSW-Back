@@ -57,6 +57,7 @@ const availableEndpoints = {
     'GET: Obtener un pago | PATCH: Actualizar pago | DELETE: Eliminar pago',
   '/api/instructors':
     'GET: Obtener todos los instructores | POST: Crear instructor',
+  '/api/instructors/me': 'GET: Obtener perfil del instructor autenticado',
   '/api/instructors/:id':
     'GET: Obtener instructor | PATCH/PUT: Actualizar instructor | DELETE: Eliminar instructor',
   '/api/exercises': 'GET: Obtener todos los ejercicios | POST: Crear ejercicio',
@@ -73,6 +74,8 @@ const availableEndpoints = {
   '/api/classBookings/:id':
     'GET: Obtener reserva | PATCH/PUT: Actualizar reserva | DELETE: Eliminar reserva',
   '/api/classSessions': 'GET: Obtener sesiones de clase | POST: Crear sesión',
+  '/api/classSessions/me':
+    'GET: Obtener sesiones de clase del instructor autenticado',
   '/api/classSessions/:id':
     'GET: Obtener sesión | PUT: Actualizar sesión | DELETE: Eliminar sesión',
   '/api/classSessions/instructor/:instructorId':

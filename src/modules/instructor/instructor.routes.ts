@@ -18,14 +18,20 @@ instructorRouter.use(authenticate);
 
 instructorRouter.get(
   '/',
-  authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER),
+  authorize(UserRole.ADMIN),
   validate(ListInstructorsSchema),
   instructorController.getAll,
 );
 
 instructorRouter.get(
+  '/me',
+  authorize(UserRole.INSTRUCTOR),
+  instructorController.getMe,
+);
+
+instructorRouter.get(
   '/:id',
-  authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER),
+  authorize(UserRole.ADMIN),
   validate(GetInstructorByIdRequestSchema),
   instructorController.getById,
 );
