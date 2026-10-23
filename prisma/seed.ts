@@ -552,7 +552,7 @@ const exercisesData = [
 const routineTemplates = [
   {
     name: "Full Body Principiante",
-    description: "Rutina integral de cuerpo completo para quienes dan sus primeros pasos. Estimula los principales grupos musculares con movimientos seguros, controlados y efectivos (3 días no consecutivos por semana).",
+    description: "Rutina integral de cuerpo completo para principiantes. Estimula los grupos musculares principales con movimientos seguros y controlados (3 días por semana).",
     difficulty: "BEGINNER" as const,
     instructorEmail: "gabrielmartinez@gmail.com",
     exercises: [
