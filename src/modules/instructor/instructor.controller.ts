@@ -6,9 +6,7 @@ import type {
 import { InstructorService } from './instructor.service.js';
 
 export class InstructorController {
-  constructor(
-    private readonly service: InstructorService,
-  ) {}
+  constructor(private readonly service: InstructorService) {}
 
   getAll = async (req: Request, res: Response) => {
     const page = req.query.page ? Number(req.query.page) : 1;
@@ -26,12 +24,15 @@ export class InstructorController {
     res.status(200).json(instructor);
   };
 
+  getMe = async (req: Request, res: Response) => {
+    const instructor = await this.service.getMe(req.user!.userId);
+    res.status(200).json(instructor);
+  };
+
   create = async (req: Request, res: Response) => {
     const { body } = req.validated!;
 
-    const instructor = await this.service.create(
-      body as CreateInstructorInput,
-    );
+    const instructor = await this.service.create(body as CreateInstructorInput);
 
     res.status(201).json(instructor);
   };

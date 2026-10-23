@@ -24,6 +24,12 @@ instructorRouter.get(
 );
 
 instructorRouter.get(
+  '/me',
+  authorize(UserRole.INSTRUCTOR),
+  instructorController.getMe,
+);
+
+instructorRouter.get(
   '/:id',
   authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER),
   validate(GetInstructorByIdRequestSchema),
