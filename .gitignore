@@ -22,6 +22,7 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+*.mcp.json
 
 # TypeScript cache
 *.tsbuildinfo
