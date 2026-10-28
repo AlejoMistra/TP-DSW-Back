@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     region: ohio
-    branch: deploy-back-render
+    branch: main
     buildCommand: pnpm run db:deploy && pnpm run build
     startCommand: pnpm run start
     healthCheckPath: /health

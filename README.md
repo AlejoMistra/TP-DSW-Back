@@ -309,7 +309,7 @@ El proyecto incluye el archivo `render.yaml` (Blueprint) en la raíz, que automa
 
 1. Ingresá a [Render.com](https://render.com) y vinculá tu cuenta de GitHub.
 2. Hacé clic en **New +** -> **Blueprint**.
-3. Seleccioná el repositorio (`TP-DSW-Back`) y la rama `deploy-back-render`.
+3. Seleccioná el repositorio (`TP-DSW-Back`) y la rama `main` (o la rama donde esté el Blueprint).
 4. Render leerá automáticamente `render.yaml` y detectará:
    - **Build Command**: `pnpm run db:deploy && pnpm run build` *(Aplica las migraciones en TiDB Cloud antes de compilar)*.
    - **Start Command**: `pnpm run start` *(Inicia `node dist/server.js` rápidamente sin demoras de CLI)*.
@@ -318,7 +318,7 @@ El proyecto incluye el archivo `render.yaml` (Blueprint) en la raíz, que automa
    - `DATABASE_URL`: Pegá la URL de conexión obtenida de TiDB Cloud en el Paso 1.
    - `JWT_SECRET`: Una cadena segura y aleatoria para firmar tokens JWT.
    - `NODE_ENV`: `production` *(asignada por defecto)*.
-   - `FRONTEND_URL` *(opcional)*: La URL pública de tu frontend (ej. `https://mi-front.vercel.app`) para restringir CORS. Si no se especifica, se permite cualquier origen.
+   - `FRONTEND_URL`: La URL pública de tu frontend (ej. `https://mi-front.vercel.app` o lista separada por comas). Es requerida en producción para validar peticiones CORS.
 6. Hacé clic en **Apply**. Render creará y desplegará el servicio web.
 
 ---

@@ -14,22 +14,9 @@ import { routineRouter } from './modules/routine/routine.routes.js';
 import { routineExerciseRouter } from './modules/routineExercise/routineExercise.routes.js';
 import { authRouter } from './modules/auth/auth.router.js';
 import { userRouter } from './modules/user/user.routes.js';
+import { corsOptions } from './config/cors.config.js';
 
 const app = express();
-
-const allowedOrigins =
-  process.env.FRONTEND_URL || process.env.CORS_ORIGIN
-    ? (process.env.FRONTEND_URL || process.env.CORS_ORIGIN)!
-        .split(',')
-        .map((origin) => origin.trim())
-    : true;
-
-const corsOptions: cors.CorsOptions = {
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
 
 const availableEndpoints = {
   '/': 'GET: Resumen de la API',
