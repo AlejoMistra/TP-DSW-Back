@@ -3,13 +3,33 @@ import type {
   UpdateMembershipInput,
 } from './membership.schemas.js';
 import { prisma } from '../../lib/prisma.js';
-import type { Membership, MembershipStatus, Prisma } from '../../generated/prisma/client.js';
+import type {
+  Membership,
+  MembershipStatus,
+  Prisma,
+} from '../../generated/prisma/client.js';
 
 type DbClient = Prisma.TransactionClient | typeof prisma;
 
+import { getPaginationParams } from '../../shared/pagination.js';
+
 export class MembershipRepository {
-  async getAll(): Promise<Membership[]> {
+  async getAll(page?: number, limit?: number): Promise<Membership[]> {
+    const { take, skip } = getPaginationParams(page, limit);
     return prisma.membership.findMany({
+      where: {
+        deletedAt: null,
+      },
+      take,
+      skip,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+  async count(): Promise<number> {
+    return prisma.membership.count({
       where: {
         deletedAt: null,
       },
@@ -25,6 +45,15 @@ export class MembershipRepository {
   async getByMemberId(memberId: number): Promise<Membership | null> {
     return prisma.membership.findFirst({
       where: { memberId, deletedAt: null },
+    });
+  }
+
+  async getByUserId(userId: number): Promise<Membership | null> {
+    return prisma.membership.findFirst({
+      where: {
+        deletedAt: null,
+        member: { userId },
+      },
     });
   }
 

@@ -3,7 +3,9 @@ import { userService } from '../../shared/instances.js';
 import type { CreateUserInput, UpdateUserInput } from './user.schemas.js';
 
 export const findAll = async (req: Request, res: Response) => {
-  const users = await userService.getAll();
+  const page = req.query.page ? Number(req.query.page) : 1;
+  const limit = req.query.limit ? Number(req.query.limit) : 10;
+  const users = await userService.getAll(page, limit);
   res.status(200).json(users);
 };
 

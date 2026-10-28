@@ -5,12 +5,30 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+const dbHost = process.env["DATABASE_HOST"] || process.env["MYSQLHOST"];
+const dbUser = process.env["DATABASE_USER"] || process.env["MYSQLUSER"] || "root";
+const dbPassword = process.env["DATABASE_PASSWORD"] || process.env["MYSQLPASSWORD"] || "";
+const dbPort = process.env["DATABASE_PORT"] || process.env["MYSQLPORT"] || "3306";
+const dbName = process.env["DATABASE_NAME"] || process.env["MYSQLDATABASE"] || "";
+
+const databaseUrl =
+  process.env["DATABASE_URL"] ||
+  process.env["MYSQL_URL"] ||
+  process.env["MYSQL_PRIVATE_URL"] ||
+  (dbHost
+    ? `mysql://${encodeURIComponent(dbUser)}:${encodeURIComponent(dbPassword)}@${dbHost}:${dbPort}/${dbName}`
+    : undefined);
+
+if (databaseUrl && !process.env["DATABASE_URL"]) {
+  process.env["DATABASE_URL"] = databaseUrl;
+}
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: databaseUrl,
   },
 });

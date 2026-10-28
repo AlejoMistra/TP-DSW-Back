@@ -5,14 +5,10 @@ import { RoutineExerciseResponseSchema } from '../routineExercise/routineExercis
 // Reuso parcial del modelo generado para la respuesta (omito campos internos)
 export const RoutineResponseSchema = RoutineSchema.omit({ deletedAt: true });
 
+import { PaginationQuerySchema } from '../../shared/pagination.js';
+
 // Param id (coerciona "4" -> 4)
 const IdParam = z.object({ id: z.coerce.number().int().positive() });
-
-// Query pagination (coerciona strings a numbers)
-const ListQuery = z.object({
-  page: z.coerce.number().int().positive().optional(),
-  limit: z.coerce.number().int().positive().optional(),
-});
 
 export const RoutineDetailResponseSchema = RoutineResponseSchema.extend({
   routineExercises: z.array(RoutineExerciseResponseSchema).optional(),
@@ -28,15 +24,12 @@ export const RoutineExerciseInput = z.object({
   notes: z.string().max(500).optional().nullable(),
 });
 
-
 // Create: campos en body (IDs como number)
 export const CreateRoutineSchema = z.object({
   body: z.object({
     name: z.string().min(1).max(200),
     description: z.string().max(1000).optional(),
     difficulty: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']),
-    // cuerpo exige number (no acepta "4")
-    instructorId: z.number().int().positive(),
     exercises: z.array(RoutineExerciseInput).optional(),
   }),
 });
@@ -48,7 +41,7 @@ export const GetRoutineByIdSchema = z.object({
 
 // List: coercionar page/limit desde query strings
 export const ListRoutinesSchema = z.object({
-  query: ListQuery,
+  query: PaginationQuerySchema,
 });
 
 // Update: params coercion + body (IDs en body como number)
@@ -60,8 +53,6 @@ export const UpdateRoutineSchema = z.object({
     difficulty: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']).optional(),
     // replace completo de exercises si se envía
     exercises: z.array(RoutineExerciseInput).optional(),
-    // instructorId opcional, pero si se envía debe ser number
-    instructorId: z.number().int().positive().optional(),
   }),
 });
 

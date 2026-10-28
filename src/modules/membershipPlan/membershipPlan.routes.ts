@@ -5,6 +5,7 @@ import {
   GetMembershipPlanByIdRequestSchema,
   UpdateMembershipPlanSchema,
   DeleteMembershipPlanRequestSchema,
+  ListMembershipPlansSchema,
 } from './membershipPlan.schemas.js';
 import { validate } from '../../middlewares/validate.middleware.js';
 import { authenticate } from '../../middlewares/authentication.middleware.js';
@@ -15,7 +16,7 @@ export const membershipPlanRouter = Router();
 
 membershipPlanRouter.use(authenticate);
 
-membershipPlanRouter.get('/', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), findAll);
+membershipPlanRouter.get('/', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), validate(ListMembershipPlansSchema), findAll);
 membershipPlanRouter.get('/:id', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), validate(GetMembershipPlanByIdRequestSchema), findOne);
 membershipPlanRouter.post('/', authorize(UserRole.ADMIN), validate(CreateMembershipPlanSchema), create);
 membershipPlanRouter.patch('/:id', authorize(UserRole.ADMIN), validate(UpdateMembershipPlanSchema), update);

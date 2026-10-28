@@ -273,12 +273,18 @@ importers:
       cors:
         specifier: 2.8.6
         version: 2.8.6
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
       express:
         specifier: ^5.2.1
         version: 5.2.1
       jsonwebtoken:
         specifier: ^9.0.3
         version: 9.0.3
+      prisma:
+        specifier: ^7.9.0
+        version: 7.9.0(@types/react@19.2.17)(magicast@0.5.5)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
       zod:
         specifier: ^4.4.3
         version: 4.4.3
@@ -304,12 +310,6 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^5.0.1
         version: 5.0.1(vitest@5.0.1)
-      dotenv:
-        specifier: ^17.4.2
-        version: 17.4.2
-      prisma:
-        specifier: ^7.9.0
-        version: 7.9.0(@types/react@19.2.17)(magicast@0.5.5)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
       prisma-zod-generator:
         specifier: ^3.1.1
         version: 3.1.1(magicast@0.5.5)(prisma@7.9.0(@types/react@19.2.17)(magicast@0.5.5)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3))(typescript@6.0.3)(zod@4.4.3)

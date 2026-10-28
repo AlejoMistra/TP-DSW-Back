@@ -9,14 +9,15 @@ import {
   GetClassScheduleByIdRequestSchema,
   UpdateClassScheduleSchema,
   GetClassScheduleByCategoryRequestSchema,
-  DeleteClassScheduleRequestSchema
+  DeleteClassScheduleRequestSchema,
+  ListClassSchedulesSchema,
 } from './classSchedule.schemas.js';
 
 export const classScheduleRouter = Router();
 
 classScheduleRouter.use(authenticate);
 
-classScheduleRouter.get('/', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), classScheduleController.getAll);
+classScheduleRouter.get('/', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), validate(ListClassSchedulesSchema), classScheduleController.getAll);
 classScheduleRouter.get('/:id', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), validate(GetClassScheduleByIdRequestSchema), classScheduleController.getById);
 classScheduleRouter.get('/category/:category', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), validate(GetClassScheduleByCategoryRequestSchema), classScheduleController.getByCategory);
 classScheduleRouter.post('/', authorize(UserRole.ADMIN), validate(CreateClassScheduleSchema), classScheduleController.create);

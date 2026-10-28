@@ -9,8 +9,10 @@ export const findAll = async (req: Request, res: Response) => {
   const membershipIdParam = req.params.membershipId ? Number(req.params.membershipId) : undefined;
   const membershipIdQuery = req.query.membershipId ? Number(req.query.membershipId) : undefined;
   const membershipId = membershipIdParam ?? membershipIdQuery;
+  const page = req.query.page ? Number(req.query.page) : 1;
+  const limit = req.query.limit ? Number(req.query.limit) : 10;
 
-  const payments = await paymentService.findAll(membershipId);
+  const payments = await paymentService.findAll(membershipId, page, limit);
   res.status(200).json(payments);
 };
 
@@ -18,6 +20,11 @@ export const findOne = async (req: Request, res: Response) => {
   const { id } = req.params;
   const payment = await paymentService.findOne(Number(id));
   res.status(200).json(payment);
+};
+
+export const getMe = async (req: Request, res: Response) => {
+  const payments = await paymentService.getMe(req.user!.userId);
+  res.status(200).json(payments);
 };
 
 export const create = async (req: Request, res: Response) => {

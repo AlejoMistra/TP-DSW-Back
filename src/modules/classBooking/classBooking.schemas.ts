@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { ClassBookingSchema } from '../../generated/zod/schemas/models/ClassBooking.schema.js';
 import { IdSchema } from '../../shared/common.schemas.js';
+import { PaginationQuerySchema } from '../../shared/pagination.js';
+
+export const ListClassBookingsSchema = z.object({
+  query: PaginationQuerySchema.optional(),
+});
 
 const classBookingBaseSchema = ClassBookingSchema.pick({
   memberId: true,

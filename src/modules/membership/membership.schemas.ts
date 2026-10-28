@@ -2,6 +2,11 @@ import { z } from 'zod';
 import { MembershipSchema } from '../../generated/zod/schemas/models/Membership.schema.js';
 import { MembershipStatusSchema } from '../../generated/zod/schemas/enums/MembershipStatus.schema.js';
 import { IdSchema } from '../../shared/common.schemas.js';
+import { PaginationQuerySchema } from '../../shared/pagination.js';
+
+export const ListMembershipsSchema = z.object({
+  query: PaginationQuerySchema.optional(),
+});
 
 const membershipCreateBodySchema = MembershipSchema.pick({
   memberId: true,

@@ -30,7 +30,6 @@ Además, se observan estos patrones de soporte:
 - `src/shared/instances.ts`: composición e inyección manual de dependencias (instanciación de repositorios, servicios y controladores).
 - `src/lib/prisma.ts`: instancia compartida de Prisma Client configurada con `@prisma/adapter-mariadb`.
 
-
 ## Estructura principal
 
 ```text
@@ -99,6 +98,7 @@ Además, se observan estos patrones de soporte:
 `src/generated/prisma` y `src/generated/zod` se generan con `pnpm db:generate`.
 
 Cada módulo implementa:
+
 - `[dominio].routes.ts`: definición de rutas y middlewares de validación
 - `[dominio].controller.ts`: controladores HTTP
 - `[dominio].service.ts`: lógica de negocio
@@ -148,11 +148,11 @@ El servidor queda disponible en `http://localhost:3000`.
 
 El seeder crea e inicializa users para los tres roles:
 
-| Rol | Email | Contraseña |
-| --- | --- | --- |
-| Administrador | `admin@gym.com` | `admin1234` |
-| Instructor | `gabrielmartinez@gmail.com` | `instructor1234` |
-| Socio | `juan.perez@example.com` | `member1234` |
+| Rol           | Email                       | Contraseña       |
+| ------------- | --------------------------- | ---------------- |
+| Administrador | `admin@gym.com`             | `admin1234`      |
+| Instructor    | `gabrielmartinez@gmail.com` | `instructor1234` |
+| Socio         | `juan.perez@example.com`    | `member1234`     |
 
 Volver a ejecutar `pnpm db:seed` restablece estas credenciales.
 
@@ -179,6 +179,8 @@ Volver a ejecutar `pnpm db:seed` restablece estas credenciales.
 ### Members
 
 - `GET /api/members`
+- `GET /api/members/me`
+- `PATCH /api/members/me`
 - `GET /api/members/with-membership`
 - `GET /api/members/:id`
 - `POST /api/members`
@@ -188,6 +190,7 @@ Volver a ejecutar `pnpm db:seed` restablece estas credenciales.
 ### Memberships
 
 - `GET /api/memberships`
+- `GET /api/memberships/me`
 - `GET /api/memberships/member/:memberId`
 - `GET /api/memberships/:id`
 - `POST /api/memberships`
@@ -207,6 +210,7 @@ Volver a ejecutar `pnpm db:seed` restablece estas credenciales.
 ### Payments
 
 - `GET /api/payments`
+- `GET /api/payments/me`
 - `GET /api/payments/:id`
 - `POST /api/payments`
 - `PATCH /api/payments/:id`
@@ -268,9 +272,68 @@ Volver a ejecutar `pnpm db:seed` restablece estas credenciales.
 ### Class bookings
 
 - `GET /api/classBookings`
+- `GET /api/classBookings/me`
 - `GET /api/classBookings/:id`
 - `POST /api/classBookings`
 - `PATCH /api/classBookings/:id`
 - `PUT /api/classBookings/:id`
 - `DELETE /api/classBookings/:id`
+
+## Despliegue: Render (Backend) + TiDB Cloud (Base de Datos MySQL)
+
+La arquitectura de producción está desacoplada para mayor seguridad y aislamiento:
+- **Base de Datos**: [TiDB Cloud](https://tidbcloud.com) (MySQL Serverless gestionado con cifrado TLS/SSL).
+- **Backend API**: [Render](https://render.com) (Web Service gestionado mediante Blueprint `render.yaml`).
+
+---
+
+### Paso 1: Crear la Base de Datos en TiDB Cloud
+
+1. Ingresá a [TiDB Cloud](https://tidbcloud.com) y creá una cuenta gratuita (no requiere tarjeta de crédito).
+2. Hacé clic en **Create Cluster** y seleccioná el tipo **Serverless** (Plan Gratuito).
+3. Elegí la región (ej. `us-east-1` en AWS) y un nombre para tu clúster.
+4. Una vez creado el clúster:
+   - Hacé clic en **Connect**.
+   - En **Connection Type**, seleccioná **General** o **Prisma**.
+   - Generá una contraseña para el usuario `root` (copiala y guardala).
+   - Copiá la URL de conexión segura (`DATABASE_URL`). Tendrá un formato similar a:
+     ```text
+     mysql://<usuario>:<password>@gateway01.<region>.prod.aws.tidbcloud.com:4000/<nombre_bd>?sslaccept=strict
+     ```
+
+---
+
+### Paso 2: Desplegar el Backend en Render
+
+El proyecto incluye el archivo `render.yaml` (Blueprint) en la raíz, que automatiza la configuración de comandos y healthchecks.
+
+1. Ingresá a [Render.com](https://render.com) y vinculá tu cuenta de GitHub.
+2. Hacé clic en **New +** -> **Blueprint**.
+3. Seleccioná el repositorio (`TP-DSW-Back`) y la rama `main` (o la rama donde esté el Blueprint).
+4. Render leerá automáticamente `render.yaml` y detectará:
+   - **Build Command**: `pnpm run db:deploy && pnpm run build` *(Aplica las migraciones en TiDB Cloud antes de compilar)*.
+   - **Start Command**: `pnpm run start` *(Inicia `node dist/server.js` rápidamente sin demoras de CLI)*.
+   - **Health Check Path**: `/health`.
+5. En la pantalla de configuración de variables de entorno de Render, completá los valores requeridos:
+   - `DATABASE_URL`: Pegá la URL de conexión obtenida de TiDB Cloud en el Paso 1.
+   - `JWT_SECRET`: Una cadena segura y aleatoria para firmar tokens JWT.
+   - `NODE_ENV`: `production` *(asignada por defecto)*.
+   - `FRONTEND_URL`: La URL pública de tu frontend (ej. `https://mi-front.vercel.app` o lista separada por comas). Es requerida en producción para validar peticiones CORS.
+6. Hacé clic en **Apply**. Render creará y desplegará el servicio web.
+
+---
+
+### Paso 3: Poblado inicial de datos (Opcional)
+
+Si deseás inicializar la base de datos remota con los usuarios, planes y clases de prueba:
+
+Podés ejecutar el seeder de forma local apuntando a TiDB Cloud:
+```bash
+# En tu terminal local, pasando la URL de TiDB Cloud:
+DATABASE_URL="mysql://<user>:<password>@gateway01.<region>.prod.aws.tidbcloud.com:4000/<nombre_bd>?sslaccept=strict" pnpm db:seed
+```
+O bien desde la consola **Shell** del servicio en Render ejecutando:
+```bash
+pnpm db:seed
+```
 

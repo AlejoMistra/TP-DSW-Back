@@ -5,12 +5,26 @@ import { Prisma, User } from '../../generated/prisma/client.js';
 type DbClient = Prisma.TransactionClient | typeof prisma;
 type CreateUserData = Omit<CreateUserInput, 'userId'>;
 
+import { getPaginationParams } from '../../shared/pagination.js';
+
 export class UserRepository {
-  async getAll(): Promise<User[]> {
+  async getAll(page?: number, limit?: number): Promise<User[]> {
+    const { take, skip } = getPaginationParams(page, limit);
     return prisma.user.findMany({
       where: {
         deletedAt: null
-      }
+      },
+      take,
+      skip,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async count(): Promise<number> {
+    return prisma.user.count({
+      where: {
+        deletedAt: null,
+      },
     });
   }
 

@@ -2,7 +2,17 @@ import { z } from 'zod';
 import { MemberSchema } from '../../generated/zod/schemas/models/Member.schema.js';
 import { MembershipSchema } from '../../generated/zod/schemas/models/Membership.schema.js';
 import { PaymentSchema } from '../../generated/zod/schemas/models/Payment.schema.js';
+import { MembershipStatusSchema } from '../../generated/zod/schemas/enums/MembershipStatus.schema.js';
 import { IdSchema } from '../../shared/common.schemas.js';
+import { PaginationQuerySchema } from '../../shared/pagination.js';
+
+export const ListMembersQuerySchema = PaginationQuerySchema.extend({
+  membershipStatus: MembershipStatusSchema.optional(),
+});
+
+export const ListMembersSchema = z.object({
+  query: ListMembersQuerySchema.optional(),
+});
 
 const memberBaseSchema = MemberSchema.pick({
   name: true,
@@ -53,7 +63,19 @@ export const MemberResponseSchema = MemberSchema.omit({
   email: z.string().email(),
 });
 
+export const UpdateMyProfileSchema = z.object({
+  body: memberBaseSchema
+    .omit({ status: true })
+    .partial()
+    .extend({
+      email: z.string().email('Email inválido').optional(),
+    }),
+});
+
 export type CreateMemberInput = z.infer<typeof CreateMemberSchema>['body'];
 export type UpdateMemberInput = z.infer<typeof UpdateMemberSchema>['body'];
 export type MemberResponse = z.infer<typeof MemberResponseSchema>;
 export type MemberPaymentInput = z.infer<typeof memberPaymentInputSchema>;
+export type UpdateMyProfileInput = z.infer<
+  typeof UpdateMyProfileSchema
+>['body'];

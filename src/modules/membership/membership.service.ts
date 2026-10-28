@@ -11,6 +11,8 @@ import { NotFoundError } from '../../utils/errors.js';
 import { FREE_TRIAL_DAYS } from '../../shared/constants.js';
 import { MemberRepository } from '../member/member.repository.js';
 
+import { type PaginatedResponse } from '../../shared/pagination.js';
+
 export class MembershipService {
   constructor(
     private readonly repository: MembershipRepository,
@@ -18,9 +20,22 @@ export class MembershipService {
     private readonly memberRepository?: MemberRepository,
   ) {}
 
-  async getAll(): Promise<MembershipResponse[]> {
-    const memberships = await this.repository.getAll();
-    return memberships.map((membership) => this.toResponse(membership));
+  async getAll(
+    page = 1,
+    limit = 10,
+  ): Promise<PaginatedResponse<MembershipResponse>> {
+    const [memberships, total] = await Promise.all([
+      this.repository.getAll(page, limit),
+      this.repository.count(),
+    ]);
+
+    return {
+      items: memberships.map((membership) => this.toResponse(membership)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
   }
 
   async getById(id: number): Promise<MembershipResponse> {
@@ -37,6 +52,16 @@ export class MembershipService {
     if (!membership) {
       throw new NotFoundError(
         `Membresía para el miembro con ID ${memberId} no encontrada`,
+      );
+    }
+    return this.toResponse(membership);
+  }
+
+  async getMe(userId: number): Promise<MembershipResponse> {
+    const membership = await this.repository.getByUserId(userId);
+    if (!membership) {
+      throw new NotFoundError(
+        'Membresía no encontrada para el socio autenticado',
       );
     }
     return this.toResponse(membership);

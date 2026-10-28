@@ -11,6 +11,7 @@ import { ClassSessionController } from '../modules/classSession/classSession.con
 import { ClassBookingRepository } from '../modules/classBooking/classBooking.repository.js';
 import { RoutineExerciseRepository } from '../modules/routineExercise/routineExercise.repository.js';
 import { RoutineRepository } from '../modules/routine/routine.repository.js';
+import { RoutineService } from '../modules/routine/routine.service.js';
 import { ClassBookingService } from '../modules/classBooking/classBooking.service.js';
 import { ClassBookingController } from '../modules/classBooking/classBooking.controller.js';
 import { MembershipPlanRepository } from '../modules/membershipPlan/membershipPlan.repository.js';
@@ -44,9 +45,7 @@ export const instructorService = new InstructorService(
   userRepository,
 );
 
-export const instructorController = new InstructorController(
-  instructorService,
-);
+export const instructorController = new InstructorController(instructorService);
 
 // Class Management Domain
 // Class Schedule
@@ -73,6 +72,11 @@ export const classSessionController = new ClassSessionController(
 export const classBookingRepository = new ClassBookingRepository();
 export const routineExerciseRepository = new RoutineExerciseRepository();
 export const routineRepository = new RoutineRepository();
+export const routineService = new RoutineService(
+  routineRepository,
+  instructorRepository,
+  exerciseRepository,
+);
 export const classBookingService = new ClassBookingService(
   classBookingRepository,
 );

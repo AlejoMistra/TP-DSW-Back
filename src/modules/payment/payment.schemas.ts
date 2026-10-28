@@ -32,8 +32,10 @@ export const DeletePaymentRequestSchema = z.object({
   params: IdSchema,
 });
 
+import { PaginationQuerySchema } from '../../shared/pagination.js';
+
 export const PaymentQuerySchema = z.object({
-  query: z.object({
+  query: PaginationQuerySchema.extend({
     membershipId: z.coerce.number().int().positive().optional(),
   }).optional(),
 });

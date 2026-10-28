@@ -1,12 +1,27 @@
 import type { Request, Response } from 'express';
 import { ClassBookingService } from './classBooking.service.js';
-import type { CreateClassBookingInput, UpdateClassBookingInput } from './classBooking.schemas.js';
+import type {
+  CreateClassBookingInput,
+  UpdateClassBookingInput,
+} from './classBooking.schemas.js';
+import { UnauthorizedError } from '../../utils/errors.js';
 
 export class ClassBookingController {
   constructor(private readonly service: ClassBookingService) {}
 
-  getAll = async (_req: Request, res: Response) => {
-    const items = await this.service.getAll();
+  getAll = async (req: Request, res: Response) => {
+    const page = req.query.page ? Number(req.query.page) : 1;
+    const limit = req.query.limit ? Number(req.query.limit) : 10;
+    const items = await this.service.getAll(page, limit);
+    res.status(200).json(items);
+  };
+
+  getMine = async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new UnauthorizedError('Usuario no autenticado');
+    }
+
+    const items = await this.service.getMine(req.user.userId);
     res.status(200).json(items);
   };
 
@@ -25,7 +40,10 @@ export class ClassBookingController {
   update = async (req: Request, res: Response) => {
     const { id } = req.validated!.params as { id: number };
     const { body } = req.validated!;
-    const updated = await this.service.update(id, body as UpdateClassBookingInput);
+    const updated = await this.service.update(
+      id,
+      body as UpdateClassBookingInput,
+    );
     res.status(200).json(updated);
   };
 

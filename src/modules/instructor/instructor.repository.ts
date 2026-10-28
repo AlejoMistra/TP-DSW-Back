@@ -13,11 +13,22 @@ export type CreateInstructorData = Omit<CreateInstructorInput, 'email'> & {
 };
 export type UpdateInstructorData = Omit<UpdateInstructorInput, 'email'>;
 
+import { getPaginationParams } from '../../shared/pagination.js';
+
 export class InstructorRepository {
-  async getAll(): Promise<InstructorWithUser[]> {
+  async getAll(page?: number, limit?: number): Promise<InstructorWithUser[]> {
+    const { take, skip } = getPaginationParams(page, limit);
     return prisma.instructor.findMany({
       where: { deletedAt: null },
+      take,
+      skip,
       include: { user: true },
+    });
+  }
+
+  async count(): Promise<number> {
+    return prisma.instructor.count({
+      where: { deletedAt: null },
     });
   }
 
@@ -25,6 +36,16 @@ export class InstructorRepository {
     return prisma.instructor.findFirst({
       where: {
         id,
+        deletedAt: null,
+      },
+      include: { user: true },
+    });
+  }
+
+  async findByUserId(userId: number): Promise<InstructorWithUser | null> {
+    return prisma.instructor.findFirst({
+      where: {
+        userId,
         deletedAt: null,
       },
       include: { user: true },

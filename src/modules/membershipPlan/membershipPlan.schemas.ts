@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { MembershipPlanSchema } from '../../generated/zod/schemas/models/MembershipPlan.schema.js';
 import { IdSchema } from '../../shared/common.schemas.js';
+import { PaginationQuerySchema } from '../../shared/pagination.js';
+
+export const ListMembershipPlansSchema = z.object({
+  query: PaginationQuerySchema.optional(),
+});
 
 const membershipPlanBaseSchema = MembershipPlanSchema.pick({
   name: true,

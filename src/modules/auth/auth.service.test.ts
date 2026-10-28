@@ -3,7 +3,11 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { AuthService } from './auth.service.js';
 import type { AuthRepository, UserWithIdentity } from './auth.repository.js';
-import { BadRequestError, ForbiddenError, UnauthorizedError } from '../../utils/errors.js';
+import {
+  BadRequestError,
+  ForbiddenError,
+  UnauthorizedError,
+} from '../../utils/errors.js';
 
 vi.mock('bcrypt', () => ({
   default: {
@@ -18,7 +22,9 @@ vi.mock('jsonwebtoken', () => ({
   },
 }));
 
-function buildUser(overrides: Partial<UserWithIdentity> = {}): UserWithIdentity {
+function buildUser(
+  overrides: Partial<UserWithIdentity> = {},
+): UserWithIdentity {
   return {
     id: 1,
     email: 'member@example.com',
@@ -122,7 +128,9 @@ describe('AuthService', () => {
     });
 
     it('returns a token and user on successful login', async () => {
-      authRepository.findByEmailWithRelations.mockResolvedValue(buildUser());
+      authRepository.findByEmailWithRelations.mockResolvedValue(
+        buildUser({ member: { id: 25 } as never }),
+      );
       vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
       vi.mocked(jwt.sign).mockReturnValue('signed-token' as never);
 
@@ -134,7 +142,13 @@ describe('AuthService', () => {
       expect(authRepository.recordLoginSuccess).toHaveBeenCalledWith(1);
       expect(result).toEqual({
         token: 'signed-token',
-        user: { id: 1, email: 'member@example.com', role: 'MEMBER' },
+        user: {
+          id: 1,
+          email: 'member@example.com',
+          role: 'MEMBER',
+          memberId: 25,
+          instructorId: null,
+        },
       });
     });
   });
@@ -151,9 +165,9 @@ describe('AuthService', () => {
     it('throws BadRequestError when user does not exist', async () => {
       authRepository.findByEmailWithRelations.mockResolvedValue(null);
 
-      await expect(authService.activateAccount(activationInput)).rejects.toThrow(
-        BadRequestError,
-      );
+      await expect(
+        authService.activateAccount(activationInput),
+      ).rejects.toThrow(BadRequestError);
     });
 
     it('throws BadRequestError when account is already active', async () => {
@@ -161,36 +175,47 @@ describe('AuthService', () => {
         buildUser({ accountStatus: 'ACTIVE' }),
       );
 
-      await expect(authService.activateAccount(activationInput)).rejects.toThrow(
-        'La cuenta ya está activada, por favor inicia sesión',
-      );
+      await expect(
+        authService.activateAccount(activationInput),
+      ).rejects.toThrow('La cuenta ya está activada, por favor inicia sesión');
     });
 
     it('throws generic BadRequestError when identity data does not match', async () => {
       authRepository.findByEmailWithRelations.mockResolvedValue(
         buildUser({
           accountStatus: 'PENDING_ACTIVATION',
-          member: { name: 'Otro', surname: 'Nombre', docNumber: '99887766' } as never,
+          member: {
+            name: 'Otro',
+            surname: 'Nombre',
+            docNumber: '99887766',
+          } as never,
         }),
       );
 
-      await expect(authService.activateAccount(activationInput)).rejects.toThrow(
-        'No se pudieron verificar los datos',
-      );
+      await expect(
+        authService.activateAccount(activationInput),
+      ).rejects.toThrow('No se pudieron verificar los datos');
     });
 
     it('activates the account when identity data matches (case-insensitive)', async () => {
       authRepository.findByEmailWithRelations.mockResolvedValue(
         buildUser({
           accountStatus: 'PENDING_ACTIVATION',
-          member: { name: 'carlos', surname: 'test', docNumber: '99887766' } as never,
+          member: {
+            name: 'carlos',
+            surname: 'test',
+            docNumber: '99887766',
+          } as never,
         }),
       );
       vi.mocked(bcrypt.hash).mockResolvedValue('new-hash' as never);
 
       const result = await authService.activateAccount(activationInput);
 
-      expect(bcrypt.hash).toHaveBeenCalledWith(activationInput.newPassword, expect.any(Number));
+      expect(bcrypt.hash).toHaveBeenCalledWith(
+        activationInput.newPassword,
+        expect.any(Number),
+      );
       expect(authRepository.activateUser).toHaveBeenCalledWith(1, 'new-hash');
       expect(result.message).toMatch(/activada/);
     });

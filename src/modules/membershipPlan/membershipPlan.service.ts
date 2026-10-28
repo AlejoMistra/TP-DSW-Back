@@ -8,12 +8,23 @@ import type { MembershipPlan } from '../../generated/prisma/client.js';
 import type { MembershipPlanRepository } from './membershipPlan.repository.js';
 import { NotFoundError } from '../../utils/errors.js';
 
+import { type PaginatedResponse } from '../../shared/pagination.js';
+
 export class MembershipPlanService {
   constructor(private readonly repository: MembershipPlanRepository) {}
 
-  async findAll(): Promise<MembershipPlanResponse[]> {
-    const membershipPlans = await this.repository.findAll();
-    return membershipPlans.map((plan) => this.toResponse(plan));
+  async findAll(page = 1, limit = 10): Promise<PaginatedResponse<MembershipPlanResponse>> {
+    const [membershipPlans, total] = await Promise.all([
+      this.repository.findAll(page, limit),
+      this.repository.count(),
+    ]);
+    return {
+      items: membershipPlans.map((plan) => this.toResponse(plan)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
   }
 
   async findOne(id: number): Promise<MembershipPlanResponse> {

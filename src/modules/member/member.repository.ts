@@ -3,6 +3,7 @@ import {
   Member,
   Membership,
   MembershipPlan,
+  MembershipStatus,
   Prisma,
   User,
 } from '../../generated/prisma/client.js';
@@ -16,22 +17,46 @@ export type MemberWithUserAndMembership = Member & {
   membership: (Membership & { membershipPlan: MembershipPlan }) | null;
 };
 
-export type CreateMemberData = Omit<CreateMemberInput, 'membershipPlanId' | 'email'> & {
+export type CreateMemberData = Omit<
+  CreateMemberInput,
+  'membershipPlanId' | 'email'
+> & {
   userId: number;
 };
-export type UpdateMemberData = Omit<UpdateMemberInput, 'membershipPlanId' | 'email'>;
+export type UpdateMemberData = Omit<
+  UpdateMemberInput,
+  'membershipPlanId' | 'email'
+>;
+
+import { getPaginationParams } from '../../shared/pagination.js';
 
 export class MemberRepository {
-  async getAll(): Promise<MemberWithUser[]> {
+  async getAll(page?: number, limit?: number): Promise<MemberWithUser[]> {
+    const { take, skip } = getPaginationParams(page, limit);
     return prisma.member.findMany({
       where: { deletedAt: null },
+      take,
+      skip,
       include: { user: true },
+    });
+  }
+
+  async count(): Promise<number> {
+    return prisma.member.count({
+      where: { deletedAt: null },
     });
   }
 
   async getOne(id: number): Promise<MemberWithUser | null> {
     return prisma.member.findFirst({
       where: { id, deletedAt: null },
+      include: { user: true },
+    });
+  }
+
+  async getByUserId(userId: number): Promise<MemberWithUser | null> {
+    return prisma.member.findFirst({
+      where: { userId, deletedAt: null },
       include: { user: true },
     });
   }
@@ -46,9 +71,22 @@ export class MemberRepository {
     });
   }
 
-  async getAllWithMembership(): Promise<MemberWithUserAndMembership[]> {
+  async getAllWithMembership(
+    page?: number,
+    limit?: number,
+    membershipStatus?: MembershipStatus,
+  ): Promise<MemberWithUserAndMembership[]> {
+    const { take, skip } = getPaginationParams(page, limit);
     return prisma.member.findMany({
-      where: { deletedAt: null },
+      where: {
+        deletedAt: null,
+        ...(membershipStatus && {
+          membership: { status: membershipStatus, deletedAt: null },
+        }),
+      },
+      take,
+      skip,
+      orderBy: { createdAt: 'desc' },
       include: {
         user: true,
         membership: {
@@ -60,7 +98,23 @@ export class MemberRepository {
     });
   }
 
-  async add(props: CreateMemberData, db: DbClient = prisma): Promise<MemberWithUser> {
+  async countWithMembership(
+    membershipStatus?: MembershipStatus,
+  ): Promise<number> {
+    return prisma.member.count({
+      where: {
+        deletedAt: null,
+        ...(membershipStatus && {
+          membership: { status: membershipStatus, deletedAt: null },
+        }),
+      },
+    });
+  }
+
+  async add(
+    props: CreateMemberData,
+    db: DbClient = prisma,
+  ): Promise<MemberWithUser> {
     return db.member.create({
       data: props,
       include: { user: true },

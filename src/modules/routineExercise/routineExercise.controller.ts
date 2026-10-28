@@ -1,34 +1,50 @@
 import { Request, Response, NextFunction } from 'express';
 import { routineExerciseRepository } from '../../shared/instances.js';
 import { RoutineExerciseService } from './routineExercise.service.js';
-import type { CreateRoutineExerciseInput, UpdateRoutineExerciseInput } from './routineExercise.schemas.js';
+import type {
+  CreateRoutineExerciseInput,
+  UpdateRoutineExerciseInput,
+} from './routineExercise.schemas.js';
+import { BadRequestError } from '../../utils/errors.js';
 
 const service = new RoutineExerciseService(routineExerciseRepository);
 
 function getIdFromReq(req: Request): number | null {
   const validatedParams = req.validated?.params as { id?: number } | undefined;
-  const id = validatedParams?.id ?? (req.params.id ? Number(req.params.id) : NaN);
+  const id =
+    validatedParams?.id ?? (req.params.id ? Number(req.params.id) : NaN);
   if (!Number.isFinite(id)) return null;
   return Number(id);
 }
 
 function getInstructorUserFromReq(req: Request) {
+  const userFromReq = (req as any).user as
+    | { id?: number; role?: string }
+    | undefined;
+  if (userFromReq?.id)
+    return {
+      id: Number(userFromReq.id),
+      role: userFromReq.role ?? 'instructor',
+    };
 
-  const userFromReq = (req as any).user as { id?: number; role?: string } | undefined;
-  if (userFromReq?.id) return { id: Number(userFromReq.id), role: userFromReq.role ?? 'instructor' };
-
-  
   const instr =
     (req.validated?.body as any)?.instructorId ??
-    (req.body?.instructorId ?? undefined);
+    req.body?.instructorId ??
+    undefined;
   const instructorId = instr !== undefined ? Number(instr) : NaN;
   if (!Number.isFinite(instructorId)) return null;
   return { id: instructorId, role: 'instructor' as const };
 }
 
-export const findAll = async (req: Request, res: Response, next: NextFunction) => {
+export const findAll = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    const routineId = req.query.routineId ? Number(req.query.routineId) : undefined;
+    const routineId = req.query.routineId
+      ? Number(req.query.routineId)
+      : undefined;
     const page = req.query.page ? Number(req.query.page) : undefined;
     const limit = req.query.limit ? Number(req.query.limit) : undefined;
 
@@ -39,15 +55,15 @@ export const findAll = async (req: Request, res: Response, next: NextFunction) =
   }
 };
 
-export const findOne = async (req: Request, res: Response, next: NextFunction) => {
+export const findOne = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const id = getIdFromReq(req);
     if (id === null) {
-      return res.status(400).json({
-        statusCode: 400,
-        code: 'BAD_REQUEST',
-        message: 'ID inválido',
-      });
+      throw new BadRequestError('ID inválido');
     }
 
     const item = await service.findOne(id);
@@ -57,18 +73,19 @@ export const findOne = async (req: Request, res: Response, next: NextFunction) =
   }
 };
 
-export const findByRoutine = async (req: Request, res: Response, next: NextFunction) => {
+export const findByRoutine = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const routineId =
-      (req.validated?.params as { routineId?: number } | undefined)?.routineId ??
+      (req.validated?.params as { routineId?: number } | undefined)
+        ?.routineId ??
       (req.params.routineId ? Number(req.params.routineId) : NaN);
 
     if (!Number.isFinite(routineId)) {
-      return res.status(400).json({
-        statusCode: 400,
-        code: 'BAD_REQUEST',
-        message: 'Routine ID inválido',
-      });
+      throw new BadRequestError('Routine ID inválido');
     }
 
     const items = await service.findByRoutine(Number(routineId));
@@ -78,16 +95,19 @@ export const findByRoutine = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-export const create = async (req: Request, res: Response, next: NextFunction) => {
+export const create = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    const body = (req.validated?.body ?? req.body) as CreateRoutineExerciseInput & { instructorId?: number };
+    const body = (req.validated?.body ??
+      req.body) as CreateRoutineExerciseInput & { instructorId?: number };
     const user = getInstructorUserFromReq(req);
     if (!user) {
-      return res.status(400).json({
-        statusCode: 400,
-        code: 'BAD_REQUEST',
-        message: 'InstructorId obligatorio en el body mientras no haya auth',
-      });
+      throw new BadRequestError(
+        'InstructorId obligatorio en el body mientras no haya auth',
+      );
     }
 
     const created = await service.create(body, user);
@@ -97,25 +117,24 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
   }
 };
 
-export const update = async (req: Request, res: Response, next: NextFunction) => {
+export const update = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const id = getIdFromReq(req);
     if (id === null) {
-      return res.status(400).json({
-        statusCode: 400,
-        code: 'BAD_REQUEST',
-        message: 'ID inválido',
-      });
+      throw new BadRequestError('ID inválido');
     }
 
-    const payload = (req.validated?.body ?? req.body) as UpdateRoutineExerciseInput & { instructorId?: number };
+    const payload = (req.validated?.body ??
+      req.body) as UpdateRoutineExerciseInput & { instructorId?: number };
     const user = getInstructorUserFromReq(req);
     if (!user) {
-      return res.status(400).json({
-        statusCode: 400,
-        code: 'BAD_REQUEST',
-        message: 'InstructorId obligatorio en el body mientras no haya auth',
-      });
+      throw new BadRequestError(
+        'InstructorId obligatorio en el body mientras no haya auth',
+      );
     }
 
     const updated = await service.update(id, payload, user);
@@ -125,24 +144,22 @@ export const update = async (req: Request, res: Response, next: NextFunction) =>
   }
 };
 
-export const remove = async (req: Request, res: Response, next: NextFunction) => {
+export const remove = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const id = getIdFromReq(req);
     if (id === null) {
-      return res.status(400).json({
-        statusCode: 400,
-        code: 'BAD_REQUEST',
-        message: 'ID inválido',
-      });
+      throw new BadRequestError('ID inválido');
     }
 
     const user = getInstructorUserFromReq(req);
     if (!user) {
-      return res.status(400).json({
-        statusCode: 400,
-        code: 'BAD_REQUEST',
-        message: 'InstructorId obligatorio en el body mientras no haya auth',
-      });
+      throw new BadRequestError(
+        'InstructorId obligatorio en el body mientras no haya auth',
+      );
     }
 
     await service.remove(id, user);

@@ -6,12 +6,16 @@ import {
   create,
   update,
   remove,
+  getMe,
+  updateMe,
 } from './member.controller.js';
 import {
   CreateMemberSchema,
   GetMemberByIdRequestSchema,
   UpdateMemberSchema,
   DeleteMemberRequestSchema,
+  ListMembersSchema,
+  UpdateMyProfileSchema,
 } from './member.schemas.js';
 import { validate } from '../../middlewares/validate.middleware.js';
 import { authenticate } from '../../middlewares/authentication.middleware.js';
@@ -22,11 +26,46 @@ export const memberRouter = Router();
 
 memberRouter.use(authenticate);
 
-memberRouter.get('/', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR), findAll);
-memberRouter.get('/with-membership', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR), findAllWithMembership);
-memberRouter.get('/:id', authorize(UserRole.ADMIN, UserRole.INSTRUCTOR, UserRole.MEMBER), validate(GetMemberByIdRequestSchema), findOne);
-memberRouter.post('/', authorize(UserRole.ADMIN), validate(CreateMemberSchema), create);
-memberRouter.patch('/:id', authorize(UserRole.ADMIN, UserRole.MEMBER), validate(UpdateMemberSchema), update);
-memberRouter.delete('/:id', authorize(UserRole.ADMIN), validate(DeleteMemberRequestSchema), remove);
-
-
+memberRouter.get('/me', authorize(UserRole.MEMBER), getMe);
+memberRouter.patch(
+  '/me',
+  authorize(UserRole.MEMBER),
+  validate(UpdateMyProfileSchema),
+  updateMe,
+);
+memberRouter.get(
+  '/',
+  authorize(UserRole.ADMIN, UserRole.INSTRUCTOR),
+  validate(ListMembersSchema),
+  findAll,
+);
+memberRouter.get(
+  '/with-membership',
+  authorize(UserRole.ADMIN, UserRole.INSTRUCTOR),
+  validate(ListMembersSchema),
+  findAllWithMembership,
+);
+memberRouter.get(
+  '/:id',
+  authorize(UserRole.ADMIN, UserRole.INSTRUCTOR),
+  validate(GetMemberByIdRequestSchema),
+  findOne,
+);
+memberRouter.post(
+  '/',
+  authorize(UserRole.ADMIN),
+  validate(CreateMemberSchema),
+  create,
+);
+memberRouter.patch(
+  '/:id',
+  authorize(UserRole.ADMIN),
+  validate(UpdateMemberSchema),
+  update,
+);
+memberRouter.delete(
+  '/:id',
+  authorize(UserRole.ADMIN),
+  validate(DeleteMemberRequestSchema),
+  remove,
+);

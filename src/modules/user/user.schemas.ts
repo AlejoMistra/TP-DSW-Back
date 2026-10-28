@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { UserSchema } from '../../generated/zod/schemas/models/User.schema.js';
 import { IdSchema } from '../../shared/common.schemas.js';
+import { PaginationQuerySchema } from '../../shared/pagination.js';
+
+export const ListUsersSchema = z.object({
+  query: PaginationQuerySchema.optional(),
+});
 
 const userBaseSchema = UserSchema.pick({
   email: true,
@@ -27,6 +32,10 @@ export const DeleteUserSchema = z.object({
 export const UserResponseSchema = UserSchema.omit({
   passwordHash: true,
   deletedAt: true,
+});
+
+export const GetUserByIdRequestSchema = z.object({
+  params: IdSchema,
 });
 
 export type CreateUserInput = z.infer<typeof CreateUserSchema>['body'];

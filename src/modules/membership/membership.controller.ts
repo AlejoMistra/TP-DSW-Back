@@ -5,14 +5,21 @@ import type {
   UpdateMembershipInput,
 } from './membership.schemas.js';
 
-export const findAll = async (_req: Request, res: Response) => {
-  const memberships = await membershipService.getAll();
+export const findAll = async (req: Request, res: Response) => {
+  const page = req.query.page ? Number(req.query.page) : 1;
+  const limit = req.query.limit ? Number(req.query.limit) : 10;
+  const memberships = await membershipService.getAll(page, limit);
   res.status(200).json(memberships);
 };
 
 export const findOne = async (req: Request, res: Response) => {
   const { id } = req.params;
   const membership = await membershipService.getById(Number(id));
+  res.status(200).json(membership);
+};
+
+export const getMe = async (req: Request, res: Response) => {
+  const membership = await membershipService.getMe(req.user!.userId);
   res.status(200).json(membership);
 };
 
@@ -24,7 +31,9 @@ export const findByMemberId = async (req: Request, res: Response) => {
 
 export const create = async (req: Request, res: Response) => {
   const { body } = req.validated!;
-  const membership = await membershipService.create(body as CreateMembershipInput);
+  const membership = await membershipService.create(
+    body as CreateMembershipInput,
+  );
   res.status(201).json(membership);
 };
 
