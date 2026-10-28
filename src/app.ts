@@ -17,8 +17,15 @@ import { userRouter } from './modules/user/user.routes.js';
 
 const app = express();
 
-const corsOptions = {
-  origin: true,
+const allowedOrigins =
+  process.env.FRONTEND_URL || process.env.CORS_ORIGIN
+    ? (process.env.FRONTEND_URL || process.env.CORS_ORIGIN)!
+        .split(',')
+        .map((origin) => origin.trim())
+    : true;
+
+const corsOptions: cors.CorsOptions = {
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],

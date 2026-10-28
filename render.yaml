@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: back-tp-dsw
+    runtime: node
+    plan: free
+    region: ohio
+    branch: deploy-back-render
+    buildCommand: pnpm run db:deploy && pnpm run build
+    startCommand: pnpm run start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
