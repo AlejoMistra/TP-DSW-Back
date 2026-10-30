@@ -59,21 +59,8 @@ export class InstructorService {
     return this.toResponse(instructor);
   }
 
-<<<<<<< HEAD
-  async create(
-    input: CreateInstructorInput,
-  ): Promise<InstructorResponse> {
-    const existingInstructorByDoc = await this.repository.findByDoc(
-      input.docType,
-      input.docNumber,
-    );
-    if (existingInstructorByDoc) {
-      throw new ConflictError('Ya existe un profesor activo con ese documento');
-    }
-=======
   async create(input: CreateInstructorInput): Promise<InstructorResponse> {
     const existing = await this.userRepository.findByEmail(input.email);
->>>>>>> main
 
     const existingUser = await this.userRepository.findByEmail(input.email);
     if (existingUser && existingUser.deletedAt === null) {
