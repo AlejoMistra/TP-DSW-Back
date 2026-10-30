@@ -107,9 +107,8 @@ export function errorHandler(
   }
 
   // 4. Errores no controlados (500)
-  if (process.env.NODE_ENV === 'development') {
-    console.error(err);
-  }
+  // Siempre loguear en el servidor (stdout/stderr de Render o consola local)
+  console.error('[UNHANDLED_ERROR]:', err);
 
   const errorResponse: ApiErrorResponse = {
     statusCode: 500,

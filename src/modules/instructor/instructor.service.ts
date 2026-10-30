@@ -20,7 +20,10 @@ export class InstructorService {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async getAll(page = 1, limit = 10): Promise<PaginatedResponse<InstructorResponse>> {
+  async getAll(
+    page = 1,
+    limit = 10,
+  ): Promise<PaginatedResponse<InstructorResponse>> {
     const [instructors, total] = await Promise.all([
       this.repository.getAll(page, limit),
       this.repository.count(),
@@ -39,14 +42,24 @@ export class InstructorService {
     const instructor = await this.repository.getById(id);
 
     if (!instructor) {
+      throw new NotFoundError(`Instructor con ID ${id} no encontrado`);
+    }
+
+    return this.toResponse(instructor);
+  }
+
+  async getMe(userId: number): Promise<InstructorResponse> {
+    const instructor = await this.repository.findByUserId(userId);
+    if (!instructor) {
       throw new NotFoundError(
-        `Instructor con ID ${id} no encontrado`,
+        `Instructor no encontrado para el usuario actual`,
       );
     }
 
     return this.toResponse(instructor);
   }
 
+<<<<<<< HEAD
   async create(
     input: CreateInstructorInput,
   ): Promise<InstructorResponse> {
@@ -57,6 +70,10 @@ export class InstructorService {
     if (existingInstructorByDoc) {
       throw new ConflictError('Ya existe un profesor activo con ese documento');
     }
+=======
+  async create(input: CreateInstructorInput): Promise<InstructorResponse> {
+    const existing = await this.userRepository.findByEmail(input.email);
+>>>>>>> main
 
     const existingUser = await this.userRepository.findByEmail(input.email);
     if (existingUser && existingUser.deletedAt === null) {
@@ -146,16 +163,13 @@ export class InstructorService {
     const existing = await this.repository.getById(id);
 
     if (!existing) {
-      throw new NotFoundError(
-        `Instructor con ID ${id} no encontrado`,
-      );
+      throw new NotFoundError(`Instructor con ID ${id} no encontrado`);
     }
 
     const { email, ...instructorData } = input;
 
     if (email !== undefined && email !== existing.user.email) {
-      const instructorWithEmail =
-        await this.userRepository.findByEmail(email);
+      const instructorWithEmail = await this.userRepository.findByEmail(email);
 
       if (
         instructorWithEmail &&
@@ -199,9 +213,7 @@ export class InstructorService {
     const existing = await this.repository.getById(id);
 
     if (!existing) {
-      throw new NotFoundError(
-        `Instructor con ID ${id} no encontrado`,
-      );
+      throw new NotFoundError(`Instructor con ID ${id} no encontrado`);
     }
 
     await prisma.$transaction(async (tx) => {
@@ -210,9 +222,7 @@ export class InstructorService {
     });
   }
 
-  private toResponse(
-    instructor: InstructorWithUser,
-  ): InstructorResponse {
+  private toResponse(instructor: InstructorWithUser): InstructorResponse {
     const { user, ...instructorFields } = instructor;
     return InstructorResponseSchema.parse({
       ...instructorFields,

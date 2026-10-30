@@ -1,4 +1,5 @@
 import { prisma } from '../../lib/prisma.js';
+import type { MembershipStatus } from '../../generated/prisma/client.js';
 import { MemberRepository, MemberWithUser } from './member.repository.js';
 import { UserRepository } from '../user/user.repository.js';
 import { MembershipRepository } from '../membership/membership.repository.js';
@@ -84,10 +85,11 @@ export class MemberService {
   async getAllWithMembership(
     page = 1,
     limit = 10,
+    membershipStatus?: MembershipStatus,
   ): Promise<PaginatedResponse<any>> {
     const [members, total] = await Promise.all([
-      this.memberRepository.getAllWithMembership(page, limit),
-      this.memberRepository.count(),
+      this.memberRepository.getAllWithMembership(page, limit, membershipStatus),
+      this.memberRepository.countWithMembership(membershipStatus),
     ]);
 
     const items = members.map((member) => {

@@ -1,0 +1,8 @@
+{
+	"mcpServers": {
+		"my-mcp-server-58baf02a-mercadopago": {
+			"url": "https://mcp.mercadopago.com/mcp",
+			"type": "http"
+		}
+	}
+}

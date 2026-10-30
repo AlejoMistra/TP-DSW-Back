@@ -4,6 +4,7 @@ import {
   Member,
   Membership,
   MembershipPlan,
+  MembershipStatus,
   Prisma,
   Status,
   User,
@@ -116,12 +117,19 @@ export class MemberRepository {
   async getAllWithMembership(
     page?: number,
     limit?: number,
+    membershipStatus?: MembershipStatus,
   ): Promise<MemberWithUserAndMembership[]> {
     const { take, skip } = getPaginationParams(page, limit);
     return prisma.member.findMany({
-      where: { deletedAt: null },
+      where: {
+        deletedAt: null,
+        ...(membershipStatus && {
+          membership: { status: membershipStatus, deletedAt: null },
+        }),
+      },
       take,
       skip,
+      orderBy: { createdAt: 'desc' },
       include: {
         user: true,
         membership: {
@@ -129,6 +137,19 @@ export class MemberRepository {
             membershipPlan: true,
           },
         },
+      },
+    });
+  }
+
+  async countWithMembership(
+    membershipStatus?: MembershipStatus,
+  ): Promise<number> {
+    return prisma.member.count({
+      where: {
+        deletedAt: null,
+        ...(membershipStatus && {
+          membership: { status: membershipStatus, deletedAt: null },
+        }),
       },
     });
   }
