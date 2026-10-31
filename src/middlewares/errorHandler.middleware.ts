@@ -37,7 +37,7 @@ export function errorHandler(
       statusCode: err.statusCode,
       code: err.code,
       message: err.message,
-      details: null,
+      details: err.details ?? null,
     };
     res.status(err.statusCode).json(errorResponse);
     return;

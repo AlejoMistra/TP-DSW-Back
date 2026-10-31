@@ -10,6 +10,7 @@ import {
   GetInstructorByIdRequestSchema,
   UpdateInstructorSchema,
   ListInstructorsSchema,
+  ReactivateInstructorSchema,
 } from './instructor.schemas.js';
 
 export const instructorRouter = Router();
@@ -55,6 +56,13 @@ instructorRouter.delete(
   authorize(UserRole.ADMIN),
   validate(DeleteInstructorRequestSchema),
   instructorController.delete,
+);
+
+instructorRouter.patch(
+  '/:id/reactivate',
+  authorize(UserRole.ADMIN),
+  validate(ReactivateInstructorSchema),
+  instructorController.reactivate,
 );
 
 // Hay que actualizar a PATCH en el front, pero por ahora para que siga funcionando dejamos el put tambien

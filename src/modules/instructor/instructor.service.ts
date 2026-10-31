@@ -1,5 +1,9 @@
 import { prisma } from '../../lib/prisma.js';
-import { ConflictError, NotFoundError } from '../../utils/errors.js';
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+} from '../../utils/errors.js';
 import {
   InstructorRepository,
   InstructorWithUser,
@@ -60,62 +64,34 @@ export class InstructorService {
   }
 
   async create(input: CreateInstructorInput): Promise<InstructorResponse> {
-    const existing = await this.userRepository.findByEmail(input.email);
+    const existingInstructorByDoc = await this.repository.findByDocWithDeleted(
+      input.docType,
+      input.docNumber,
+    );
+
+    if (existingInstructorByDoc) {
+      if (existingInstructorByDoc.deletedAt !== null) {
+        throw new ConflictError(
+          `El documento pertenece al profesor dado de baja ${existingInstructorByDoc.name} ${existingInstructorByDoc.surname}`,
+          'INACTIVE_INSTRUCTOR_EXISTS',
+          {
+            instructorId: existingInstructorByDoc.id,
+            name: existingInstructorByDoc.name,
+            surname: existingInstructorByDoc.surname,
+            docType: existingInstructorByDoc.docType,
+            docNumber: existingInstructorByDoc.docNumber,
+          },
+        );
+      }
+      throw new ConflictError('Ya existe un profesor activo con ese documento');
+    }
 
     const existingUser = await this.userRepository.findByEmail(input.email);
     if (existingUser && existingUser.deletedAt === null) {
       throw new ConflictError('Email ya registrado');
     }
 
-    // Comprobar si existe un profesor previamente dado de baja (por DNI o por Email)
-    let deletedInstructor = await this.repository.findByDocWithDeleted(
-      input.docType,
-      input.docNumber,
-    );
-    if (!deletedInstructor || deletedInstructor.deletedAt === null) {
-      if (existingUser && existingUser.deletedAt !== null) {
-        deletedInstructor = await this.repository.getByUserIdWithDeleted(
-          existingUser.id,
-        );
-      } else {
-        deletedInstructor = null;
-      }
-    }
-
     const { email, ...instructorData } = input;
-
-    // Si encontramos un profesor eliminado, lo reactivamos
-    if (deletedInstructor) {
-      const reactivatedInstructor = await prisma.$transaction(async (tx) => {
-        await this.userRepository.update(
-          deletedInstructor.userId,
-          {
-            email,
-            passwordHash: null,
-            accountStatus: 'PENDING_ACTIVATION',
-            role: 'INSTRUCTOR',
-            isActive: true,
-            deletedAt: null,
-            failedLoginAttempts: 0,
-            lockedUntil: null,
-          },
-          tx,
-        );
-
-        return this.repository.update(
-          deletedInstructor.id,
-          {
-            ...instructorData,
-            docType: input.docType,
-            docNumber: input.docNumber,
-            deletedAt: null,
-          },
-          tx,
-        );
-      });
-
-      return this.toResponse(reactivatedInstructor);
-    }
 
     const createdInstructor = await prisma.$transaction(async (tx) => {
       const newUser = await this.userRepository.add(
@@ -141,6 +117,65 @@ export class InstructorService {
     });
 
     return this.toResponse(createdInstructor);
+  }
+
+  async reactivate(
+    id: number,
+    input: CreateInstructorInput,
+  ): Promise<InstructorResponse> {
+    const existingInstructor = await this.repository.getByIdWithDeleted(id);
+    if (!existingInstructor) {
+      throw new NotFoundError(`Instructor con ID ${id} no encontrado`);
+    }
+
+    if (existingInstructor.deletedAt === null) {
+      throw new BadRequestError(
+        'El profesor ya se encuentra activo en el sistema',
+      );
+    }
+
+    if (input.email !== existingInstructor.user.email) {
+      const emailUser = await this.userRepository.findByEmail(input.email);
+      if (
+        emailUser &&
+        emailUser.deletedAt === null &&
+        emailUser.id !== existingInstructor.userId
+      ) {
+        throw new ConflictError('Email ya registrado');
+      }
+    }
+
+    const { email, ...instructorData } = input;
+
+    const reactivated = await prisma.$transaction(async (tx) => {
+      await this.userRepository.update(
+        existingInstructor.userId,
+        {
+          email,
+          passwordHash: null,
+          accountStatus: 'PENDING_ACTIVATION',
+          role: 'INSTRUCTOR',
+          isActive: true,
+          deletedAt: null,
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+        },
+        tx,
+      );
+
+      return this.repository.update(
+        id,
+        {
+          ...instructorData,
+          docType: input.docType,
+          docNumber: input.docNumber,
+          deletedAt: null,
+        },
+        tx,
+      );
+    });
+
+    return this.toResponse(reactivated);
   }
 
   async update(

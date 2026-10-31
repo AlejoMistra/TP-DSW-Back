@@ -79,3 +79,9 @@ export type MemberPaymentInput = z.infer<typeof memberPaymentInputSchema>;
 export type UpdateMyProfileInput = z.infer<
   typeof UpdateMyProfileSchema
 >['body'];
+
+export const ReactivateMemberSchema = z.object({
+  params: GetMemberByIdRequestSchema.shape.params,
+  body: CreateMemberSchema.shape.body,
+});
+export type ReactivateMemberInput = z.infer<typeof ReactivateMemberSchema>;

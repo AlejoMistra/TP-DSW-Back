@@ -29,6 +29,7 @@ describe('MemberService', () => {
       getAll: vi.fn(),
       count: vi.fn(),
       getOne: vi.fn(),
+      getByIdWithDeleted: vi.fn(),
       getByUserId: vi.fn(),
       getByUserIdWithDeleted: vi.fn(),
       findByDoc: vi.fn(),
@@ -86,8 +87,21 @@ describe('MemberService', () => {
   });
 
   describe('create - validations and reactivation', () => {
-    it('throws ConflictError if an active member exists with the same document', async () => {
-      memberRepository.findByDoc.mockResolvedValue({ id: 10, docNumber: '12345678' });
+    it('throws ConflictError if an active member exists with the same document and active membership', async () => {
+      memberRepository.findByDocWithDeleted.mockResolvedValue({
+        id: 10,
+        name: 'Juan',
+        surname: 'Perez',
+        docType: 'DNI',
+        docNumber: '12345678',
+        deletedAt: null,
+        status: 'ACTIVE',
+        membership: {
+          status: 'ACTIVE',
+          deletedAt: null,
+          endDate: new Date(Date.now() + 86400000),
+        },
+      });
 
       await expect(
         memberService.create({
@@ -101,14 +115,98 @@ describe('MemberService', () => {
           email: 'juan@example.com',
           membershipPlanId: 1,
         }),
-      ).rejects.toThrow(ConflictError);
+      ).rejects.toThrow('Ya existe un socio activo con ese documento');
 
-      expect(memberRepository.findByDoc).toHaveBeenCalledWith('DNI', '12345678');
+      expect(memberRepository.findByDocWithDeleted).toHaveBeenCalledWith(
+        'DNI',
+        '12345678',
+      );
+    });
+
+    it('throws ConflictError with INACTIVE_MEMBER_EXISTS and STATUS_INACTIVE if member has expired membership', async () => {
+      memberRepository.findByDocWithDeleted.mockResolvedValue({
+        id: 10,
+        name: 'Juan',
+        surname: 'Perez',
+        docType: 'DNI',
+        docNumber: '12345678',
+        deletedAt: null,
+        status: 'ACTIVE',
+        membership: {
+          status: 'ACTIVE',
+          deletedAt: null,
+          endDate: new Date(Date.now() - 86400000), // Vencida ayer
+        },
+      });
+
+      try {
+        await memberService.create({
+          name: 'Juan',
+          surname: 'Perez',
+          phone: '1122334455',
+          docType: 'DNI',
+          docNumber: '12345678',
+          status: 'ACTIVE',
+          birthDate: new Date('1990-01-01'),
+          email: 'juan@example.com',
+          membershipPlanId: 1,
+        });
+        expect.unreachable('Debería haber lanzado ConflictError');
+      } catch (err: any) {
+        expect(err).toBeInstanceOf(ConflictError);
+        expect(err.code).toBe('INACTIVE_MEMBER_EXISTS');
+        expect(err.details).toEqual(
+          expect.objectContaining({
+            memberId: 10,
+            reason: 'STATUS_INACTIVE',
+          }),
+        );
+      }
+    });
+
+    it('throws ConflictError with INACTIVE_MEMBER_EXISTS and SOFT_DELETED if member was soft-deleted', async () => {
+      memberRepository.findByDocWithDeleted.mockResolvedValue({
+        id: 10,
+        name: 'Juan',
+        surname: 'Perez',
+        docType: 'DNI',
+        docNumber: '12345678',
+        deletedAt: new Date(),
+        status: 'INACTIVE',
+      });
+
+      try {
+        await memberService.create({
+          name: 'Juan',
+          surname: 'Perez',
+          phone: '1122334455',
+          docType: 'DNI',
+          docNumber: '12345678',
+          status: 'ACTIVE',
+          birthDate: new Date('1990-01-01'),
+          email: 'juan@example.com',
+          membershipPlanId: 1,
+        });
+        expect.unreachable('Debería haber lanzado ConflictError');
+      } catch (err: any) {
+        expect(err).toBeInstanceOf(ConflictError);
+        expect(err.code).toBe('INACTIVE_MEMBER_EXISTS');
+        expect(err.details).toEqual(
+          expect.objectContaining({
+            memberId: 10,
+            reason: 'SOFT_DELETED',
+          }),
+        );
+      }
     });
 
     it('throws ConflictError if an active user exists with the same email', async () => {
-      memberRepository.findByDoc.mockResolvedValue(null);
-      userRepository.findByEmail.mockResolvedValue({ id: 5, email: 'juan@example.com', deletedAt: null });
+      memberRepository.findByDocWithDeleted.mockResolvedValue(null);
+      userRepository.findByEmail.mockResolvedValue({
+        id: 5,
+        email: 'juan@example.com',
+        deletedAt: null,
+      });
 
       await expect(
         memberService.create({
@@ -124,11 +222,10 @@ describe('MemberService', () => {
         }),
       ).rejects.toThrow(ConflictError);
     });
+  });
 
-    it('reactivates a deleted member when matching document was soft-deleted', async () => {
-      memberRepository.findByDoc.mockResolvedValue(null);
-      userRepository.findByEmail.mockResolvedValue(null);
-
+  describe('reactivate', () => {
+    it('reactivates a soft-deleted member successfully', async () => {
       const deletedMember = {
         id: 10,
         userId: 20,
@@ -138,9 +235,15 @@ describe('MemberService', () => {
         docNumber: '12345678',
         deletedAt: new Date(),
         status: 'INACTIVE',
+        user: { email: 'juan@example.com' },
+        membership: null,
       };
-      memberRepository.findByDocWithDeleted.mockResolvedValue(deletedMember);
-      membershipPlanRepository.findOne.mockResolvedValue({ id: 1, durationDays: 30 });
+
+      memberRepository.getByIdWithDeleted.mockResolvedValue(deletedMember);
+      membershipPlanRepository.findOne.mockResolvedValue({
+        id: 1,
+        durationDays: 30,
+      });
 
       const reactivatedMember = {
         ...deletedMember,
@@ -170,10 +273,12 @@ describe('MemberService', () => {
       });
 
       memberRepository.update.mockResolvedValue(reactivatedMember);
-      membershipRepository.getByMemberIdWithDeleted.mockResolvedValue({ id: 99 });
+      membershipRepository.getByMemberIdWithDeleted.mockResolvedValue({
+        id: 99,
+      });
       membershipRepository.update.mockResolvedValue(reactivatedMembership);
 
-      const result = await memberService.create({
+      const result = await memberService.reactivate(10, {
         name: 'Juan',
         surname: 'Perez',
         phone: '1122334455',

@@ -58,6 +58,19 @@ export class MemberRepository {
     });
   }
 
+  async getByIdWithDeleted(
+    id: number,
+    db: DbClient = prisma,
+  ): Promise<(MemberWithUser & { membership: Membership | null }) | null> {
+    return db.member.findFirst({
+      where: { id },
+      include: {
+        user: true,
+        membership: true,
+      },
+    });
+  }
+
   async getByUserId(userId: number): Promise<MemberWithUser | null> {
     return prisma.member.findFirst({
       where: { userId, deletedAt: null },
@@ -94,13 +107,16 @@ export class MemberRepository {
     docType: docType,
     docNumber: string,
     db: DbClient = prisma,
-  ): Promise<MemberWithUser | null> {
+  ): Promise<(MemberWithUser & { membership: Membership | null }) | null> {
     return db.member.findFirst({
       where: {
         docType,
         docNumber,
       },
-      include: { user: true },
+      include: {
+        user: true,
+        membership: true,
+      },
     });
   }
 

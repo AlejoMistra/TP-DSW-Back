@@ -56,4 +56,14 @@ export class InstructorController {
 
     res.status(204).send();
   };
+
+  reactivate = async (req: Request, res: Response) => {
+    const { id } = req.validated!.params as { id: number };
+    const { body } = req.validated!;
+    const instructor = await this.service.reactivate(
+      id,
+      body as CreateInstructorInput,
+    );
+    res.status(200).json(instructor);
+  };
 }

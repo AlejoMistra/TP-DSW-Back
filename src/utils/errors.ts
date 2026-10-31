@@ -3,6 +3,7 @@ export class AppError extends Error {
     message: string,
     public readonly statusCode: number,
     public readonly code: string,
+    public readonly details: any = null,
   ) {
     super(message);
     this.name = this.constructor.name;
@@ -22,8 +23,12 @@ export class NotFoundError extends AppError {
 }
 
 export class ConflictError extends AppError {
-  constructor(message = 'El recurso ya existe') {
-    super(message, 409, 'CONFLICT');
+  constructor(
+    message = 'El recurso ya existe',
+    code = 'CONFLICT',
+    details: any = null,
+  ) {
+    super(message, 409, code, details);
   }
 }
 

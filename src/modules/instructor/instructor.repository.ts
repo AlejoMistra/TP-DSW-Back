@@ -1,5 +1,10 @@
 import { prisma } from '../../lib/prisma.js';
-import type { docType, Instructor, Prisma, User } from '../../generated/prisma/client.js';
+import type {
+  docType,
+  Instructor,
+  Prisma,
+  User,
+} from '../../generated/prisma/client.js';
 import type {
   CreateInstructorInput,
   UpdateInstructorInput,
@@ -11,7 +16,9 @@ export type InstructorWithUser = Instructor & { user: User };
 export type CreateInstructorData = Omit<CreateInstructorInput, 'email'> & {
   userId: number;
 };
-export type UpdateInstructorData = Partial<Omit<UpdateInstructorInput, 'email'>> & {
+export type UpdateInstructorData = Partial<
+  Omit<UpdateInstructorInput, 'email'>
+> & {
   deletedAt?: Date | null;
 };
 
@@ -40,6 +47,16 @@ export class InstructorRepository {
         id,
         deletedAt: null,
       },
+      include: { user: true },
+    });
+  }
+
+  async getByIdWithDeleted(
+    id: number,
+    db: DbClient = prisma,
+  ): Promise<InstructorWithUser | null> {
+    return db.instructor.findFirst({
+      where: { id },
       include: { user: true },
     });
   }

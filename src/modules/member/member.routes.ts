@@ -8,6 +8,7 @@ import {
   remove,
   getMe,
   updateMe,
+  reactivate,
 } from './member.controller.js';
 import {
   CreateMemberSchema,
@@ -16,6 +17,7 @@ import {
   DeleteMemberRequestSchema,
   ListMembersSchema,
   UpdateMyProfileSchema,
+  ReactivateMemberSchema,
 } from './member.schemas.js';
 import { validate } from '../../middlewares/validate.middleware.js';
 import { authenticate } from '../../middlewares/authentication.middleware.js';
@@ -68,4 +70,10 @@ memberRouter.delete(
   authorize(UserRole.ADMIN),
   validate(DeleteMemberRequestSchema),
   remove,
+);
+memberRouter.patch(
+  '/:id/reactivate',
+  authorize(UserRole.ADMIN),
+  validate(ReactivateMemberSchema),
+  reactivate,
 );

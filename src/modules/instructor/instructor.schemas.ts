@@ -53,3 +53,11 @@ export type UpdateInstructorInput = z.infer<
 export type InstructorResponse = z.infer<
   typeof InstructorResponseSchema
 >;
+
+export const ReactivateInstructorSchema = z.object({
+  params: GetInstructorByIdRequestSchema.shape.params,
+  body: CreateInstructorSchema.shape.body,
+});
+export type ReactivateInstructorInput = z.infer<
+  typeof ReactivateInstructorSchema
+>;

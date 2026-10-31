@@ -91,6 +91,7 @@ describe('RoutineService', () => {
       getAll: vi.fn(),
       count: vi.fn(),
       getById: vi.fn(),
+      getByIdWithDeleted: vi.fn(),
       findByUserId: vi.fn(),
       getByUserIdWithDeleted: vi.fn(),
       findByDoc: vi.fn(),
