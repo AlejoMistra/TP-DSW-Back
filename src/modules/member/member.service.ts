@@ -18,7 +18,11 @@ import {
   UpdateMemberInput,
   UpdateMyProfileInput,
 } from './member.schemas.js';
-import { BadRequestError, ConflictError, NotFoundError } from '../../utils/errors.js';
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+} from '../../utils/errors.js';
 import { FREE_TRIAL_DAYS } from '../../shared/constants.js';
 
 import { type PaginatedResponse } from '../../shared/pagination.js';
@@ -125,10 +129,11 @@ export class MemberService {
     input: CreateMemberInput,
   ): Promise<MemberWithMembershipAndPayment> {
     // 1. Validar por documento (incluyendo dados de baja e inactivos)
-    const existingMemberByDoc = await this.memberRepository.findByDocWithDeleted(
-      input.docType,
-      input.docNumber,
-    );
+    const existingMemberByDoc =
+      await this.memberRepository.findByDocWithDeleted(
+        input.docType,
+        input.docNumber,
+      );
 
     if (existingMemberByDoc) {
       // Caso A: Dado de baja (soft-deleted)
@@ -249,20 +254,10 @@ export class MemberService {
       throw new NotFoundError(`Socio con ID ${id} no encontrado`);
     }
 
-    const now = new Date();
-    const hasActiveMembership =
-      existingMember.membership &&
-      existingMember.membership.deletedAt === null &&
-      existingMember.membership.status === 'ACTIVE' &&
-      existingMember.membership.endDate >= now;
-
-    // Si ya está activo y al día, no se puede reactivar
-    if (
-      existingMember.deletedAt === null &&
-      existingMember.status === 'ACTIVE' &&
-      hasActiveMembership
-    ) {
-      throw new BadRequestError('El socio ya se encuentra activo en el sistema');
+    // Reactivate aplica estrictamente a cuentas con baja lógica (soft-deleted).
+    // Si el socio no está dado de baja, se gestiona directamente desde su perfil.
+    if (existingMember.deletedAt === null) {
+      throw new BadRequestError('El socio no se encuentra dado de baja');
     }
 
     // Si cambió el email, validar que no esté en uso por otro usuario activo
@@ -287,35 +282,23 @@ export class MemberService {
       );
     }
 
-    const isSoftDeleted = existingMember.deletedAt !== null;
-
     const { member, membership, createdPayment } = await prisma.$transaction(
       async (tx) => {
-        // Actualizar usuario
-        if (isSoftDeleted) {
-          // Si fue dado de baja: se restaura y se pasa a PENDING_ACTIVATION con password nulo
-          await this.userRepository.update(
-            existingMember.userId,
-            {
-              email,
-              passwordHash: null,
-              accountStatus: 'PENDING_ACTIVATION',
-              role: 'MEMBER',
-              isActive: true,
-              deletedAt: null,
-              failedLoginAttempts: 0,
-              lockedUntil: null,
-            },
-            tx,
-          );
-        } else if (email !== existingMember.user.email) {
-          // Si solo es inactivo comercial: conserva password y solo actualiza email si cambió
-          await this.userRepository.update(
-            existingMember.userId,
-            { email },
-            tx,
-          );
-        }
+        // Restaurar y reiniciar usuario a PENDING_ACTIVATION
+        await this.userRepository.update(
+          existingMember.userId,
+          {
+            email,
+            passwordHash: null,
+            accountStatus: 'PENDING_ACTIVATION',
+            role: 'MEMBER',
+            isActive: true,
+            deletedAt: null,
+            failedLoginAttempts: 0,
+            lockedUntil: null,
+          },
+          tx,
+        );
 
         // Actualizar datos del socio
         const updatedMember = await this.memberRepository.update(
@@ -429,7 +412,11 @@ export class MemberService {
 
     if (email !== undefined && email !== member.user.email) {
       const existingUser = await this.userRepository.findByEmail(email);
-      if (existingUser && existingUser.deletedAt === null && existingUser.id !== member.userId) {
+      if (
+        existingUser &&
+        existingUser.deletedAt === null &&
+        existingUser.id !== member.userId
+      ) {
         throw new ConflictError('El email ingresado ya existe');
       }
     }
@@ -437,7 +424,8 @@ export class MemberService {
     if (
       memberData.docNumber !== undefined &&
       (memberData.docNumber !== member.docNumber ||
-        (memberData.docType !== undefined && memberData.docType !== member.docType))
+        (memberData.docType !== undefined &&
+          memberData.docType !== member.docType))
     ) {
       const docTypeToCheck = memberData.docType ?? member.docType;
       const existingMemberDoc = await this.memberRepository.findByDoc(
@@ -481,6 +469,19 @@ export class MemberService {
       }
 
       const updated = await this.memberRepository.update(id, memberData, tx);
+
+      // Si se pasa el socio a INACTIVE, se cancela su membresía activa si la tuviera
+      if (memberData.status === 'INACTIVE' && membershipPlanId === undefined) {
+        const currentMembership =
+          await this.membershipRepository.getByMemberId(id);
+        if (currentMembership && currentMembership.status === 'ACTIVE') {
+          await this.membershipRepository.update(
+            currentMembership.id,
+            { status: 'CANCELLED' },
+            tx,
+          );
+        }
+      }
 
       if (membershipPlanId !== undefined && membership && membershipPlan) {
         const startDate = new Date();
