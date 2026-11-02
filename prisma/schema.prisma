@@ -73,6 +73,7 @@ model Member {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
+  @@index([docType, docNumber])
   @@map("members")
 }
 
@@ -94,6 +95,7 @@ model Instructor {
   routines      Routine[]
   classSessions ClassSession[]
 
+  @@index([docType, docNumber])
   @@map("instructors")
 }
 

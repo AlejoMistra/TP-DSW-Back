@@ -200,12 +200,12 @@ describe('MemberService', () => {
       }
     });
 
-    it('throws ConflictError if an active user exists with the same email', async () => {
+    it('throws ConflictError if a user exists with the same email (active or soft-deleted)', async () => {
       memberRepository.findByDocWithDeleted.mockResolvedValue(null);
       userRepository.findByEmail.mockResolvedValue({
         id: 5,
         email: 'juan@example.com',
-        deletedAt: null,
+        deletedAt: new Date(),
       });
 
       await expect(

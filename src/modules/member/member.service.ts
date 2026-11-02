@@ -179,9 +179,9 @@ export class MemberService {
       throw new ConflictError('Ya existe un socio activo con ese documento');
     }
 
-    // 2. Validar que el email no pertenezca a otro usuario activo
+    // 2. Validar que el email no pertenezca a otro usuario registrado
     const existingUser = await this.userRepository.findByEmail(input.email);
-    if (existingUser && existingUser.deletedAt === null) {
+    if (existingUser) {
       throw new ConflictError('El email ingresado ya existe');
     }
 
@@ -260,14 +260,10 @@ export class MemberService {
       throw new BadRequestError('El socio no se encuentra dado de baja');
     }
 
-    // Si cambió el email, validar que no esté en uso por otro usuario activo
+    // Si cambió el email, validar que no esté en uso por otro usuario
     if (input.email !== existingMember.user.email) {
       const emailUser = await this.userRepository.findByEmail(input.email);
-      if (
-        emailUser &&
-        emailUser.deletedAt === null &&
-        emailUser.id !== existingMember.userId
-      ) {
+      if (emailUser && emailUser.id !== existingMember.userId) {
         throw new ConflictError('El email ingresado ya existe');
       }
     }
@@ -300,13 +296,13 @@ export class MemberService {
           tx,
         );
 
-        // Actualizar datos del socio
+        // Actualizar datos del socio preservando su documento original
         const updatedMember = await this.memberRepository.update(
           existingMember.id,
           {
             ...memberData,
-            docType: input.docType,
-            docNumber: input.docNumber,
+            docType: existingMember.docType,
+            docNumber: existingMember.docNumber,
             status: 'ACTIVE',
             deletedAt: null,
           },

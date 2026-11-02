@@ -87,7 +87,7 @@ export class InstructorService {
     }
 
     const existingUser = await this.userRepository.findByEmail(input.email);
-    if (existingUser && existingUser.deletedAt === null) {
+    if (existingUser) {
       throw new ConflictError('Email ya registrado');
     }
 
@@ -136,11 +136,7 @@ export class InstructorService {
 
     if (input.email !== existingInstructor.user.email) {
       const emailUser = await this.userRepository.findByEmail(input.email);
-      if (
-        emailUser &&
-        emailUser.deletedAt === null &&
-        emailUser.id !== existingInstructor.userId
-      ) {
+      if (emailUser && emailUser.id !== existingInstructor.userId) {
         throw new ConflictError('Email ya registrado');
       }
     }
@@ -167,8 +163,8 @@ export class InstructorService {
         id,
         {
           ...instructorData,
-          docType: input.docType,
-          docNumber: input.docNumber,
+          docType: existingInstructor.docType,
+          docNumber: existingInstructor.docNumber,
           deletedAt: null,
         },
         tx,
