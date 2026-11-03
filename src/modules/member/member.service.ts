@@ -26,6 +26,7 @@ import {
 import { FREE_TRIAL_DAYS } from '../../shared/constants.js';
 
 import { type PaginatedResponse } from '../../shared/pagination.js';
+import { hashDefaultPassword } from '../../utils/passwordUtils.js';
 
 export type MemberWithMembershipAndPayment = MemberResponse & {
   membership: MembershipResponse;
@@ -198,10 +199,11 @@ export class MemberService {
     // 3. Crear nuevo socio de forma atómica
     const { member, membership, createdPayment } = await prisma.$transaction(
       async (tx) => {
+        const defaultPasswordHash = await hashDefaultPassword('MEMBER');
         const newUser = await this.userRepository.add(
           {
             email,
-            passwordHash: null,
+            passwordHash: defaultPasswordHash,
             accountStatus: 'PENDING_ACTIVATION',
             role: 'MEMBER',
             isActive: true,
@@ -280,12 +282,13 @@ export class MemberService {
 
     const { member, membership, createdPayment } = await prisma.$transaction(
       async (tx) => {
+        const defaultPasswordHash = await hashDefaultPassword('MEMBER');
         // Restaurar y reiniciar usuario a PENDING_ACTIVATION
         await this.userRepository.update(
           existingMember.userId,
           {
             email,
-            passwordHash: null,
+            passwordHash: defaultPasswordHash,
             accountStatus: 'PENDING_ACTIVATION',
             role: 'MEMBER',
             isActive: true,

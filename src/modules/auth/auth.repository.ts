@@ -1,5 +1,9 @@
 import { prisma } from '../../lib/prisma.js';
-import type { User, Member, Instructor } from '../../generated/prisma/client.js';
+import type {
+  User,
+  Member,
+  Instructor,
+} from '../../generated/prisma/client.js';
 
 export type UserWithIdentity = User & {
   member: Member | null;
@@ -7,7 +11,9 @@ export type UserWithIdentity = User & {
 };
 
 export class AuthRepository {
-  async findByEmailWithRelations(email: string): Promise<UserWithIdentity | null> {
+  async findByEmailWithRelations(
+    email: string,
+  ): Promise<UserWithIdentity | null> {
     return prisma.user.findUnique({
       where: { email },
       include: {
@@ -19,7 +25,7 @@ export class AuthRepository {
 
   async activateUser(userId: number, passwordHash: string): Promise<User> {
     return prisma.user.update({
-      where: { id: userId },
+      where: { id: userId, accountStatus: 'PENDING_ACTIVATION' },
       data: {
         passwordHash,
         accountStatus: 'ACTIVE',
@@ -54,4 +60,3 @@ export class AuthRepository {
     });
   }
 }
-
