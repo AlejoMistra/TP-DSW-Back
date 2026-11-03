@@ -2,10 +2,12 @@ import 'dotenv/config';
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import supertest from 'supertest';
 import { prismaMock } from '../mocks/prisma.mock.js';
 import { app } from '../../src/app.js';
+import { JWT_SECRET } from '../../src/shared/constants.js';
 import type {
   User,
   Member,
@@ -97,20 +99,23 @@ describe('Auth flow (login, activation) — mocked Prisma', () => {
       expect(res.body.token).toBeTruthy();
     });
 
-    it('rejects login while the account is pending activation', async () => {
+    it('allows login for PENDING_ACTIVATION user with temporary password', async () => {
+      const passwordHash = await bcrypt.hash('member123', 4);
       prismaMock.user.findUnique.mockResolvedValue({
-        ...buildUser({ accountStatus: 'PENDING_ACTIVATION' }),
+        ...buildUser({ accountStatus: 'PENDING_ACTIVATION', passwordHash }),
         member: buildMember(),
         instructor: null,
       } as never);
+      prismaMock.user.update.mockResolvedValue(buildUser());
 
       const res = await request.post('/auth/login').send({
         email: 'user@example.com',
-        password: 'somepassword',
+        password: 'member123',
       });
 
-      expect(res.status).toBe(403);
-      expect(res.body.message).toMatch(/activar/);
+      expect(res.status).toBe(200);
+      expect(res.body.user.accountStatus).toBe('PENDING_ACTIVATION');
+      expect(res.body.token).toBeTruthy();
     });
 
     it('rejects login with the wrong password and records the failed attempt', async () => {
@@ -161,85 +166,70 @@ describe('Auth flow (login, activation) — mocked Prisma', () => {
   });
 
   describe('POST /auth/activate-account', () => {
-    it('returns the same generic error for a nonexistent email (no user enumeration)', async () => {
-      prismaMock.user.findUnique.mockResolvedValue(null);
+    const validToken = jwt.sign(
+      { userId: 1, role: 'MEMBER' },
+      JWT_SECRET,
+      { expiresIn: '1h' },
+    );
 
+    it('rejects activation if no token is provided', async () => {
       const res = await request.post('/auth/activate-account').send({
-        email: 'doesnotexist@example.com',
-        name: 'Carlos',
-        surname: 'Test',
-        docNumber: '99887766',
         newPassword: 'SecurePassword123!',
       });
 
-      expect(res.status).toBe(400);
-      expect(res.body.message).toBe('No se pudieron verificar los datos');
+      expect(res.status).toBe(401);
+      expect(res.body.message).toMatch(/token/i);
     });
 
-    it('rejects activation with mismatched identity data', async () => {
-      prismaMock.user.findUnique.mockResolvedValue({
-        ...buildUser({ accountStatus: 'PENDING_ACTIVATION' }),
-        member: buildMember(),
-        instructor: null,
-      } as never);
-
-      const res = await request.post('/auth/activate-account').send({
-        email: 'user@example.com',
-        name: 'WrongName',
-        surname: 'Test',
-        docNumber: '99887766',
-        newPassword: 'SecurePassword123!',
-      });
+    it('rejects activation if newPassword is the default temporary password', async () => {
+      const res = await request
+        .post('/auth/activate-account')
+        .set('Authorization', `Bearer ${validToken}`)
+        .send({
+          newPassword: 'member123',
+        });
 
       expect(res.status).toBe(400);
-      expect(res.body.message).toBe('No se pudieron verificar los datos');
+      expect(res.body.message).toMatch(/diferente/i);
     });
 
-    it('activates the account when identity data matches (case-insensitive)', async () => {
-      prismaMock.user.findUnique.mockResolvedValue({
-        ...buildUser({ accountStatus: 'PENDING_ACTIVATION' }),
-        member: buildMember(),
-        instructor: null,
-      } as never);
+    it('activates the account when valid newPassword is provided', async () => {
       prismaMock.user.update.mockResolvedValue(
         buildUser({ accountStatus: 'ACTIVE' }),
       );
 
-      const res = await request.post('/auth/activate-account').send({
-        email: 'user@example.com',
-        name: 'carlos',
-        surname: 'test',
-        docNumber: '99887766',
-        newPassword: 'SecurePassword123!',
-      });
+      const res = await request
+        .post('/auth/activate-account')
+        .set('Authorization', `Bearer ${validToken}`)
+        .send({
+          newPassword: 'NewSecurePassword123!',
+        });
 
       expect(res.status).toBe(200);
+      expect(res.body.message).toMatch(/activada/i);
       expect(prismaMock.user.update).toHaveBeenCalledWith(
         expect.objectContaining({
+          where: {
+            id: 1,
+            accountStatus: 'PENDING_ACTIVATION',
+          },
           data: expect.objectContaining({ accountStatus: 'ACTIVE' }),
         }),
       );
     });
 
-    it('rejects re-activation of an already ACTIVE account', async () => {
-      prismaMock.user.findUnique.mockResolvedValue({
-        ...buildUser({ accountStatus: 'ACTIVE' }),
-        member: buildMember(),
-        instructor: null,
-      } as never);
+    it('rejects activation if the account is already ACTIVE or update fails', async () => {
+      prismaMock.user.update.mockRejectedValue(new Error('Record to update not found'));
 
-      const res = await request.post('/auth/activate-account').send({
-        email: 'user@example.com',
-        name: 'Carlos',
-        surname: 'Test',
-        docNumber: '99887766',
-        newPassword: 'AnotherPassword123!',
-      });
+      const res = await request
+        .post('/auth/activate-account')
+        .set('Authorization', `Bearer ${validToken}`)
+        .send({
+          newPassword: 'AnotherPassword123!',
+        });
 
       expect(res.status).toBe(400);
-      expect(res.body.message).toBe(
-        'La cuenta ya está activada, por favor inicia sesión',
-      );
+      expect(res.body.message).toMatch(/no se pudo activar/i);
     });
   });
 });

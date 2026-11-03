@@ -245,7 +245,7 @@ describe('InstructorService', () => {
         15,
         expect.objectContaining({
           accountStatus: 'PENDING_ACTIVATION',
-          passwordHash: null,
+          passwordHash: expect.any(String),
           deletedAt: null,
           isActive: true,
         }),
