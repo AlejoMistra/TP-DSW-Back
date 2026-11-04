@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { AuthRepository } from './auth.repository.js';
+import { AuthRepository, type UserWithIdentity } from './auth.repository.js';
 import { ActivateAccountInput, LoginInput } from './auth.schemas.js';
 import {
   BadRequestError,
@@ -15,6 +15,7 @@ import {
   DEFAULT_MEMBER_PASSWORD,
   LOCKOUT_DURATION_MINUTES,
   MAX_FAILED_LOGIN_ATTEMPTS,
+  PRE_AUTH_ROLE,
 } from '../../shared/constants.js';
 
 export interface AuthResponse {
@@ -29,13 +30,17 @@ export interface AuthResponse {
   };
 }
 
+export interface ActivateAccountResponse extends AuthResponse {
+  message: string;
+}
+
 export class AuthService {
   constructor(private readonly authRepository: AuthRepository) {}
 
   async activateAccount(
     userId: number,
     input: ActivateAccountInput,
-  ): Promise<{ message: string }> {
+  ): Promise<ActivateAccountResponse> {
     if (
       input.newPassword === DEFAULT_MEMBER_PASSWORD ||
       input.newPassword === DEFAULT_INSTRUCTOR_PASSWORD
@@ -50,8 +55,12 @@ export class AuthService {
       BCRYPT_SALT_ROUNDS,
     );
 
+    let updatedUser: UserWithIdentity;
     try {
-      await this.authRepository.activateUser(userId, passwordHash);
+      updatedUser = await this.authRepository.activateUser(
+        userId,
+        passwordHash,
+      );
       await this.authRepository.recordLoginSuccess(userId);
     } catch {
       throw new BadRequestError(
@@ -59,7 +68,27 @@ export class AuthService {
       );
     }
 
+    const token = jwt.sign(
+      {
+        userId: updatedUser.id,
+        role: updatedUser.role,
+      },
+      JWT_SECRET,
+      {
+        expiresIn: JWT_EXPIRES_IN,
+      },
+    );
+
     return {
+      token,
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        accountStatus: 'ACTIVE',
+        memberId: updatedUser.member?.id ?? null,
+        instructorId: updatedUser.instructor?.id ?? null,
+      },
       message: 'Cuenta activada exitosamente. Ya puedes acceder al sistema.',
     };
   }
@@ -114,13 +143,17 @@ export class AuthService {
       throw new UnauthorizedError('Credenciales inválidas');
     }
 
-    // 5. Login exitoso: emitir JWT y devolver accountStatus
+    // 5. Login exitoso
     await this.authRepository.recordLoginSuccess(user.id);
+
+    // Si la cuenta está pendiente de activación, emitimos el JWT con PRE_AUTH_ROLE
+    const tokenRole =
+      user.accountStatus === 'PENDING_ACTIVATION' ? PRE_AUTH_ROLE : user.role;
 
     const token = jwt.sign(
       {
         userId: user.id,
-        role: user.role,
+        role: tokenRole,
       },
       JWT_SECRET,
       {

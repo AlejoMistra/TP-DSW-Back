@@ -17,3 +17,4 @@ export const JWT_SECRET =
 
 export const DEFAULT_MEMBER_PASSWORD = 'member123';
 export const DEFAULT_INSTRUCTOR_PASSWORD = 'instructor123';
+export const PRE_AUTH_ROLE = 'PRE_AUTH';

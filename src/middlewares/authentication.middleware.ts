@@ -6,7 +6,7 @@ import { UserRole } from '../generated/prisma/enums.js';
 
 export interface AuthUser {
   userId: number;
-  role: UserRole;
+  role: UserRole | 'PRE_AUTH';
 }
 
 declare global {
@@ -19,8 +19,12 @@ declare global {
 
 /**
  * Middleware de autenticación que verifica que el usuario esté autenticado
-  */
-export function authenticate(req: Request, _res: Response, next: NextFunction): void {
+ */
+export function authenticate(
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+): void {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -35,7 +39,7 @@ export function authenticate(req: Request, _res: Response, next: NextFunction): 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as {
       userId?: number;
-      role?: UserRole;
+      role?: UserRole | 'PRE_AUTH';
     };
 
     if (!decoded.userId || !decoded.role) {

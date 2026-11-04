@@ -23,7 +23,10 @@ export class AuthRepository {
     });
   }
 
-  async activateUser(userId: number, passwordHash: string): Promise<User> {
+  async activateUser(
+    userId: number,
+    passwordHash: string,
+  ): Promise<UserWithIdentity> {
     return prisma.user.update({
       where: { id: userId, accountStatus: 'PENDING_ACTIVATION' },
       data: {
@@ -31,6 +34,10 @@ export class AuthRepository {
         accountStatus: 'ACTIVE',
         failedLoginAttempts: 0,
         lockedUntil: null,
+      },
+      include: {
+        member: true,
+        instructor: true,
       },
     });
   }

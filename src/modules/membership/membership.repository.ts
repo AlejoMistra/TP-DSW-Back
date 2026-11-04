@@ -42,8 +42,11 @@ export class MembershipRepository {
     });
   }
 
-  async getByMemberId(memberId: number): Promise<Membership | null> {
-    return prisma.membership.findFirst({
+  async getByMemberId(
+    memberId: number,
+    db: DbClient = prisma,
+  ): Promise<Membership | null> {
+    return db.membership.findFirst({
       where: { memberId, deletedAt: null },
     });
   }

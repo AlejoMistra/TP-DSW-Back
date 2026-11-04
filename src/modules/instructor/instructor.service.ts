@@ -192,11 +192,7 @@ export class InstructorService {
     if (email !== undefined && email !== existing.user.email) {
       const instructorWithEmail = await this.userRepository.findByEmail(email);
 
-      if (
-        instructorWithEmail &&
-        instructorWithEmail.deletedAt === null &&
-        instructorWithEmail.id !== existing.userId
-      ) {
+      if (instructorWithEmail && instructorWithEmail.id !== existing.userId) {
         throw new ConflictError('Email ya registrado');
       }
     }
