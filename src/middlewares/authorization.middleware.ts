@@ -13,8 +13,12 @@ export function authorize(...allowedRoles: UserRole[]) {
       return next(new UnauthorizedError('Usuario no autenticado'));
     }
 
-    if (!allowedRoles.includes(req.user.role)) {
-      return next(new ForbiddenError('No tienes permisos suficientes para realizar esta acción'));
+    if (req.user.role === 'PRE_AUTH' || !allowedRoles.includes(req.user.role)) {
+      return next(
+        new ForbiddenError(
+          'No tienes permisos suficientes para realizar esta acción',
+        ),
+      );
     }
 
     next();
