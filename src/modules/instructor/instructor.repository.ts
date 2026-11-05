@@ -1,5 +1,10 @@
 import { prisma } from '../../lib/prisma.js';
-import type { Instructor, Prisma, User } from '../../generated/prisma/client.js';
+import type {
+  docType,
+  Instructor,
+  Prisma,
+  User,
+} from '../../generated/prisma/client.js';
 import type {
   CreateInstructorInput,
   UpdateInstructorInput,
@@ -11,7 +16,11 @@ export type InstructorWithUser = Instructor & { user: User };
 export type CreateInstructorData = Omit<CreateInstructorInput, 'email'> & {
   userId: number;
 };
-export type UpdateInstructorData = Omit<UpdateInstructorInput, 'email'>;
+export type UpdateInstructorData = Partial<
+  Omit<UpdateInstructorInput, 'email'>
+> & {
+  deletedAt?: Date | null;
+};
 
 import { getPaginationParams } from '../../shared/pagination.js';
 
@@ -42,11 +51,60 @@ export class InstructorRepository {
     });
   }
 
+  async getByIdWithDeleted(
+    id: number,
+    db: DbClient = prisma,
+  ): Promise<InstructorWithUser | null> {
+    return db.instructor.findFirst({
+      where: { id },
+      include: { user: true },
+    });
+  }
+
   async findByUserId(userId: number): Promise<InstructorWithUser | null> {
     return prisma.instructor.findFirst({
       where: {
         userId,
         deletedAt: null,
+      },
+      include: { user: true },
+    });
+  }
+
+  async getByUserIdWithDeleted(
+    userId: number,
+    db: DbClient = prisma,
+  ): Promise<InstructorWithUser | null> {
+    return db.instructor.findFirst({
+      where: { userId },
+      include: { user: true },
+    });
+  }
+
+  async findByDoc(
+    docType: docType,
+    docNumber: string,
+    db: DbClient = prisma,
+  ): Promise<InstructorWithUser | null> {
+    return db.instructor.findFirst({
+      where: {
+        docType,
+        docNumber,
+        deletedAt: null,
+      },
+      include: { user: true },
+    });
+  }
+
+  async findByDocWithDeleted(
+    docType: docType,
+    docNumber: string,
+    db: DbClient = prisma,
+  ): Promise<InstructorWithUser | null> {
+    return db.instructor.findFirst({
+      where: {
+        docType,
+        docNumber,
       },
       include: { user: true },
     });

@@ -7,6 +7,13 @@ type CreateUserData = Omit<CreateUserInput, 'userId'>;
 
 import { getPaginationParams } from '../../shared/pagination.js';
 
+export type UpdateUserData = Omit<UpdateUserInput, 'userId'> & {
+  deletedAt?: Date | null;
+  isActive?: boolean;
+  failedLoginAttempts?: number;
+  lockedUntil?: Date | null;
+};
+
 export class UserRepository {
   async getAll(page?: number, limit?: number): Promise<User[]> {
     const { take, skip } = getPaginationParams(page, limit);
@@ -42,7 +49,7 @@ export class UserRepository {
     return db.user.create({ data: data});
   }
 
-  async update(id: number, data: Omit<UpdateUserInput, 'userId'>, db: DbClient = prisma): Promise<User> {
+  async update(id: number, data: UpdateUserData, db: DbClient = prisma): Promise<User> {
     return db.user.update({
       where: { id },
       data: data,
@@ -52,8 +59,11 @@ export class UserRepository {
   async delete(id: number, db: DbClient = prisma): Promise<void> {
     await db.user.update({
       where: { id },
-      data: { deletedAt: new Date() }
-    })
+      data: {
+        deletedAt: new Date(),
+        isActive: false,
+      },
+    });
   }
 }
 

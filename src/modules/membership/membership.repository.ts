@@ -48,6 +48,15 @@ export class MembershipRepository {
     });
   }
 
+  async getByMemberIdWithDeleted(
+    memberId: number,
+    db: DbClient = prisma,
+  ): Promise<Membership | null> {
+    return db.membership.findFirst({
+      where: { memberId },
+    });
+  }
+
   async getByUserId(userId: number): Promise<Membership | null> {
     return prisma.membership.findFirst({
       where: {
@@ -74,7 +83,7 @@ export class MembershipRepository {
 
   async update(
     id: number,
-    membership: UpdateMembershipInput,
+    membership: UpdateMembershipInput & { deletedAt?: Date | null },
     db: DbClient = prisma,
   ): Promise<Membership> {
     const data: Prisma.MembershipUpdateInput = {};
@@ -93,6 +102,9 @@ export class MembershipRepository {
     }
     if (membership.status !== undefined) {
       data.status = membership.status;
+    }
+    if ('deletedAt' in membership) {
+      data.deletedAt = membership.deletedAt;
     }
 
     return db.membership.update({

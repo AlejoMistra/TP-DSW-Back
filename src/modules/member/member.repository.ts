@@ -1,10 +1,12 @@
 import { CreateMemberInput, UpdateMemberInput } from './member.schemas.js';
 import {
+  docType,
   Member,
   Membership,
   MembershipPlan,
   MembershipStatus,
   Prisma,
+  Status,
   User,
 } from '../../generated/prisma/client.js';
 import { prisma } from '../../lib/prisma.js';
@@ -23,10 +25,12 @@ export type CreateMemberData = Omit<
 > & {
   userId: number;
 };
-export type UpdateMemberData = Omit<
-  UpdateMemberInput,
-  'membershipPlanId' | 'email'
->;
+export type UpdateMemberData = Partial<
+  Omit<CreateMemberInput, 'membershipPlanId' | 'email'>
+> & {
+  deletedAt?: Date | null;
+  status?: Status;
+};
 
 import { getPaginationParams } from '../../shared/pagination.js';
 
@@ -54,10 +58,65 @@ export class MemberRepository {
     });
   }
 
+  async getByIdWithDeleted(
+    id: number,
+    db: DbClient = prisma,
+  ): Promise<(MemberWithUser & { membership: Membership | null }) | null> {
+    return db.member.findFirst({
+      where: { id },
+      include: {
+        user: true,
+        membership: true,
+      },
+    });
+  }
+
   async getByUserId(userId: number): Promise<MemberWithUser | null> {
     return prisma.member.findFirst({
       where: { userId, deletedAt: null },
       include: { user: true },
+    });
+  }
+
+  async getByUserIdWithDeleted(
+    userId: number,
+    db: DbClient = prisma,
+  ): Promise<MemberWithUser | null> {
+    return db.member.findFirst({
+      where: { userId },
+      include: { user: true },
+    });
+  }
+
+  async findByDoc(
+    docType: docType,
+    docNumber: string,
+    db: DbClient = prisma,
+  ): Promise<MemberWithUser | null> {
+    return db.member.findFirst({
+      where: {
+        docType,
+        docNumber,
+        deletedAt: null,
+      },
+      include: { user: true },
+    });
+  }
+
+  async findByDocWithDeleted(
+    docType: docType,
+    docNumber: string,
+    db: DbClient = prisma,
+  ): Promise<(MemberWithUser & { membership: Membership | null }) | null> {
+    return db.member.findFirst({
+      where: {
+        docType,
+        docNumber,
+      },
+      include: {
+        user: true,
+        membership: true,
+      },
     });
   }
 

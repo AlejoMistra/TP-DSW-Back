@@ -67,3 +67,13 @@ export const remove = async (req: Request, res: Response) => {
   await memberService.delete(Number(id));
   res.status(204).send();
 };
+
+export const reactivate = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { body } = req.validated!;
+  const reactivated = await memberService.reactivate(
+    Number(id),
+    body as CreateMemberInput,
+  );
+  res.status(200).json(reactivated);
+};
