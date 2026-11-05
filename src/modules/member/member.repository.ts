@@ -117,6 +117,9 @@ export class MemberRepository {
         user: true,
         membership: true,
       },
+      orderBy: {
+        id: 'desc',
+      },
     });
   }
 
