@@ -117,6 +117,9 @@ export class InstructorRepository {
         user: { email },
       },
       include: { user: true },
+      orderBy:{
+        id: 'desc',
+      },
     });
   }
 

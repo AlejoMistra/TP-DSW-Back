@@ -13,10 +13,11 @@ export class AuthController {
 
   activateAccount = async (req: Request, res: Response) => {
     const { body } = req.validated!;
+    const userId = req.user!.userId;
     const result = await this.authService.activateAccount(
+      userId,
       body as ActivateAccountInput,
     );
     res.status(200).json(result);
   };
 }
-

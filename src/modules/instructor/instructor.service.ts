@@ -17,6 +17,7 @@ import {
 } from './instructor.schemas.js';
 
 import { type PaginatedResponse } from '../../shared/pagination.js';
+import { hashDefaultPassword } from '../../utils/passwordUtils.js';
 
 export class InstructorService {
   constructor(
@@ -94,10 +95,11 @@ export class InstructorService {
     const { email, ...instructorData } = input;
 
     const createdInstructor = await prisma.$transaction(async (tx) => {
+      const defaultPasswordHash = await hashDefaultPassword('INSTRUCTOR');
       const newUser = await this.userRepository.add(
         {
           email,
-          passwordHash: null,
+          passwordHash: defaultPasswordHash,
           accountStatus: 'PENDING_ACTIVATION',
           role: 'INSTRUCTOR',
           isActive: true,
@@ -144,11 +146,12 @@ export class InstructorService {
     const { email, ...instructorData } = input;
 
     const reactivated = await prisma.$transaction(async (tx) => {
+      const defaultPasswordHash = await hashDefaultPassword('INSTRUCTOR');
       await this.userRepository.update(
         existingInstructor.userId,
         {
           email,
-          passwordHash: null,
+          passwordHash: defaultPasswordHash,
           accountStatus: 'PENDING_ACTIVATION',
           role: 'INSTRUCTOR',
           isActive: true,
@@ -189,11 +192,7 @@ export class InstructorService {
     if (email !== undefined && email !== existing.user.email) {
       const instructorWithEmail = await this.userRepository.findByEmail(email);
 
-      if (
-        instructorWithEmail &&
-        instructorWithEmail.deletedAt === null &&
-        instructorWithEmail.id !== existing.userId
-      ) {
+      if (instructorWithEmail && instructorWithEmail.id !== existing.userId) {
         throw new ConflictError('Email ya registrado');
       }
     }

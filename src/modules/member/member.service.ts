@@ -1,5 +1,5 @@
 import { prisma } from '../../lib/prisma.js';
-import type { MembershipStatus } from '../../generated/prisma/client.js';
+import type { MembershipStatus, Prisma } from '../../generated/prisma/client.js';
 import { MemberRepository, MemberWithUser } from './member.repository.js';
 import { UserRepository } from '../user/user.repository.js';
 import { MembershipRepository } from '../membership/membership.repository.js';
@@ -26,6 +26,7 @@ import {
 import { FREE_TRIAL_DAYS } from '../../shared/constants.js';
 
 import { type PaginatedResponse } from '../../shared/pagination.js';
+import { hashDefaultPassword } from '../../utils/passwordUtils.js';
 
 export type MemberWithMembershipAndPayment = MemberResponse & {
   membership: MembershipResponse;
@@ -198,10 +199,11 @@ export class MemberService {
     // 3. Crear nuevo socio de forma atómica
     const { member, membership, createdPayment } = await prisma.$transaction(
       async (tx) => {
+        const defaultPasswordHash = await hashDefaultPassword('MEMBER');
         const newUser = await this.userRepository.add(
           {
             email,
-            passwordHash: null,
+            passwordHash: defaultPasswordHash,
             accountStatus: 'PENDING_ACTIVATION',
             role: 'MEMBER',
             isActive: true,
@@ -280,12 +282,13 @@ export class MemberService {
 
     const { member, membership, createdPayment } = await prisma.$transaction(
       async (tx) => {
+        const defaultPasswordHash = await hashDefaultPassword('MEMBER');
         // Restaurar y reiniciar usuario a PENDING_ACTIVATION
         await this.userRepository.update(
           existingMember.userId,
           {
             email,
-            passwordHash: null,
+            passwordHash: defaultPasswordHash,
             accountStatus: 'PENDING_ACTIVATION',
             role: 'MEMBER',
             isActive: true,
@@ -344,7 +347,7 @@ export class MemberService {
     membershipPlanId: number,
     durationDays: number,
     payment: CreateMemberInput['payment'],
-    tx: any,
+    tx: Prisma.TransactionClient,
   ) {
     const startDate = new Date();
     const endDate = new Date(startDate);
@@ -408,11 +411,7 @@ export class MemberService {
 
     if (email !== undefined && email !== member.user.email) {
       const existingUser = await this.userRepository.findByEmail(email);
-      if (
-        existingUser &&
-        existingUser.deletedAt === null &&
-        existingUser.id !== member.userId
-      ) {
+      if (existingUser && existingUser.id !== member.userId) {
         throw new ConflictError('El email ingresado ya existe');
       }
     }
@@ -469,7 +468,7 @@ export class MemberService {
       // Si se pasa el socio a INACTIVE, se cancela su membresía activa si la tuviera
       if (memberData.status === 'INACTIVE' && membershipPlanId === undefined) {
         const currentMembership =
-          await this.membershipRepository.getByMemberId(id);
+          await this.membershipRepository.getByMemberId(id, tx);
         if (currentMembership && currentMembership.status === 'ACTIVE') {
           await this.membershipRepository.update(
             currentMembership.id,

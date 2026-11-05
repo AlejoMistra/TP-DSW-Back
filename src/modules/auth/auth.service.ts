@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { AuthRepository } from './auth.repository.js';
+import { AuthRepository, type UserWithIdentity } from './auth.repository.js';
 import { ActivateAccountInput, LoginInput } from './auth.schemas.js';
 import {
   BadRequestError,
@@ -11,8 +11,11 @@ import {
   BCRYPT_SALT_ROUNDS,
   JWT_EXPIRES_IN,
   JWT_SECRET,
+  DEFAULT_INSTRUCTOR_PASSWORD,
+  DEFAULT_MEMBER_PASSWORD,
   LOCKOUT_DURATION_MINUTES,
   MAX_FAILED_LOGIN_ATTEMPTS,
+  PRE_AUTH_ROLE,
 } from '../../shared/constants.js';
 
 export interface AuthResponse {
@@ -21,50 +24,30 @@ export interface AuthResponse {
     id: number;
     email: string;
     role: string;
+    accountStatus: string;
     memberId: number | null;
     instructorId: number | null;
   };
+}
+
+export interface ActivateAccountResponse extends AuthResponse {
+  message: string;
 }
 
 export class AuthService {
   constructor(private readonly authRepository: AuthRepository) {}
 
   async activateAccount(
+    userId: number,
     input: ActivateAccountInput,
-  ): Promise<{ message: string }> {
-    const user = await this.authRepository.findByEmailWithRelations(
-      input.email,
-    );
-
-    if (!user) {
-      throw new BadRequestError('No se pudieron verificar los datos');
-    }
-
-    if (user.accountStatus === 'ACTIVE') {
+  ): Promise<ActivateAccountResponse> {
+    if (
+      input.newPassword === DEFAULT_MEMBER_PASSWORD ||
+      input.newPassword === DEFAULT_INSTRUCTOR_PASSWORD
+    ) {
       throw new BadRequestError(
-        'La cuenta ya está activada, por favor inicia sesión',
+        'La nueva contraseña debe ser diferente a la contraseña temporal por defecto',
       );
-    }
-
-    if (user.accountStatus !== 'PENDING_ACTIVATION') {
-      throw new BadRequestError('No se pudieron verificar los datos');
-    }
-
-    const identityEntity = user.member ?? user.instructor;
-    if (!identityEntity) {
-      throw new BadRequestError('No se pudieron verificar los datos');
-    }
-
-    const normalize = (str: string) => str.trim().toLowerCase();
-    const nameMatches =
-      normalize(identityEntity.name) === normalize(input.name);
-    const surnameMatches =
-      normalize(identityEntity.surname) === normalize(input.surname);
-    const docMatches =
-      identityEntity.docNumber.trim() === input.docNumber.trim();
-
-    if (!nameMatches || !surnameMatches || !docMatches) {
-      throw new BadRequestError('No se pudieron verificar los datos');
     }
 
     const passwordHash = await bcrypt.hash(
@@ -72,10 +55,41 @@ export class AuthService {
       BCRYPT_SALT_ROUNDS,
     );
 
-    await this.authRepository.activateUser(user.id, passwordHash);
+    let updatedUser: UserWithIdentity;
+    try {
+      updatedUser = await this.authRepository.activateUser(
+        userId,
+        passwordHash,
+      );
+      await this.authRepository.recordLoginSuccess(userId);
+    } catch {
+      throw new BadRequestError(
+        'No se pudo activar la cuenta o la cuenta ya se encuentra activa',
+      );
+    }
+
+    const token = jwt.sign(
+      {
+        userId: updatedUser.id,
+        role: updatedUser.role,
+      },
+      JWT_SECRET,
+      {
+        expiresIn: JWT_EXPIRES_IN,
+      },
+    );
 
     return {
-      message: 'Cuenta activada exitosamente. Ya puedes iniciar sesión.',
+      token,
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        accountStatus: 'ACTIVE',
+        memberId: updatedUser.member?.id ?? null,
+        instructorId: updatedUser.instructor?.id ?? null,
+      },
+      message: 'Cuenta activada exitosamente. Ya puedes acceder al sistema.',
     };
   }
 
@@ -84,33 +98,26 @@ export class AuthService {
       input.email,
     );
 
-    // 1. Find User by email -> if not found, generic error
+    // 1. Validar existencia
     if (!user) {
       throw new UnauthorizedError('Credenciales inválidas');
     }
 
-    // 2. If accountStatus === PENDING_ACTIVATION -> specific activation error
-    if (user.accountStatus === 'PENDING_ACTIVATION') {
-      throw new ForbiddenError(
-        'Debes activar tu cuenta antes de iniciar sesión',
-      );
-    }
-
-    // 3. If isActive === false or deletedAt is set -> account disabled
+    // 2. Validar deshabilitado
     if (!user.isActive || user.deletedAt !== null) {
       throw new ForbiddenError(
         'Cuenta deshabilitada, contacta a la administración',
       );
     }
 
-    // Check account lockout
+    // 3. Validar lockout
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       throw new ForbiddenError(
         'Cuenta bloqueada temporalmente por intentos fallidos. Intenta más tarde.',
       );
     }
 
-    // 4. Compare password
+    // 4. Comparar contraseña (incluso la provisoria)
     if (!user.passwordHash) {
       throw new UnauthorizedError('Credenciales inválidas');
     }
@@ -136,13 +143,17 @@ export class AuthService {
       throw new UnauthorizedError('Credenciales inválidas');
     }
 
-    // 5. On success: issue JWT, update lastLoginAt, reset failedLoginAttempts
+    // 5. Login exitoso
     await this.authRepository.recordLoginSuccess(user.id);
+
+    // Si la cuenta está pendiente de activación, emitimos el JWT con PRE_AUTH_ROLE
+    const tokenRole =
+      user.accountStatus === 'PENDING_ACTIVATION' ? PRE_AUTH_ROLE : user.role;
 
     const token = jwt.sign(
       {
         userId: user.id,
-        role: user.role,
+        role: tokenRole,
       },
       JWT_SECRET,
       {
@@ -156,6 +167,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         role: user.role,
+        accountStatus: user.accountStatus,
         memberId: user.member?.id ?? null,
         instructorId: user.instructor?.id ?? null,
       },

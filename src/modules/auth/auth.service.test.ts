@@ -70,14 +70,30 @@ describe('AuthService', () => {
       ).rejects.toThrow(UnauthorizedError);
     });
 
-    it('throws ForbiddenError when account is pending activation', async () => {
+    it('allows login when account is pending activation and returns PENDING_ACTIVATION status', async () => {
       authRepository.findByEmailWithRelations.mockResolvedValue(
-        buildUser({ accountStatus: 'PENDING_ACTIVATION' }),
+        buildUser({ accountStatus: 'PENDING_ACTIVATION', member: { id: 25 } as never }),
       );
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+      vi.mocked(jwt.sign).mockReturnValue('signed-token' as never);
 
-      await expect(
-        authService.login({ email: 'member@example.com', password: 'x' }),
-      ).rejects.toThrow(ForbiddenError);
+      const result = await authService.login({
+        email: 'member@example.com',
+        password: 'member123',
+      });
+
+      expect(authRepository.recordLoginSuccess).toHaveBeenCalledWith(1);
+      expect(result).toEqual({
+        token: 'signed-token',
+        user: {
+          id: 1,
+          email: 'member@example.com',
+          role: 'MEMBER',
+          accountStatus: 'PENDING_ACTIVATION',
+          memberId: 25,
+          instructorId: null,
+        },
+      });
     });
 
     it('throws ForbiddenError when account is disabled', async () => {
@@ -156,6 +172,7 @@ describe('AuthService', () => {
           id: 1,
           email: 'member@example.com',
           role: 'MEMBER',
+          accountStatus: 'ACTIVE',
           memberId: 25,
           instructorId: null,
         },
@@ -164,69 +181,37 @@ describe('AuthService', () => {
   });
 
   describe('activateAccount', () => {
-    const activationInput = {
-      email: 'member@example.com',
-      name: 'Carlos',
-      surname: 'Test',
-      docNumber: '99887766',
-      newPassword: 'SecurePassword123!',
-    };
-
-    it('throws BadRequestError when user does not exist', async () => {
-      authRepository.findByEmailWithRelations.mockResolvedValue(null);
-
+    it('throws BadRequestError when newPassword is the default member password', async () => {
       await expect(
-        authService.activateAccount(activationInput),
-      ).rejects.toThrow(BadRequestError);
+        authService.activateAccount(1, { newPassword: 'member123' }),
+      ).rejects.toThrow('La nueva contraseña debe ser diferente a la contraseña temporal por defecto');
     });
 
-    it('throws BadRequestError when account is already active', async () => {
-      authRepository.findByEmailWithRelations.mockResolvedValue(
-        buildUser({ accountStatus: 'ACTIVE' }),
-      );
-
+    it('throws BadRequestError when newPassword is the default instructor password', async () => {
       await expect(
-        authService.activateAccount(activationInput),
-      ).rejects.toThrow('La cuenta ya está activada, por favor inicia sesión');
+        authService.activateAccount(1, { newPassword: 'instructor123' }),
+      ).rejects.toThrow('La nueva contraseña debe ser diferente a la contraseña temporal por defecto');
     });
 
-    it('throws generic BadRequestError when identity data does not match', async () => {
-      authRepository.findByEmailWithRelations.mockResolvedValue(
-        buildUser({
-          accountStatus: 'PENDING_ACTIVATION',
-          member: {
-            name: 'Otro',
-            surname: 'Nombre',
-            docNumber: '99887766',
-          } as never,
-        }),
-      );
+    it('throws BadRequestError when activateUser fails (e.g. user already active or not found)', async () => {
+      authRepository.activateUser.mockRejectedValue(new Error('Record to update not found'));
 
       await expect(
-        authService.activateAccount(activationInput),
-      ).rejects.toThrow('No se pudieron verificar los datos');
+        authService.activateAccount(1, { newPassword: 'NewSecurePassword123!' }),
+      ).rejects.toThrow('No se pudo activar la cuenta o la cuenta ya se encuentra activa');
     });
 
-    it('activates the account when identity data matches (case-insensitive)', async () => {
-      authRepository.findByEmailWithRelations.mockResolvedValue(
-        buildUser({
-          accountStatus: 'PENDING_ACTIVATION',
-          member: {
-            name: 'carlos',
-            surname: 'test',
-            docNumber: '99887766',
-          } as never,
-        }),
-      );
+    it('activates the account when password is valid', async () => {
+      authRepository.activateUser.mockResolvedValue(buildUser({ accountStatus: 'ACTIVE' }));
       vi.mocked(bcrypt.hash).mockResolvedValue('new-hash' as never);
 
-      const result = await authService.activateAccount(activationInput);
+      const result = await authService.activateAccount(1, {
+        newPassword: 'NewSecurePassword123!',
+      });
 
-      expect(bcrypt.hash).toHaveBeenCalledWith(
-        activationInput.newPassword,
-        expect.any(Number),
-      );
+      expect(bcrypt.hash).toHaveBeenCalledWith('NewSecurePassword123!', expect.any(Number));
       expect(authRepository.activateUser).toHaveBeenCalledWith(1, 'new-hash');
+      expect(authRepository.recordLoginSuccess).toHaveBeenCalledWith(1);
       expect(result.message).toMatch(/activada/);
     });
   });
