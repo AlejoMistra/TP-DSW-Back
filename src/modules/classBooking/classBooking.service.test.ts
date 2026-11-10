@@ -216,6 +216,34 @@ describe('ClassBookingService', () => {
       ).rejects.toThrow('La membresía del socio no cubre la fecha de la clase solicitada');
     });
 
+    it('throws ConflictError if session date is before membership startDate (future membership)', async () => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const nextMonth = new Date();
+      nextMonth.setDate(nextMonth.getDate() + 30);
+
+      const futureStartDate = new Date();
+      futureStartDate.setDate(futureStartDate.getDate() + 7);
+
+      txMock.classSession.findFirst.mockResolvedValue({
+        ...validSession,
+        date: tomorrow,
+      });
+      txMock.member.findFirst.mockResolvedValue({
+        ...validMember,
+        membership: {
+          ...validMember.membership,
+          startDate: futureStartDate,
+          endDate: nextMonth,
+        },
+      });
+
+      await expect(
+        service.create({ memberId: 10, classSessionId: 1 }),
+      ).rejects.toThrow('La membresía del socio aún no se encuentra vigente para la fecha de la clase solicitada');
+    });
+
     it('throws ConflictError if member already has a confirmed booking for this session', async () => {
       txMock.classSession.findFirst.mockResolvedValue(validSession);
       txMock.member.findFirst.mockResolvedValue(validMember);

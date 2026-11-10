@@ -291,6 +291,16 @@ export class ClassBookingService {
 
     const sessionDateObj = new Date(sessionDate);
     sessionDateObj.setUTCHours(0, 0, 0, 0);
+
+    const membershipStartStartOfDay = new Date(member.membership.startDate);
+    membershipStartStartOfDay.setUTCHours(0, 0, 0, 0);
+
+    if (sessionDateObj < membershipStartStartOfDay) {
+      throw new ConflictError(
+        'La membresía del socio aún no se encuentra vigente para la fecha de la clase solicitada',
+      );
+    }
+
     if (sessionDateObj > membershipExpiryEndOfDay) {
       throw new ConflictError(
         'La membresía del socio no cubre la fecha de la clase solicitada',
