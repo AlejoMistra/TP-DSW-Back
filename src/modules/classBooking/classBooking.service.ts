@@ -7,7 +7,9 @@ import {
 import { Prisma, type ClassBooking } from '../../generated/prisma/client.js';
 import { ClassBookingRepository } from './classBooking.repository.js';
 import { prisma } from '../../lib/prisma.js';
-import { NotFoundError, ConflictError } from '../../utils/errors.js';
+import { NotFoundError, ConflictError, ForbiddenError } from '../../utils/errors.js';
+import type { AuthUser } from '../../middlewares/authentication.middleware.js';
+import { UserRole } from '../../generated/prisma/enums.js';
 
 import { type PaginatedResponse } from '../../shared/pagination.js';
 
@@ -29,19 +31,39 @@ export class ClassBookingService {
   }
 
   async getMine(userId: number): Promise<ClassBookingResponse[]> {
-  const classBookings = await this.repository.getByUserId(userId);
-  return classBookings.map((classBooking) => this.toResponse(classBooking));
-}
+    const classBookings = await this.repository.getByUserId(userId);
+    return classBookings.map((classBooking) => this.toResponse(classBooking));
+  }
 
-  async getById(id: number): Promise<ClassBookingResponse> {
+  async getById(id: number, currentUser?: AuthUser): Promise<ClassBookingResponse> {
     const classBooking = await this.repository.getById(id);
     if (!classBooking) throw new NotFoundError(`Asistencia a clase con ID ${id} no encontrada`);
+
+    if (currentUser?.role === UserRole.MEMBER) {
+      const member = await prisma.member.findFirst({
+        where: { userId: currentUser.userId, deletedAt: null },
+      });
+      if (!member || member.id !== classBooking.memberId) {
+        throw new ForbiddenError('No tienes permiso para ver esta reserva');
+      }
+    }
+
     return this.toResponse(classBooking);
   }
 
-  async create(input: CreateClassBookingInput): Promise<ClassBookingResponse> {
+  async create(input: CreateClassBookingInput, currentUser?: AuthUser): Promise<ClassBookingResponse> {
     try {
       const created = await prisma.$transaction(async (tx) => {
+        // Validar autorización de socio
+        if (currentUser?.role === UserRole.MEMBER) {
+          const member = await tx.member.findFirst({
+            where: { userId: currentUser.userId, deletedAt: null },
+          });
+          if (!member || member.id !== input.memberId) {
+            throw new ForbiddenError('No tienes permiso para reservar clases para otro socio');
+          }
+        }
+
         // 1) Session válida
         const session = await tx.classSession.findFirst({
           where: {
@@ -53,7 +75,10 @@ export class ClassBookingService {
 
         if (!session) throw new NotFoundError('Sesión de clase no encontrada o no disponible');
 
-        // 2) Buscar reserva previa (incluso cancelada o con soft-delete)
+        // 2) Validar elegibilidad del socio y vigencia de su membresía
+        await this.validateMemberBookingEligibility(tx, input.memberId, session.date);
+
+        // 3) Buscar reserva previa (incluso cancelada o con soft-delete)
         const existingBooking = await tx.classBooking.findFirst({
           where: {
             memberId: input.memberId,
@@ -120,12 +145,22 @@ export class ClassBookingService {
     }
   }
 
-  async update(id: number, input: UpdateClassBookingInput): Promise<ClassBookingResponse> {
+  async update(id: number, input: UpdateClassBookingInput, currentUser?: AuthUser): Promise<ClassBookingResponse> {
     const updated = await prisma.$transaction(async (tx) => {
       const existing = await tx.classBooking.findFirst({
         where: { id },
       });
       if (!existing) throw new NotFoundError(`Asistencia a clase con ID ${id} no encontrada`);
+
+      // Validar autorización de socio
+      if (currentUser?.role === UserRole.MEMBER) {
+        const member = await tx.member.findFirst({
+          where: { userId: currentUser.userId, deletedAt: null },
+        });
+        if (!member || member.id !== existing.memberId) {
+          throw new ForbiddenError('No tienes permiso para modificar esta reserva');
+        }
+      }
 
       // Si no hay cambio de estado y no está soft-deleted, devolver existente
       if (existing.status === input.status && existing.deletedAt === null) return existing;
@@ -156,6 +191,9 @@ export class ClassBookingService {
         if (!session) throw new NotFoundError('Sesión de clase no encontrada o no disponible');
         if (session.remainingCapacity <= 0) throw new ConflictError('No hay cupos disponibles');
 
+        // Validar elegibilidad del socio y membresía
+        await this.validateMemberBookingEligibility(tx, existing.memberId, session.date);
+
         const booking = await tx.classBooking.update({
           where: { id },
           data: {
@@ -179,12 +217,22 @@ export class ClassBookingService {
     return this.toResponse(updated);
   }
 
-  async delete(id: number): Promise<void> {
+  async delete(id: number, currentUser?: AuthUser): Promise<void> {
     await prisma.$transaction(async (tx) => {
       const existing = await tx.classBooking.findFirst({ where: { id } });
 
       if (!existing || existing.deletedAt) {
         throw new NotFoundError(`Asistencia a clase con ID ${id} no encontrada`);
+      }
+
+      // Validar autorización de socio
+      if (currentUser?.role === UserRole.MEMBER) {
+        const member = await tx.member.findFirst({
+          where: { userId: currentUser.userId, deletedAt: null },
+        });
+        if (!member || member.id !== existing.memberId) {
+          throw new ForbiddenError('No tienes permiso para cancelar esta reserva');
+        }
       }
 
       if (existing.status === 'CANCELLED') {
@@ -201,6 +249,63 @@ export class ClassBookingService {
         data: { remainingCapacity: { increment: 1 } },
       });
     });
+  }
+
+  private async validateMemberBookingEligibility(
+    tx: Prisma.TransactionClient,
+    memberId: number,
+    sessionDate: Date,
+  ): Promise<void> {
+    const member = await tx.member.findFirst({
+      where: { id: memberId, deletedAt: null },
+      include: { membership: true },
+    });
+
+    if (!member) {
+      throw new NotFoundError('Socio no encontrado');
+    }
+
+    if (member.status === 'INACTIVE') {
+      throw new ConflictError(
+        'El socio se encuentra inactivo y no puede reservar clases',
+      );
+    }
+
+    if (!member.membership || member.membership.deletedAt !== null) {
+      throw new ConflictError('El socio no posee una membresía activa');
+    }
+
+    if (member.membership.status !== 'ACTIVE') {
+      throw new ConflictError(
+        'La membresía del socio no se encuentra activa',
+      );
+    }
+
+    const now = new Date();
+    const membershipExpiryEndOfDay = new Date(member.membership.endDate);
+    membershipExpiryEndOfDay.setUTCHours(23, 59, 59, 999);
+
+    if (membershipExpiryEndOfDay < now) {
+      throw new ConflictError('La membresía del socio se encuentra vencida');
+    }
+
+    const sessionDateObj = new Date(sessionDate);
+    sessionDateObj.setUTCHours(0, 0, 0, 0);
+
+    const membershipStartStartOfDay = new Date(member.membership.startDate);
+    membershipStartStartOfDay.setUTCHours(0, 0, 0, 0);
+
+    if (sessionDateObj < membershipStartStartOfDay) {
+      throw new ConflictError(
+        'La membresía del socio aún no se encuentra vigente para la fecha de la clase solicitada',
+      );
+    }
+
+    if (sessionDateObj > membershipExpiryEndOfDay) {
+      throw new ConflictError(
+        'La membresía del socio no cubre la fecha de la clase solicitada',
+      );
+    }
   }
 
   private toResponse(classBooking: ClassBooking): ClassBookingResponse {

@@ -13,7 +13,9 @@ export class ClassSessionController {
     const page = req.query.page ? Number(req.query.page) : 1;
     const limit = req.query.limit ? Number(req.query.limit) : 500;
     const date = req.query.date as string | undefined;
-    const items = await this.service.getAll(page, limit, date);
+    const startDate = req.query.startDate as string | undefined;
+    const endDate = req.query.endDate as string | undefined;
+    const items = await this.service.getAll(page, limit, date, startDate, endDate);
     res.status(200).json(items);
   };
 

@@ -12,12 +12,26 @@ import type {
 import { getPaginationParams } from '../../shared/pagination.js';
 import { normalizeDateToUTC } from './recurrenceUtils.js';
 
-function buildDateFilter(date?: string) {
-  if (!date) return undefined;
-  const start = new Date(`${date}T00:00:00.000Z`);
-  const end = new Date(`${date}T23:59:59.999Z`);
-  if (isNaN(start.getTime()) || isNaN(end.getTime())) return undefined;
-  return { gte: start, lte: end };
+function buildDateFilter(date?: string, startDate?: string, endDate?: string) {
+  if (date) {
+    const start = new Date(`${date}T00:00:00.000Z`);
+    const end = new Date(`${date}T23:59:59.999Z`);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return undefined;
+    return { gte: start, lte: end };
+  }
+  if (startDate || endDate) {
+    const filter: { gte?: Date; lte?: Date } = {};
+    if (startDate) {
+      const start = new Date(`${startDate}T00:00:00.000Z`);
+      if (!isNaN(start.getTime())) filter.gte = start;
+    }
+    if (endDate) {
+      const end = new Date(`${endDate}T23:59:59.999Z`);
+      if (!isNaN(end.getTime())) filter.lte = end;
+    }
+    return Object.keys(filter).length > 0 ? filter : undefined;
+  }
+  return undefined;
 }
 
 export class ClassSessionRepository {
@@ -25,6 +39,8 @@ export class ClassSessionRepository {
     page = 1,
     limit = 500,
     date?: string,
+    startDate?: string,
+    endDate?: string,
   ): Promise<
     (ClassSession & {
       classSchedule: ClassSchedule;
@@ -33,7 +49,7 @@ export class ClassSessionRepository {
     })[]
   > {
     const { take, skip } = getPaginationParams(page, limit);
-    const dateFilter = buildDateFilter(date);
+    const dateFilter = buildDateFilter(date, startDate, endDate);
     return prisma.classSession.findMany({
       where: {
         deletedAt: null,
@@ -41,13 +57,13 @@ export class ClassSessionRepository {
       },
       take,
       skip,
-      orderBy: date ? [{ startTime: 'asc' }] : [{ date: 'desc' }],
+      orderBy: date || startDate ? [{ date: 'asc' }, { startTime: 'asc' }] : [{ date: 'desc' }],
       include: { classSchedule: true, recurrence: true, instructor: true },
     });
   }
 
-  async count(date?: string): Promise<number> {
-    const dateFilter = buildDateFilter(date);
+  async count(date?: string, startDate?: string, endDate?: string): Promise<number> {
+    const dateFilter = buildDateFilter(date, startDate, endDate);
     return prisma.classSession.count({
       where: {
         deletedAt: null,
