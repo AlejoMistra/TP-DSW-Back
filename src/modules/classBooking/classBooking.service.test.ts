@@ -1,12 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ClassBookingService } from './classBooking.service.js';
 import type { ClassBookingRepository } from './classBooking.repository.js';
-import { NotFoundError, ConflictError } from '../../utils/errors.js';
+import { NotFoundError, ConflictError, ForbiddenError } from '../../utils/errors.js';
 import { prisma } from '../../lib/prisma.js';
+import { UserRole } from '../../generated/prisma/enums.js';
+import type { AuthUser } from '../../middlewares/authentication.middleware.js';
 
 vi.mock('../../lib/prisma.js', () => ({
   prisma: {
     $transaction: vi.fn(),
+    member: {
+      findFirst: vi.fn(),
+    },
   },
 }));
 
@@ -64,6 +69,7 @@ describe('ClassBookingService', () => {
 
   const validMember = {
     id: 10,
+    userId: 5,
     status: 'ACTIVE',
     deletedAt: null,
     membership: {
@@ -134,7 +140,7 @@ describe('ClassBookingService', () => {
 
     it('throws ConflictError if membership is expired today', async () => {
       const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setDate(yesterday.getDate() - 2);
 
       txMock.classSession.findFirst.mockResolvedValue(validSession);
       txMock.member.findFirst.mockResolvedValue({
@@ -148,6 +154,42 @@ describe('ClassBookingService', () => {
       await expect(
         service.create({ memberId: 10, classSessionId: 1 }),
       ).rejects.toThrow('La membresía del socio se encuentra vencida');
+    });
+
+    it('permite reservar si la membresía vence hoy y la clase es hoy (fin de día UTC)', async () => {
+      const todayUTC = new Date();
+      todayUTC.setUTCHours(0, 0, 0, 0);
+
+      const sessionToday = {
+        ...validSession,
+        date: todayUTC,
+      };
+
+      const memberExpiringToday = {
+        ...validMember,
+        membership: {
+          ...validMember.membership,
+          endDate: todayUTC,
+        },
+      };
+
+      txMock.classSession.findFirst.mockResolvedValue(sessionToday);
+      txMock.member.findFirst.mockResolvedValue(memberExpiringToday);
+      txMock.classBooking.findFirst.mockResolvedValue(null);
+      txMock.classBooking.create.mockResolvedValue({
+        id: 101,
+        memberId: 10,
+        classSessionId: 1,
+        status: 'CONFIRMED',
+        bookingDate: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+      });
+
+      const result = await service.create({ memberId: 10, classSessionId: 1 });
+      expect(result.id).toBe(101);
+      expect(result.status).toBe('CONFIRMED');
     });
 
     it('throws ConflictError if membership expires before the session date', async () => {
@@ -201,6 +243,44 @@ describe('ClassBookingService', () => {
       await expect(
         service.create({ memberId: 10, classSessionId: 1 }),
       ).rejects.toThrow('No hay cupos disponibles');
+    });
+
+    it('throws ForbiddenError si un usuario MEMBER intenta reservar para otro memberId (IDOR)', async () => {
+      const memberUser: AuthUser = { userId: 5, role: UserRole.MEMBER };
+      // El socio del usuario autenticado tiene ID 99, pero intenta reservar para ID 10
+      txMock.member.findFirst.mockResolvedValue({
+        id: 99,
+        userId: 5,
+      });
+
+      await expect(
+        service.create({ memberId: 10, classSessionId: 1 }, memberUser),
+      ).rejects.toThrow(ForbiddenError);
+    });
+
+    it('permite a un usuario MEMBER reservar para su propio memberId', async () => {
+      const memberUser: AuthUser = { userId: 5, role: UserRole.MEMBER };
+      // El socio coincide con el memberId
+      txMock.member.findFirst.mockResolvedValue({
+        ...validMember,
+        id: 10,
+        userId: 5,
+      });
+      txMock.classSession.findFirst.mockResolvedValue(validSession);
+      txMock.classBooking.findFirst.mockResolvedValue(null);
+      txMock.classBooking.create.mockResolvedValue({
+        id: 120,
+        memberId: 10,
+        classSessionId: 1,
+        status: 'CONFIRMED',
+        bookingDate: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+      });
+
+      const result = await service.create({ memberId: 10, classSessionId: 1 }, memberUser);
+      expect(result.id).toBe(120);
     });
 
     it('successfully creates booking and decrements session capacity', async () => {
@@ -270,6 +350,25 @@ describe('ClassBookingService', () => {
   });
 
   describe('update', () => {
+    it('throws ForbiddenError si un MEMBER intenta modificar una reserva ajena', async () => {
+      const memberUser: AuthUser = { userId: 5, role: UserRole.MEMBER };
+      txMock.classBooking.findFirst.mockResolvedValue({
+        id: 88,
+        memberId: 10, // Reserva del socio 10
+        classSessionId: 1,
+        status: 'CONFIRMED',
+        deletedAt: null,
+      });
+      txMock.member.findFirst.mockResolvedValue({
+        id: 99, // Usuario 5 es socio 99
+        userId: 5,
+      });
+
+      await expect(
+        service.update(88, { status: 'CANCELLED' }, memberUser),
+      ).rejects.toThrow(ForbiddenError);
+    });
+
     it('allows cancelling a booking without checking membership and increments capacity', async () => {
       const now = new Date();
       txMock.classBooking.findFirst.mockResolvedValue({
@@ -305,7 +404,7 @@ describe('ClassBookingService', () => {
 
     it('rejects confirming a cancelled booking if membership is expired', async () => {
       const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setDate(yesterday.getDate() - 2);
 
       txMock.classBooking.findFirst.mockResolvedValue({
         id: 88,
@@ -328,5 +427,53 @@ describe('ClassBookingService', () => {
       ).rejects.toThrow('La membresía del socio se encuentra vencida');
     });
   });
-});
 
+  describe('delete', () => {
+    it('throws ForbiddenError si un MEMBER intenta eliminar una reserva ajena', async () => {
+      const memberUser: AuthUser = { userId: 5, role: UserRole.MEMBER };
+      txMock.classBooking.findFirst.mockResolvedValue({
+        id: 88,
+        memberId: 10,
+        classSessionId: 1,
+        status: 'CONFIRMED',
+        deletedAt: null,
+      });
+      txMock.member.findFirst.mockResolvedValue({
+        id: 99,
+        userId: 5,
+      });
+
+      await expect(
+        service.delete(88, memberUser),
+      ).rejects.toThrow(ForbiddenError);
+    });
+
+    it('elimina exitosamente la reserva propia e incrementa cupo', async () => {
+      const memberUser: AuthUser = { userId: 5, role: UserRole.MEMBER };
+      txMock.classBooking.findFirst.mockResolvedValue({
+        id: 88,
+        memberId: 10,
+        classSessionId: 1,
+        status: 'CONFIRMED',
+        deletedAt: null,
+      });
+      txMock.member.findFirst.mockResolvedValue({
+        id: 10,
+        userId: 5,
+      });
+      txMock.classBooking.update.mockResolvedValue({});
+      txMock.classSession.update.mockResolvedValue({});
+
+      await service.delete(88, memberUser);
+
+      expect(txMock.classBooking.update).toHaveBeenCalledWith({
+        where: { id: 88 },
+        data: expect.objectContaining({ status: 'CANCELLED' }),
+      });
+      expect(txMock.classSession.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { remainingCapacity: { increment: 1 } },
+      });
+    });
+  });
+});

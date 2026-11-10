@@ -34,10 +34,12 @@ export class ClassSessionService {
     page = 1,
     limit = 10,
     date?: string,
+    startDate?: string,
+    endDate?: string,
   ): Promise<PaginatedResponse<ClassSessionResponse>> {
     const [sessions, total] = await Promise.all([
-      this.repository.getAll(page, limit, date),
-      this.repository.count(date),
+      this.repository.getAll(page, limit, date, startDate, endDate),
+      this.repository.count(date, startDate, endDate),
     ]);
     return {
       items: sessions.map((s) => this.toResponse(s)),

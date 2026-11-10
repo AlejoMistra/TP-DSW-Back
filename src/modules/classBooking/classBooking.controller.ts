@@ -27,13 +27,13 @@ export class ClassBookingController {
 
   getById = async (req: Request, res: Response) => {
     const { id } = req.validated!.params as { id: number };
-    const item = await this.service.getById(id);
+    const item = await this.service.getById(id, req.user);
     res.status(200).json(item);
   };
 
   create = async (req: Request, res: Response) => {
     const { body } = req.validated!;
-    const created = await this.service.create(body as CreateClassBookingInput);
+    const created = await this.service.create(body as CreateClassBookingInput, req.user);
     res.status(201).json(created);
   };
 
@@ -43,13 +43,14 @@ export class ClassBookingController {
     const updated = await this.service.update(
       id,
       body as UpdateClassBookingInput,
+      req.user,
     );
     res.status(200).json(updated);
   };
 
   delete = async (req: Request, res: Response) => {
     const { id } = req.validated!.params as { id: number };
-    await this.service.delete(id);
+    await this.service.delete(id, req.user);
     res.status(204).send();
   };
 }
