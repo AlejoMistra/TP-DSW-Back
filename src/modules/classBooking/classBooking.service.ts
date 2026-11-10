@@ -53,7 +53,10 @@ export class ClassBookingService {
 
         if (!session) throw new NotFoundError('Sesión de clase no encontrada o no disponible');
 
-        // 2) Buscar reserva previa (incluso cancelada o con soft-delete)
+        // 2) Validar elegibilidad del socio y vigencia de su membresía
+        await this.validateMemberBookingEligibility(tx, input.memberId, session.date);
+
+        // 3) Buscar reserva previa (incluso cancelada o con soft-delete)
         const existingBooking = await tx.classBooking.findFirst({
           where: {
             memberId: input.memberId,
@@ -156,6 +159,9 @@ export class ClassBookingService {
         if (!session) throw new NotFoundError('Sesión de clase no encontrada o no disponible');
         if (session.remainingCapacity <= 0) throw new ConflictError('No hay cupos disponibles');
 
+        // Validar elegibilidad del socio y membresía
+        await this.validateMemberBookingEligibility(tx, existing.memberId, session.date);
+
         const booking = await tx.classBooking.update({
           where: { id },
           data: {
@@ -201,6 +207,52 @@ export class ClassBookingService {
         data: { remainingCapacity: { increment: 1 } },
       });
     });
+  }
+
+  private async validateMemberBookingEligibility(
+    tx: Prisma.TransactionClient,
+    memberId: number,
+    sessionDate: Date,
+  ): Promise<void> {
+    const member = await tx.member.findFirst({
+      where: { id: memberId, deletedAt: null },
+      include: { membership: true },
+    });
+
+    if (!member) {
+      throw new NotFoundError('Socio no encontrado');
+    }
+
+    if (member.status === 'INACTIVE') {
+      throw new ConflictError(
+        'El socio se encuentra inactivo y no puede reservar clases',
+      );
+    }
+
+    if (!member.membership || member.membership.deletedAt !== null) {
+      throw new ConflictError('El socio no posee una membresía activa');
+    }
+
+    if (member.membership.status !== 'ACTIVE') {
+      throw new ConflictError(
+        'La membresía del socio no se encuentra activa',
+      );
+    }
+
+    const now = new Date();
+    const membershipExpiryEndOfDay = new Date(member.membership.endDate);
+    membershipExpiryEndOfDay.setHours(23, 59, 59, 999);
+
+    if (membershipExpiryEndOfDay < now) {
+      throw new ConflictError('La membresía del socio se encuentra vencida');
+    }
+
+    const sessionDateObj = new Date(sessionDate);
+    if (sessionDateObj > membershipExpiryEndOfDay) {
+      throw new ConflictError(
+        'La membresía del socio no cubre la fecha de la clase solicitada',
+      );
+    }
   }
 
   private toResponse(classBooking: ClassBooking): ClassBookingResponse {
